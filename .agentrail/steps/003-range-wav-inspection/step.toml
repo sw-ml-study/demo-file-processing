@@ -1,0 +1,8 @@
+number = 3
+slug = "range-wav-inspection"
+status = "pending"
+description = "Inspect WAV structure with bounded reads and test every relevant split boundary without output claims."
+role = "legacy"
+context_files = []
+created_at = "2026-08-08T13:11:07"
+commits = []

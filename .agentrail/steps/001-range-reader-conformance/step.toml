@@ -1,0 +1,8 @@
+number = 1
+slug = "range-reader-conformance"
+status = "pending"
+description = "Implement the smallest reusable MLPL bounded range-reader state/helper over f..."
+role = "production"
+context_files = []
+created_at = "2026-08-08T13:11:07"
+commits = []
