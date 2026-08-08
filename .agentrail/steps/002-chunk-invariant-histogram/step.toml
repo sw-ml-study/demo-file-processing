@@ -1,8 +1,9 @@
 number = 2
 slug = "chunk-invariant-histogram"
-status = "in-progress"
+status = "completed"
 description = "Implement bounded histogram reduction and prove equality with whole-buffer references across required chunk sizes."
 role = "legacy"
 context_files = []
 created_at = "2026-08-08T13:11:07"
-commits = []
+completed_at = "2026-08-08T13:21:32"
+commits = ["7a5e0478f71ac732ed4f34a7bf710957acefe94f"]
