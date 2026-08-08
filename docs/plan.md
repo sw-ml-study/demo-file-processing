@@ -49,12 +49,14 @@ Research notes and adjacent documentation are hypotheses until probed.
 
 ## Current boundary to verify
 
-The research indicates that sw-MLPL has whole-file `read_bytes`/`write_bytes`,
-f64-backed exact-integer byte values, fixed-width bit operations, and a native
-`mlpl build` path for a numeric subset. It also indicates that bounded range or
-stream I/O, packed `u8` arrays, broad application lowering, CLI facilities, and
-extension linking may be absent or incomplete. Saga 1 must measure these facts
-before architecture or upstream requests are finalized.
+The configured sw-MLPL has whole-file `read_bytes`/`write_bytes`, bounded
+`read_bytes(path, offset, length)`, `file_size`, f64-backed exact-integer byte
+values, fixed-width bit operations, and interpreter-side CLI facilities. Its
+native build path works for a narrow numeric expression, but a documented
+arithmetic case currently fails generated-Rust compilation and byte, bit, and
+argument builtins are not lowered. Packed `u8` arrays, incremental binary
+sources/sinks, broad application lowering, and extension linking remain absent
+or incomplete. See [the measured baseline](capabilities.md).
 
 The repository must distinguish:
 
@@ -121,8 +123,9 @@ physical representation and copy costs are documented without streaming claims.
 
 ### Phase 2 — bounded file processing
 
-Gate: a generic bounded range/seek or consumable chunk API is available in the
-configured runtime through separately authorized upstream work.
+Gate: bounded range reads are available. Read-only chunk work may proceed;
+steps requiring bounded output remain gated until an incremental binary sink is
+available through separately authorized upstream work.
 
 - Add chunk-invariant histogram/reduction and bounded WAV copy/transformation.
 - Exercise chunk sizes 1, 7, 64, and 65,536 plus boundaries within fields.
@@ -209,6 +212,7 @@ Ogg/Vorbis; failures are deterministic; the native artifact meets Phase 5.
 Start with the `file-processing-foundations` saga in [sagas.md](sagas.md).
 It creates the repository gate, measures the language/runtime/compiler rather
 than trusting assumptions, and delivers useful in-memory byte/field/WAV demos.
-Only then request the minimal bounded-I/O substrate. This isolates file-
-processing needs from codec complexity and makes later compiler and extension
-work evidence-driven.
+The measured range API already removes the original read-side blocker; finish
+the in-memory foundations next, then use their evidence to minimize the
+remaining incremental-write/compiler requests. This isolates file-processing
+needs from codec complexity and keeps later extension work evidence-driven.

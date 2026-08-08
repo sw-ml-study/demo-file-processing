@@ -19,4 +19,9 @@ if find "$repo_root" -path "$repo_root/.git" -prune -o -type f -name '*.mlpl' -p
   fi
 fi
 
+if find "$repo_root/probes" -type f -name '*.mlpl' -perm -111 -print | grep -q .; then
+  echo "probe MLPL sources must be invoked by checked wrappers, not executable ad hoc tests" >&2
+  exit 1
+fi
+
 echo "PASS sources"

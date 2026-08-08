@@ -1,0 +1,50 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mlpl=$("$repo_root/scripts/select-mlpl")
+mlpl_build=$("$repo_root/scripts/select-mlpl-build")
+scratch=$(mktemp -d "${TMPDIR:-/tmp}/demo-file-compiler.XXXXXX")
+trap 'rm -rf "$scratch"' EXIT HUP INT TERM
+
+interpreted=$("$mlpl" "$repo_root/probes/compiler_numeric.mlpl")
+"$mlpl_build" "$repo_root/probes/compiler_numeric.mlpl" -o "$scratch/compiler-numeric" >/dev/null
+compiled=$("$scratch/compiler-numeric")
+[ "$compiled" = "$interpreted" ] || {
+  echo "compiler parity mismatch: interpreter=$interpreted compiled=$compiled" >&2
+  exit 1
+}
+
+if "$mlpl_build" "$repo_root/probes/compiler_file_io.mlpl" -o "$scratch/compiler-file-io" >"$scratch/unsupported.out" 2>"$scratch/unsupported.err"; then
+  echo "compiler unexpectedly lowered read_bytes" >&2
+  exit 1
+fi
+grep -Fq 'unsupported construct: fncall read_bytes/1' "$scratch/unsupported.err"
+
+if "$mlpl_build" "$repo_root/probes/compiler_args.mlpl" -o "$scratch/compiler-args" >"$scratch/args.out" 2>"$scratch/args.err"; then
+  echo "compiler unexpectedly lowered args" >&2
+  exit 1
+fi
+grep -Fq 'unsupported construct: fncall args/0' "$scratch/args.err"
+
+if "$mlpl_build" "$repo_root/probes/compiler_bits.mlpl" -o "$scratch/compiler-bits" >"$scratch/bits.out" 2>"$scratch/bits.err"; then
+  echo "compiler unexpectedly lowered band" >&2
+  exit 1
+fi
+grep -Fq 'unsupported construct: fncall band/2' "$scratch/bits.err"
+
+if "$mlpl_build" "$repo_root/probes/compiler_arithmetic.mlpl" -o "$scratch/compiler-arithmetic" >"$scratch/arithmetic.out" 2>"$scratch/arithmetic.err"; then
+  echo "compiler arithmetic defect unexpectedly disappeared; update the capability report" >&2
+  exit 1
+fi
+grep -Fq 'ApplyBinopExt' "$scratch/arithmetic.err"
+
+if command -v otool >/dev/null 2>&1; then
+  otool -L "$scratch/compiler-numeric" > "$scratch/libraries"
+  if grep -Eq 'mlpl-repl|mlpl-parser|mlpl-eval' "$scratch/libraries"; then
+    echo "compiled numeric artifact links an interpreter/parser component" >&2
+    exit 1
+  fi
+fi
+
+echo "PASS compiler parity and application-lowering boundaries ($compiled)"

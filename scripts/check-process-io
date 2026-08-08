@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mlpl=$("$repo_root/scripts/select-mlpl")
+scratch=$(mktemp -d "${TMPDIR:-/tmp}/demo-file-process-io.XXXXXX")
+trap 'rm -rf "$scratch"' EXIT HUP INT TERM
+
+set +e
+printf 'payload' | "$mlpl" --source-dir "$repo_root" "$repo_root/probes/process_io.mlpl" -- alpha warning >"$scratch/stdout" 2>"$scratch/stderr"
+status=$?
+set -e
+
+[ "$status" -eq 7 ] || { echo "process probe exit status: expected 7, got $status" >&2; exit 1; }
+[ "$(cat "$scratch/stdout")" = "alpha
+payload" ] || { echo "process probe stdout mismatch" >&2; exit 1; }
+[ "$(cat "$scratch/stderr")" = "warning" ] || { echo "process probe stderr mismatch" >&2; exit 1; }
+
+echo "PASS process I/O"

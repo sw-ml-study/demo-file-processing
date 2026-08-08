@@ -28,7 +28,7 @@ directories and never enter the default gate.
 The repository never installs or replaces sw-MLPL or mlplunit. Selection order
 is:
 
-1. absolute `MLPL` or `MLPLUNIT` override;
+1. absolute `MLPL`, `MLPLUNIT`, or `MLPL_BUILD` override;
 2. `mlplunit` on `PATH` for the test runner;
 3. documented adjacent development checkout;
 4. for sw-MLPL only, release then debug adjacent builds;
@@ -37,6 +37,7 @@ is:
 ```sh
 MLPL=/absolute/path/to/mlpl-repl just mlpl-path
 MLPLUNIT=/absolute/path/to/mlplunit just mlplunit-path
+MLPL_BUILD=/absolute/path/to/mlpl-build just mlpl-build-path
 ```
 
 ## Native mlplunit contract
@@ -58,3 +59,11 @@ just tests --pattern '*repository_contract*.mlpl' tests
 
 Standalone demos may be self-checking for readers, but their behavior also
 requires focused native mlplunit coverage.
+
+## Capability probes
+
+`just capabilities` validates interpreter process I/O and the current compiler
+boundary. Native language assertions for bytes, ranges, bits, integer limits,
+and arguments live in mlplunit suites under `tests/capabilities/`. See the
+[measured baseline](capabilities.md) and
+[upstream contracts](upstream-contract.md) for claim limits and blockers.

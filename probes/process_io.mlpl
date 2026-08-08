@@ -1,0 +1,5 @@
+argv = args()
+print(unwrap_or(list_get(argv, 0), "missing-stdout"))
+eprint(unwrap_or(list_get(argv, 1), "missing-stderr"))
+print(read_stdin())
+exit(7)

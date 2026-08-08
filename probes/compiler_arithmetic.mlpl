@@ -1,0 +1,1 @@
+reduce_add((iota(8) + 1) * 2)

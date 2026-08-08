@@ -8,6 +8,7 @@ trap 'rm -rf "$test_root"' EXIT HUP INT TERM
 "$repo_root/scripts/validate-catalog" "$repo_root/catalog/demos.tsv" >/dev/null
 test "$(MLPL=/bin/sh "$repo_root/scripts/select-mlpl")" = /bin/sh
 test "$(MLPLUNIT=/bin/sh "$repo_root/scripts/select-mlplunit")" = /bin/sh
+test "$(MLPL_BUILD=/bin/sh "$repo_root/scripts/select-mlpl-build")" = /bin/sh
 filtered=$("$repo_root/scripts/run-tests" --list --pattern '*repository_contract*.mlpl' tests)
 case "$filtered" in
   *test_repository_contract.mlpl) : ;;
@@ -28,6 +29,10 @@ if MLPL=relative/mlpl "$repo_root/scripts/select-mlpl" >/dev/null 2>&1; then
 fi
 if MLPLUNIT=relative/mlplunit "$repo_root/scripts/select-mlplunit" >/dev/null 2>&1; then
   echo "mlplunit selector accepted a relative override" >&2
+  exit 1
+fi
+if MLPL_BUILD=relative/mlpl-build "$repo_root/scripts/select-mlpl-build" >/dev/null 2>&1; then
+  echo "mlpl-build selector accepted a relative override" >&2
   exit 1
 fi
 

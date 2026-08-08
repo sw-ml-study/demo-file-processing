@@ -1,0 +1,28 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+release_build="$repo_root/../sw-mlpl/target/release/mlpl-build"
+debug_build="$repo_root/../sw-mlpl/target/debug/mlpl-build"
+
+if [ -n "${MLPL_BUILD:-}" ]; then
+  case "$MLPL_BUILD" in
+    /*) candidate=$MLPL_BUILD ;;
+    *) echo "MLPL_BUILD must be an absolute path: $MLPL_BUILD" >&2; exit 1 ;;
+  esac
+elif [ -x "$release_build" ]; then
+  candidate=$release_build
+elif [ -x "$debug_build" ]; then
+  candidate=$debug_build
+else
+  echo "mlpl-build executable not found" >&2
+  echo "set MLPL_BUILD=/absolute/path/to/mlpl-build or build it in ../sw-mlpl" >&2
+  exit 1
+fi
+
+if [ ! -f "$candidate" ] || [ ! -x "$candidate" ]; then
+  echo "MLPL_BUILD is not an executable file: $candidate" >&2
+  exit 1
+fi
+
+printf '%s\n' "$candidate"

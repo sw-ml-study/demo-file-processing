@@ -1,0 +1,35 @@
+probe_path = ".capability-test-bytes.bin"
+
+@test {name: "whole-file bytes round trip through Result arrays", tags: ["capability", "bytes", "whole-file"]}
+def u:test_whole_file_bytes() { "Verify current byte I/O materializes an ordinary numeric array.";
+  expected = [0, 1, 127, 128, 254, 255];
+  u:assert_true(is_ok(write_bytes(probe_path, expected)), "valid byte write succeeds");
+  actual = unwrap(read_bytes(probe_path));
+  u:assert_eq(actual, expected, "whole-file read preserves byte values");
+  u:assert_eq(type_of(actual), "array", "read bytes use the ordinary array value type");
+  u:assert_eq(unwrap(file_size(probe_path)), 6, "metadata reports the byte count");
+  remove_path(probe_path)
+}
+
+@test {name: "bounded range reads clamp at EOF", tags: ["capability", "bytes", "range"]}
+def u:test_bounded_range_reads() { "Verify offset/length reads avoid a whole-file API contract and clamp at EOF.";
+  expected = [10, 20, 30, 40, 50];
+  write_bytes(probe_path, expected)?;
+  u:assert_eq(unwrap(read_bytes(probe_path, 1, 3)), [20, 30, 40], "middle range matches");
+  u:assert_eq(unwrap(read_bytes(probe_path, 3, 100)), [40, 50], "long range clamps at EOF");
+  u:assert_eq(unwrap(read_bytes(probe_path, 99, 2)), [], "offset beyond EOF is empty");
+  u:assert_eq(unwrap(read_bytes(probe_path, 0, 0)), [], "zero length is empty");
+  remove_path(probe_path)
+}
+
+@test {name: "invalid byte writes return Err and preserve contents", tags: ["capability", "bytes", "errors"]}
+def u:test_invalid_byte_writes() { "Verify byte-domain validation is Result-based and non-destructive.";
+  expected = [3, 1, 4];
+  write_bytes(probe_path, expected)?;
+  u:assert_true(is_err(write_bytes(probe_path, [0, 256])), "out-of-range byte returns Err");
+  u:assert_true(is_err(write_bytes(probe_path, [0, 1.5])), "fractional byte returns Err");
+  u:assert_eq(unwrap(read_bytes(probe_path)), expected, "failed writes preserve old bytes");
+  remove_path(probe_path)
+}
+
+u:run_registered_tests()

@@ -26,8 +26,9 @@ editing durable `.agentrail/` state by hand.
 
 ## Saga 2 — `bounded-file-streaming`
 
-Gate: separately authorized generic bounded range/seek or consumable chunk I/O
-is available in the configured sw-MLPL binary.
+Gate: bounded range reads are already verified. Read-only steps are unblocked;
+bounded-copy/transformation steps require a separately authorized incremental
+binary sink if whole-output materialization violates their acceptance bound.
 
 1. Bounded reader/writer conformance, sandbox, EOF, short-I/O, and overflow tests.
 2. Chunk-boundary invariant histogram and reduction.

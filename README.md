@@ -16,16 +16,18 @@ when a runtime, codec extension, or validation oracle performs the work.
 
 This repository has its initial validation and native-test foundation. See
 [the development guide](docs/development.md),
+[the measured capability baseline](docs/capabilities.md),
+[the upstream contracts](docs/upstream-contract.md), and
 [the delivery plan](docs/plan.md)
 for architecture and acceptance gates, [the saga queue](docs/sagas.md) for the
 recommended implementation order, and
 [the research transcript](docs/sw-mlpl-demo-file-processing-research.txt) for
 the original design discussion.
 
-Large-file streaming and standalone-application support are targets, not
-current claims. The first implementation saga will probe the configured
-sw-MLPL interpreter/compiler and turn observed gaps into minimal upstream
-contracts before relying on them.
+Bounded range reads are available, but packed byte storage, incremental binary
+streams/writes, and compiled application APIs are not current claims. The
+native compiler handles a narrow numeric case; a minimized arithmetic codegen
+defect and unsupported byte/process/bit lowering are tracked explicitly.
 
 ## Development and testing
 

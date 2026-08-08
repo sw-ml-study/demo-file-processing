@@ -19,6 +19,7 @@ coverage/
 tmp/
 *.tmp
 *.log
+.capability-*.bin
 
 # Generated or downloaded media belongs outside version control.
 # Tiny deterministic fixtures under fixtures/ remain trackable.

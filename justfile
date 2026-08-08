@@ -27,6 +27,14 @@ mlpl-path:
 mlplunit-path:
     ./scripts/select-mlplunit
 
+mlpl-build-path:
+    ./scripts/select-mlpl-build
+
+# Verify script process behavior and native numeric compiler parity.
+capabilities:
+    ./scripts/check-process-io
+    ./scripts/check-compiler
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check
