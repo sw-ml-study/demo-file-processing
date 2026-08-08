@@ -8,6 +8,11 @@ The [foundation acceptance report](foundation-report.md) closes the measured
 foundation work and separates the unblocked bounded-read path from capabilities
 that still require upstream authorization.
 
+The [bounded-read acceptance report](bounded-read-report.md) now demonstrates
+that no upstream source API is required for seekable-file histogram, WAV,
+MP3/ID3, or Ogg inspection. Repeated exact range reads plus MLPL state are the
+accepted downstream contract.
+
 ## Delivered: bounded range reads
 
 The configured interpreter already supplies:
@@ -73,22 +78,26 @@ byte values, and errors. A produced application must run without source, parser,
 REPL, or interpreter at runtime. This gate belongs before the standalone-
 application saga, not before the next in-memory demos.
 
-## Gate: incremental binary source and sink
+## Gate: incremental binary sink and non-seekable source
 
-Bounded range reads cap input allocation but do not provide a consumable stream
-or bounded output. MP3 scanning, Ogg packet reconstruction, WAV transformation,
-and transcoding eventually need state carried across arbitrary chunk boundaries.
+Bounded range reads now cap seekable-file input allocation and MLPL carries
+state across arbitrary boundaries. They do not provide bounded output,
+non-seekable binary stdin, backpressure, or a consumable stream handle. WAV
+transformation, byte-preserving rewrites, and transcoding still need those
+effects.
 
-The preferred surface is compositional rather than codec-specific. It must
-provide bounded binary reads and writes, explicit EOF/short-I/O errors, cleanup,
-sandboxing, offsets beyond f64 ambiguity, and a memory high-water invariant.
-Exact API spelling should be earned by the bounded-file-streaming saga; do not
-add MP3/Ogg builtins.
+The preferred missing surface is compositional rather than codec-specific. A
+sink must provide bounded writes, partial-write handling, flush/close cleanup,
+sandboxing, offsets beyond f64 ambiguity, and a memory high-water invariant. A
+later non-seekable source should add explicit EOF, backpressure, and equivalent
+error/lifecycle semantics. Exact API spelling should be earned by the
+incremental-output and codec sagas; do not add MP3/Ogg builtins.
 
-Minimum acceptance includes identical results for chunk sizes 1, 7, 64, and
-65,536; fields split across chunks; inputs larger than the memory budget;
-bounded writes; and measured resident memory proportional to chunk plus parser
-state rather than file size.
+Minimum sink acceptance includes byte-identical output for write chunk sizes 1,
+7, 64, and 65,536; injected partial/failed writes; outputs larger than the
+memory budget; and measured resident memory proportional to chunk plus writer
+state rather than total output size. If a sequential source is added, it must
+also reproduce the already accepted range-reader results across split fields.
 
 ## Deferred: packed bytes and exact 64-bit fields
 

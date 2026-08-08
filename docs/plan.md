@@ -123,8 +123,7 @@ physical representation and copy costs are documented without streaming claims.
 
 ### Phase 2a — bounded range analysis
 
-Status: unblocked by the measured `read_bytes(path, offset, length)` and
-`file_size` APIs.
+Status: accepted. See the [bounded-read report](bounded-read-report.md).
 
 - Add range-reader conformance for EOF, offsets, lengths, overflow, permissions,
   and sandbox escape attempts.
@@ -144,33 +143,37 @@ semantics.
 
 - Add sink conformance and chunked byte-copy tests.
 - Add bounded WAV copy and a simple PCM array transformation.
+- Strip/sanitize ID3 tags, extract raw MPEG frames, and rewrite Ogg pages from
+  descriptors earned by the read-only sagas.
 - Verify byte/hash oracles across chunk sizes and output error paths.
 - Measure peak resident memory for output larger than the configured budget.
 
 Acceptance: copy/transformation output matches the reference path and peak
 memory is bounded independently of total input and output size.
 
-### Phase 3 — MP3 and ID3 inspection/manipulation
+### Phase 3 — MP3 and ID3 inspection
 
 - Parse MPEG audio frame headers as data-described bit fields.
 - Scan frames and report version/layer, duration, sample rate, bitrate range and
   histogram, channel modes, and frame sizes without decoding audio.
-- Parse bounded ID3 metadata, strip or sanitize tags, and extract raw compatible
-  MPEG frames through a streaming transformation.
+- Parse bounded ID3 metadata and emit validated tag/audio range descriptors for
+  later output work.
 - Validate against tiny redistributable fixtures and an explicit oracle.
 
 Acceptance: parsing survives arbitrary input chunking and malformed sync/tag
-data; writing preserves untouched audio frame bytes.
+data; statistics and descriptors match explicit oracles without output claims.
 
-### Phase 4 — Ogg container processing
+### Phase 4 — Ogg container inspection
 
 - Parse Ogg pages, lacing values, packet continuation, granule positions,
   serial/sequence fields, and 64-bit values.
 - Implement Ogg CRC calculation visibly in MLPL where practical.
-- Verify, copy, and minimally rewrite pages with stored/computed CRC checks.
+- Verify stored/computed CRC checks and emit validated page descriptors for
+  later rewriting.
 
 Acceptance: packet reconstruction is chunk-invariant; golden CRC vectors and
-page round trips pass; unsupported codecs remain inspectable at container level.
+oracle comparisons pass; unsupported codecs remain inspectable at container
+level without output claims.
 
 ### Phase 5 — native application compilation
 
@@ -222,9 +225,9 @@ Ogg/Vorbis; failures are deterministic; the native artifact meets Phase 5.
 
 ## Recommended order
 
-The `file-processing-foundations` saga is accepted; see its
-[executable evidence and limitations](foundation-report.md). Archive it, then
-start `bounded-range-analysis` from [sagas.md](sagas.md). The measured range API
-removes the read-side blocker, while bounded copy/transformation remains in a
-separate gated saga until a generic incremental sink exists. This isolates
-read-side progress from upstream write/compiler work and codec complexity.
+The foundation and bounded range-analysis sagas are accepted; see their
+[foundation](foundation-report.md) and [bounded-read](bounded-read-report.md)
+reports. Archive the range saga, then start `mp3-id3-inspection` from
+[sagas.md](sagas.md), followed by read-only Ogg inspection. Bounded copy,
+transformation, extraction, and rewriting remain in a separate gated saga
+until a generic incremental sink exists.

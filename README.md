@@ -7,15 +7,17 @@ scale beyond whole-file memory, and compile a useful command-line application
 into a standalone native executable.
 
 The progression begins with hexdump, byte statistics, endian fields, and WAV
-round trips; continues through bounded streaming, MP3/ID3 inspection, and Ogg
+round trips; continues through bounded range analysis, MP3/ID3 inspection, and Ogg
 pages/CRC; and ends with MP3-to-Ogg as an extension-backed capstone. Native and
 external components must be named explicitly—MLPL ownership is never implied
 when a runtime, codec extension, or validation oracle performs the work.
 
 ## Project status
 
-The file-processing foundation is accepted with 27 native mlplunit tests across
-9 suites. See [the foundation acceptance report](docs/foundation-report.md),
+The file-processing foundation and bounded range analysis are accepted with 41
+native mlplunit tests across 13 suites. See
+[the bounded-read acceptance report](docs/bounded-read-report.md),
+[the foundation acceptance report](docs/foundation-report.md),
 [the development guide](docs/development.md),
 [the measured capability baseline](docs/capabilities.md),
 [the upstream contracts](docs/upstream-contract.md), and
