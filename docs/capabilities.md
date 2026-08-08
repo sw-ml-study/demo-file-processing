@@ -21,6 +21,7 @@ the authority for downstream claims.
 | Whole-file byte I/O | `write_bytes` and one-argument `read_bytes` round-trip `0..=255` through `Result` | Small in-memory demos are unblocked. |
 | Byte representation | `read_bytes` returns ordinary `array`; upstream implementation converts `Vec<u8>` to `Vec<f64>` | Values are logical bytes, not packed byte storage; memory/copy costs must say so. |
 | Bounded reads | `read_bytes(path, offset, length)` returns only the requested range, clamps at EOF, and `file_size` uses metadata | Bounded random/range analysis is available now; the research transcript's “absent” assumption is stale. |
+| Range-reader contract | MLPL validates exact offsets/budgets, prevents range-addition overflow, advances immutable state, detects short reads, and preserves runtime path errors | Chunked read-side consumers can share one tested contract; bounded memory remains a property to prove per consumer. |
 | Incremental stream handles | No open/read-next/write-next/seek handle surface was found or exercised | Stateful single-pass transforms and codecs remain gated; repeated range reads are not a stream API. |
 | Writes | `write_bytes` validates integral byte values and failed validation preserves prior contents | Deterministic whole-buffer writes are usable; bounded/incremental writes remain absent. |
 | Bit operations | `band`, `bor`, `bxor`, `bnot`, `popcount`, `shl`, `shr`, `bits`, and `from_bits` pass golden vectors | In-memory endian and field work is unblocked in the interpreter. |
@@ -55,6 +56,7 @@ It cannot yet claim:
 
 ```sh
 just tests tests/capabilities
+just tests tests/io
 just capabilities
 just check
 ```

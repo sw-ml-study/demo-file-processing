@@ -63,6 +63,11 @@ visible and deterministic, but is not the intended streaming implementation.
 A later saga will compare a bounded mergeable chunk histogram and measure peak
 resident memory.
 
+The runnable demo contrasts four fixtures rather than printing only 256 ones:
+all byte values once, byte 7 repeated twelve times, values 0 through 16 once,
+and the empty input. Its compact view uses MLPL `compress` to report only
+populated byte/count bins; the full 256-bin arrays remain the tested result.
+
 ## Validation and limits
 
 Both APIs accept only rank-one numeric arrays of integral values `0..=255` and

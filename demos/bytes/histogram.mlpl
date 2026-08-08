@@ -1,10 +1,14 @@
 include "../../src/bytes/validate.mlpl";
 include "../../src/bytes/histogram.mlpl";
 
-bytes = read_bytes("fixtures/bytes/all-bytes.bin")?;
-counts = u:byte_histogram(bytes)?;
-if equal(counts, fill([256], 1)) * eq(reduce_add(counts), tally(bytes)) {
-  print("byte histogram: one occurrence of every value 0..255");
-  print(counts);
-  ok({bytes: tally(bytes), bins: tally(counts), total: reduce_add(counts)})
+all_bytes = read_bytes("fixtures/bytes/all-bytes.bin")?; all_counts = u:byte_histogram(all_bytes)?;
+repeated = read_bytes("fixtures/bytes/repeated-7.bin")?; repeated_counts = u:byte_histogram(repeated)?;
+boundary = read_bytes("fixtures/bytes/boundary-17.bin")?; boundary_counts = u:byte_histogram(boundary)?;
+empty = read_bytes("fixtures/bytes/empty.bin")?; empty_counts = u:byte_histogram(empty)?;
+if equal(all_counts, fill([256], 1)) * eq(reduce_add(repeated_counts), 12) * eq(reduce_add(boundary_counts), 17) * eq(reduce_add(empty_counts), 0) {
+  print("all-bytes histogram: one occurrence of every value 0..255"); print(u:histogram_nonzero(all_counts)?);
+  print("repeated histogram: byte 7 occurs 12 times"); print(u:histogram_nonzero(repeated_counts)?);
+  print("boundary histogram: bytes 0..16 occur once"); print(u:histogram_nonzero(boundary_counts)?);
+  print("empty histogram: no populated bins"); print(u:histogram_nonzero(empty_counts)?);
+  ok({fixtures: 4, bins: tally(all_counts), total_bytes: reduce_add(all_counts) + reduce_add(repeated_counts) + reduce_add(boundary_counts)})
 } else { err({kind: "invariant", message: "histogram totals changed"}) }

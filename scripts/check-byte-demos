@@ -9,6 +9,9 @@ printf '%s\n' "$hexdump" | grep -Fqx '00000000  00 01 02 03 04 05 06 07 08 09 0A
 printf '%s\n' "$hexdump" | grep -Fqx '00000010  10'
 
 histogram=$("$mlpl" --source-dir "$repo_root" "$repo_root/demos/bytes/histogram.mlpl")
-printf '%s\n' "$histogram" | grep -Fqx 'byte histogram: one occurrence of every value 0..255'
+printf '%s\n' "$histogram" | grep -Fqx 'all-bytes histogram: one occurrence of every value 0..255'
+printf '%s\n' "$histogram" | grep -Fqx 'repeated histogram: byte 7 occurs 12 times'
+printf '%s\n' "$histogram" | grep -Fqx 'boundary histogram: bytes 0..16 occur once'
+printf '%s\n' "$histogram" | grep -Fqx 'empty histogram: no populated bins'
 
 echo "PASS byte demos"

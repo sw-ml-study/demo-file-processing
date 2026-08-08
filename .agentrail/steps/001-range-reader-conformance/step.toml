@@ -1,6 +1,6 @@
 number = 1
 slug = "range-reader-conformance"
-status = "pending"
+status = "in-progress"
 description = "Implement the smallest reusable MLPL bounded range-reader state/helper over f..."
 role = "production"
 context_files = []

@@ -3,6 +3,9 @@
 `demos.tsv` is the validated inventory of runnable, constrained, gated, and
 external file-processing demonstrations. Its nine tab-separated columns are:
 
+Reusable libraries and mlplunit-only conformance suites are intentionally not
+catalog rows until they support a runnable demonstration or capability probe.
+
 | Column | Contract |
 |---|---|
 | `id` | Stable lowercase identifier |

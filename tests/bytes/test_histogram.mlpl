@@ -31,4 +31,15 @@ def u:test_histogram_invalid() { "Verify invalid cells and ranks return Err.";
   u:assert_err(u:byte_histogram(reshape(range(4), [2, 2])), "rank-two input")
 }
 
+@test {name: "byte histogram reports compact populated bins", tags: ["bytes", "histogram", "presentation"]}
+def u:test_histogram_nonzero() { "Verify contrasting fixtures can be presented without 256 mostly-zero cells.";
+  repeated = u:histogram_nonzero(u:byte_histogram(fill([12], 7))?)?;
+  boundary = u:histogram_nonzero(u:byte_histogram(range(17))?)?;
+  empty = u:histogram_nonzero(u:byte_histogram([])?)?;
+  u:assert_eq(repeated, {bytes: [7], counts: [12]}, "repeated fixture has one populated bin")?;
+  u:assert_eq(boundary, {bytes: range(17), counts: fill([17], 1)}, "boundary fixture has 17 populated bins")?;
+  u:assert_eq(empty, {bytes: [], counts: []}, "empty fixture has no populated bins")?;
+  u:assert_err(u:histogram_nonzero([1, 2]), "wrong bin count")
+}
+
 u:run_registered_tests()

@@ -38,6 +38,11 @@ histogram. The hexdump demonstrates a 16-byte formatting boundary; the
 histogram proves one count for every byte value. Both use tiny generated
 fixtures and state their current f64 representation and copy costs explicitly.
 
+The [bounded range-reader contract](docs/bounded-range-reader.md) validates
+exact offsets and chunk budgets, advances immutable read state, and preserves
+runtime sandbox and filesystem errors. It is executable conformance evidence,
+not yet a bounded-memory demo claim.
+
 The [endian and field-layout slice](docs/endian-and-fields.md) adds exact
 one-to-six-byte little/big-endian codecs and data-described MSB-first field
 extraction. Its narrated demo decodes a golden four-byte MPEG audio header,
@@ -54,6 +59,7 @@ just histogram
 just binary-fields
 just wav-inspect-copy
 just tests tests/bytes
+just tests tests/io
 just tests tests/binary
 just tests tests/wav
 just check
