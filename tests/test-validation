@@ -1,0 +1,34 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+test_root=$(mktemp -d "${TMPDIR:-/tmp}/demo-file-processing-test.XXXXXX")
+trap 'rm -rf "$test_root"' EXIT HUP INT TERM
+
+"$repo_root/scripts/validate-catalog" "$repo_root/catalog/demos.tsv" >/dev/null
+test "$(MLPL=/bin/sh "$repo_root/scripts/select-mlpl")" = /bin/sh
+test "$(MLPLUNIT=/bin/sh "$repo_root/scripts/select-mlplunit")" = /bin/sh
+filtered=$("$repo_root/scripts/run-tests" --list --pattern '*repository_contract*.mlpl' tests)
+case "$filtered" in
+  *test_repository_contract.mlpl) : ;;
+  *) echo "mlplunit pattern filter did not select the foundation suite" >&2; exit 1 ;;
+esac
+
+cp "$repo_root/catalog/demos.tsv" "$test_root/bad.tsv"
+printf 'duplicate\tdemos/a.mlpl\twav\tinspect\tmlpl\twhole-file\tno\tcurrent\tgated\n' >> "$test_root/bad.tsv"
+printf 'duplicate\tdemos/b.mlpl\togg\tinspect\tmlpl\twhole-file\tno\tcurrent\tgated\n' >> "$test_root/bad.tsv"
+if "$repo_root/scripts/validate-catalog" "$test_root/bad.tsv" >/dev/null 2>&1; then
+  echo "catalog validator accepted duplicate ids" >&2
+  exit 1
+fi
+
+if MLPL=relative/mlpl "$repo_root/scripts/select-mlpl" >/dev/null 2>&1; then
+  echo "MLPL selector accepted a relative override" >&2
+  exit 1
+fi
+if MLPLUNIT=relative/mlplunit "$repo_root/scripts/select-mlplunit" >/dev/null 2>&1; then
+  echo "mlplunit selector accepted a relative override" >&2
+  exit 1
+fi
+
+echo "PASS validation tests"

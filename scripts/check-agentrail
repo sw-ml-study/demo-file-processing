@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+profile="$repo_root/.agentrail/instruction-profile.toml"
+
+test -s "$repo_root/AGENTS.md"
+test -s "$repo_root/.agentrail/saga.toml"
+test -s "$repo_root/.agentrail/plan.md"
+grep -Fqx 'targets = ["AGENTS.md"]' "$profile"
+grep -Fq '"global/branch-handoff.md"' "$profile"
+grep -Fq '"global/push-discipline.md"' "$profile"
+grep -Fq 'Work directly on `main`' "$repo_root/AGENTS.md"
+if grep -Eq 'gh pr|git branch -m feat/' "$repo_root/AGENTS.md"; then
+  echo "AGENTS.md contains a forbidden branch or gh workflow" >&2
+  exit 1
+fi
+
+echo "PASS Agentrail policy"

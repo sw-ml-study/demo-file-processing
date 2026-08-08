@@ -14,7 +14,9 @@ when a runtime, codec extension, or validation oracle performs the work.
 
 ## Project status
 
-This repository is at the planning stage. See [the delivery plan](docs/plan.md)
+This repository has its initial validation and native-test foundation. See
+[the development guide](docs/development.md),
+[the delivery plan](docs/plan.md)
 for architecture and acceptance gates, [the saga queue](docs/sagas.md) for the
 recommended implementation order, and
 [the research transcript](docs/sw-mlpl-demo-file-processing-research.txt) for
@@ -27,17 +29,17 @@ contracts before relying on them.
 
 ## Development and testing
 
-The repository will use a thin root `justfile` over portable scripts, with
+The repository uses a thin root `justfile` over portable scripts, with
 `just check` as the required pre-commit gate. Tool selection will honor
 `MLPL=/absolute/path/to/mlpl-repl` and
 `MLPLUNIT=/absolute/path/to/mlplunit`; scripts may use documented adjacent
-development checkouts but will never install or overwrite either tool.
+development checkouts but never install or overwrite either tool.
 
-All executable MLPL tests will use
+All executable MLPL tests use
 [mlplunit](https://github.com/softwarewrighter/mlplunit), a root
-`mlplunit.conf`, and `test_*.mlpl` discovery. Each suite will register native
-`@test` cases, use mlplunit's shared assertions, and call
-`u:run_registered_tests()`. The test wrapper will support normal, TAP, listing,
+`mlplunit.conf`, and `test_*.mlpl` discovery. Each suite registers native
+`@test` cases, uses mlplunit's shared assertions, and calls
+`u:run_registered_tests()`. The test wrapper supports normal, TAP, listing,
 path, and filter modes. Standalone demos may remain self-checking, but ad hoc
 test scripts or direct interpreter execution will not substitute for mlplunit
 coverage.

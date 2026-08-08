@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+
+"$repo_root/scripts/validate-catalog" "$repo_root/catalog/demos.tsv"
+"$repo_root/scripts/check-license"
+"$repo_root/scripts/check-doc-links"
+"$repo_root/scripts/check-fixtures"
+"$repo_root/scripts/check-sources"
+"$repo_root/scripts/check-gitignore"
+"$repo_root/scripts/check-agentrail"
+"$repo_root/scripts/check-mlplunit-adoption"

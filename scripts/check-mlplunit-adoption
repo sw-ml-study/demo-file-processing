@@ -1,0 +1,56 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$repo_root"
+
+source_root=$(awk -F '\t' '$1 == "source_root" { print $2 }' mlplunit.conf)
+test_root=$(awk -F '\t' '$1 == "test_root" { print $2 }' mlplunit.conf)
+pattern=$(awk -F '\t' '$1 == "pattern" { print $2 }' mlplunit.conf)
+if [ "$source_root" != "." ] || [ "$test_root" != "tests" ] || [ "$pattern" != "test_*.mlpl" ]; then
+  echo "mlplunit adoption audit failed: discovery contract changed" >&2
+  exit 1
+fi
+
+unmatched=$(find tests -type f -name '*.mlpl' ! -name 'test_*.mlpl' -print)
+if [ -n "$unmatched" ]; then
+  echo "mlplunit adoption audit failed: ad hoc MLPL tests found:" >&2
+  echo "$unmatched" >&2
+  exit 1
+fi
+
+test_count=0
+while IFS= read -r test_file; do
+  [ -n "$test_file" ] || continue
+  test_count=$((test_count + 1))
+  rg -q '^@test ' "$test_file" || {
+    echo "$test_file has no native @test registration" >&2
+    exit 1
+  }
+  rg -q '^u:run_registered_tests\(\)' "$test_file" || {
+    echo "$test_file does not run the native test registry" >&2
+    exit 1
+  }
+  rg -q 'u:assert_[a-z_]+\(' "$test_file" || {
+    echo "$test_file uses no shared mlplunit assertion" >&2
+    exit 1
+  }
+done <<EOF
+$(find tests -type f -name 'test_*.mlpl' | sort)
+EOF
+
+[ "$test_count" -gt 0 ] || {
+  echo "mlplunit adoption audit failed: no native test suites" >&2
+  exit 1
+}
+
+if rg -q '^def u:(check|assert_|run_tests|before_each|after_each)' tests -g 'test_*.mlpl'; then
+  echo "mlplunit adoption audit failed: copied assertion or lifecycle helper remains" >&2
+  exit 1
+fi
+if rg -q 'eprint\("FAIL"|exit\(1\)' tests -g 'test_*.mlpl'; then
+  echo "mlplunit adoption audit failed: process-exit assertion remains" >&2
+  exit 1
+fi
+
+echo "PASS mlplunit adoption ($test_count native suites)"

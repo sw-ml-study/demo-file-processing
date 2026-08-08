@@ -1,0 +1,6 @@
+@test {name: "repository contract supports native mlplunit tests", tags: ["foundation", "repository"]}
+def u:test_repository_contract() { "Prove native discovery and shared assertions are wired into the repository gate.";
+  u:assert_eq([0, 1, 2, 255], [0, 1, 2, 255], "byte-domain smoke vector is preserved")
+}
+
+u:run_registered_tests()

@@ -1,6 +1,6 @@
 number = 1
 slug = "repository-check-gate"
-status = "pending"
+status = "in-progress"
 description = "Create the initial repository validation workflow. Add a thin justfile delega..."
 role = "production"
 context_files = []
