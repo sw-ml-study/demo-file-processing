@@ -1,0 +1,29 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mode=${1:---write}
+
+case "$mode" in
+  --write)
+    mlpl=$("$repo_root/scripts/select-mlpl")
+    "$mlpl" --source-dir "$repo_root" "$repo_root/fixtures/wav/generate.mlpl" >/dev/null
+    ;;
+  --check)
+    expected='empty-mono8.wav 44
+minimal-mono8.wav 48
+odd-unknown-mono8.wav 58'
+    actual=
+    for path in empty-mono8.wav minimal-mono8.wav odd-unknown-mono8.wav; do
+      file="$repo_root/fixtures/wav/$path"
+      [ -f "$file" ] || { echo "missing WAV fixture: $path" >&2; exit 1; }
+      count=$(wc -c < "$file" | tr -d ' ')
+      actual="${actual}${actual:+
+}$path $count"
+    done
+    [ "$actual" = "$expected" ] || { echo "WAV fixture manifest mismatch" >&2; printf '%s\n' "$actual" >&2; exit 1; }
+    ;;
+  *) echo "usage: generate-wav-fixtures [--write|--check]" >&2; exit 2 ;;
+esac
+
+echo "PASS WAV fixtures ($mode)"

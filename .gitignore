@@ -20,6 +20,7 @@ tmp/
 *.tmp
 *.log
 .capability-*.bin
+.wav-copy-output.wav
 
 # Generated or downloaded media belongs outside version control.
 # Tiny deterministic fixtures under fixtures/ remain trackable.

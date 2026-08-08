@@ -1,0 +1,48 @@
+include "src/bytes/validate.mlpl";
+include "src/binary/slice.mlpl";
+include "src/binary/endian_decode.mlpl";
+include "src/binary/endian_encode.mlpl";
+include "src/wav/model.mlpl";
+include "src/wav/chunks.mlpl";
+include "src/wav/parse.mlpl";
+include "src/wav/encode.mlpl";
+
+@test {name: "WAV rejects truncation and inconsistent lengths", tags: ["wav", "invalid", "truncated"]}
+def u:test_wav_lengths() { "Verify header, chunk payload, RIFF size, and frame alignment checks.";
+  valid = read_bytes("fixtures/wav/minimal-mono8.wav")?;
+  u:assert_err(u:parse_wav(u:byte_slice(valid, 0, 10)?, 1024, 8), "truncated RIFF header")?;
+  without_pad = scatter(u:byte_slice(valid, 0, tally(valid) - 1)?, 4, 39);
+  u:assert_err(u:parse_wav(without_pad, 1024, 8), "truncated odd data pad")?;
+  u:assert_err(u:parse_wav(scatter(valid, 4, 0), 1024, 8), "inconsistent RIFF length")?;
+  oversized = scatter(scatter(scatter(scatter(valid, 40, 255), 41, 255), 42, 255), 43, 255);
+  u:assert_err(u:parse_wav(oversized, 1024, 8), "declared chunk overflow")?;
+  stereo = scatter(scatter(scatter(scatter(valid, 22, 2), 28, 128), 29, 62), 32, 2);
+  u:assert_err(u:parse_wav(stereo, 1024, 8), "data is not a whole stereo frame")
+}
+
+@test {name: "WAV rejects signatures and missing required chunks", tags: ["wav", "invalid", "structure"]}
+def u:test_wav_structure() { "Verify RIFF/WAVE identity and required fmt/data chunks.";
+  valid = read_bytes("fixtures/wav/empty-mono8.wav")?;
+  u:assert_err(u:parse_wav(scatter(valid, 0, 0), 1024, 8), "bad RIFF signature")?;
+  header_only = scatter(u:byte_slice(valid, 0, 12)?, 4, 4);
+  u:assert_err(u:parse_wav(header_only, 1024, 8), "missing fmt and data chunks")
+}
+
+@test {name: "WAV rejects unsupported PCM variants", tags: ["wav", "invalid", "format"]}
+def u:test_wav_unsupported() { "Verify encoding, channel-count, sample-width, and derived-rate policies.";
+  valid = read_bytes("fixtures/wav/empty-mono8.wav")?;
+  u:assert_err(u:parse_wav(scatter(valid, 20, 3), 1024, 8), "non-PCM encoding")?;
+  u:assert_err(u:parse_wav(scatter(valid, 22, 3), 1024, 8), "three channels")?;
+  u:assert_err(u:parse_wav(scatter(valid, 34, 24), 1024, 8), "24-bit samples")?;
+  u:assert_err(u:parse_wav(scatter(valid, 32, 2), 1024, 8), "inconsistent block alignment")?;
+  u:assert_err(u:parse_wav(scatter(valid, 28, 0), 1024, 8), "inconsistent byte rate")
+}
+
+@test {name: "WAV enforces byte and chunk budgets", tags: ["wav", "invalid", "budget"]}
+def u:test_wav_budgets() { "Verify allocation/iteration budgets reject before unbounded work.";
+  valid = read_bytes("fixtures/wav/odd-unknown-mono8.wav")?;
+  u:assert_err(u:parse_wav(valid, 32, 8), "max_bytes")?;
+  u:assert_err(u:parse_wav(valid, 1024, 2), "max_chunks")
+}
+
+u:run_registered_tests()

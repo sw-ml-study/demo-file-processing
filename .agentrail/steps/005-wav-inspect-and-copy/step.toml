@@ -1,6 +1,6 @@
 number = 5
 slug = "wav-inspect-and-copy"
-status = "pending"
+status = "in-progress"
 description = "Generate tiny redistributable PCM WAV fixtures and implement MLPL inspection ..."
 role = "production"
 context_files = []

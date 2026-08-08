@@ -1,0 +1,35 @@
+def u:wav_validate_format(state) { "Validate the supported PCM mono/stereo 8/16-bit format subset.";
+  if 1 - eq(state.audio_format, 1) { err({kind: "encoding", message: "only PCM format 1 is supported"}) } else {
+    if lt(state.channels, 1) + gt(state.channels, 2) { err({kind: "channels", message: "only mono or stereo WAV is supported"}) } else {
+      if (1 - eq(state.bits_per_sample, 8)) * (1 - eq(state.bits_per_sample, 16)) { err({kind: "width", message: "only 8-bit or 16-bit PCM is supported"}) } else {
+        expected_align = state.channels * state.bits_per_sample / 8;
+        if (1 - eq(state.block_align, expected_align)) + (1 - eq(state.byte_rate, state.sample_rate * expected_align)) { err({kind: "rate", message: "WAV byte rate or block alignment is inconsistent"}) } else { ok(expected_align) }
+      }
+    }
+  }
+}
+
+def u:wav_finish(state) { "Build a validated semantic WAV record after chunk scanning.";
+  if (1 - state.fmt_found) + (1 - state.data_found) { err({kind: "missing", message: "WAV requires fmt and data chunks"}) } else {
+    align = u:wav_validate_format(state)?;
+    if eq(state.sample_rate, 0) { err({kind: "rate", message: "WAV sample rate must be positive"}) } else {
+      if 1 - eq(mod(tally(state.data), align), 0) { err({kind: "data", message: "WAV data length is not a whole frame"}) } else {
+        frames = tally(state.data) / align;
+        ok({audio_format: state.audio_format, channels: state.channels, sample_rate: state.sample_rate, byte_rate: state.byte_rate, block_align: align, bits_per_sample: state.bits_per_sample, data: state.data, data_bytes: tally(state.data), frames: frames, duration_seconds: frames / state.sample_rate, unknown_chunks: state.unknown_chunks, chunks: state.chunks})
+      }
+    }
+  }
+}
+
+def u:parse_wav(bytes, max_bytes, max_chunks) { "Parse a budgeted whole-buffer RIFF/WAVE PCM file.";
+  if 1 - u:bytes_valid(bytes) { err({kind: "input", message: "parse_wav expects a byte vector"}) } else {
+    if gt(tally(bytes), max_bytes) { err({kind: "budget", message: "WAV byte length exceeds max_bytes"}) } else {
+      if lt(tally(bytes), 12) { err({kind: "truncated", message: "WAV RIFF header is truncated"}) } else {
+        riff = u:byte_slice(bytes, 0, 4)?; declared = u:decode_uint(bytes, 4, 4, "le")?; wave = u:byte_slice(bytes, 8, 4)?;
+        if (1 - equal(riff, [82, 73, 70, 70])) + (1 - equal(wave, [87, 65, 86, 69])) { err({kind: "signature", message: "expected RIFF/WAVE signature"}) } else {
+          if 1 - eq(declared + 8, tally(bytes)) { err({kind: "length", message: "RIFF size does not match file length"}) } else { u:wav_finish(u:wav_scan_chunks(bytes, 12, max_chunks, u:wav_state())?) }
+        }
+      }
+    }
+  }
+}

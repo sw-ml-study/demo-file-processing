@@ -42,12 +42,19 @@ one-to-six-byte little/big-endian codecs and data-described MSB-first field
 extraction. Its narrated demo decodes a golden four-byte MPEG audio header,
 including fields that cross byte boundaries, entirely in MLPL.
 
+The [PCM WAV slice](docs/wav.md) inspects RIFF chunks and canonically copies
+empty/minimal mono files. It validates padding, lengths, derived rates, formats,
+and budgets while distinguishing byte-identical canonical round trips from
+semantic normalization of files containing unknown chunks.
+
 ```sh
 just hexdump
 just histogram
 just binary-fields
+just wav-inspect-copy
 just tests tests/bytes
 just tests tests/binary
+just tests tests/wav
 just check
 ```
 

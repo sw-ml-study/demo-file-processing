@@ -1,0 +1,21 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/slice.mlpl";
+include "../../src/binary/endian_decode.mlpl";
+include "../../src/binary/endian_encode.mlpl";
+include "../../src/wav/model.mlpl";
+include "../../src/wav/chunks.mlpl";
+include "../../src/wav/parse.mlpl";
+include "../../src/wav/encode.mlpl";
+
+input = read_bytes("fixtures/wav/minimal-mono8.wav")?;
+wav = u:parse_wav(input, 1024, 8)?;
+canonical = u:encode_wav(wav)?;
+write_bytes(".wav-copy-output.wav", canonical)?;
+copied = read_bytes(".wav-copy-output.wav")?;
+remove_path(".wav-copy-output.wav")?;
+if equal(input, copied) {
+  print("WAV PCM:", wav.channels, "channel(s)", wav.sample_rate, "Hz", wav.bits_per_sample, "bit");
+  print("frames:", wav.frames, "data bytes:", wav.data_bytes, "duration seconds:", wav.duration_seconds);
+  print("canonical copy: byte-identical");
+  ok({bytes: tally(copied), frames: wav.frames, unknown_chunks: wav.unknown_chunks})
+} else { err({kind: "invariant", message: "canonical WAV copy changed bytes"}) }

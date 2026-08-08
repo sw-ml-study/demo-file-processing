@@ -1,0 +1,17 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/endian_encode.mlpl";
+include "../../src/wav/parse.mlpl";
+include "../../src/wav/encode.mlpl";
+
+empty = {channels: 1, sample_rate: 8000, byte_rate: 8000, block_align: 1, bits_per_sample: 8, data: []};
+minimal = {channels: 1, sample_rate: 8000, byte_rate: 8000, block_align: 1, bits_per_sample: 8, data: [0, 127, 255]};
+write_bytes("fixtures/wav/empty-mono8.wav", u:encode_wav(empty)?)?;
+write_bytes("fixtures/wav/minimal-mono8.wav", u:encode_wav(minimal)?)?;
+
+format_chunk = u:wav_chunk([102, 109, 116, 32], u:wav_format_payload(empty)?)?;
+junk_chunk = u:wav_chunk([74, 85, 78, 75], [1, 2, 3])?;
+data_chunk = u:wav_chunk([100, 97, 116, 97], [9])?;
+body = concat([87, 65, 86, 69], concat(format_chunk, concat(junk_chunk, data_chunk)));
+odd_unknown = concat([82, 73, 70, 70], concat(u:encode_uint(tally(body), 4, "le")?, body));
+write_bytes("fixtures/wav/odd-unknown-mono8.wav", odd_unknown)?;
+ok(3)

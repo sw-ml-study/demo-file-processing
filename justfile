@@ -39,6 +39,9 @@ capabilities:
 generate-byte-fixtures:
     ./scripts/generate-byte-fixtures --write
 
+generate-wav-fixtures:
+    ./scripts/generate-wav-fixtures --write
+
 # Run the readable byte-processing applications.
 hexdump:
     ./scripts/run-byte-demo hexdump
@@ -52,6 +55,10 @@ byte-demos:
 # Decode a golden MPEG audio header through a data-described field layout.
 binary-fields:
     ./scripts/run-binary-demo mpeg_header
+
+# Inspect and canonically copy a tiny PCM WAV file.
+wav-inspect-copy:
+    ./scripts/run-wav-demo
 
 # Run the complete pre-commit gate.
 check:
