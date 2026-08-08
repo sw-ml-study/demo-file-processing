@@ -1,8 +1,9 @@
 number = 4
 slug = "sparse-file-memory-evidence"
-status = "in-progress"
+status = "completed"
 description = "Measure peak RSS on deterministic sparse input and prove or reject the bounded-memory invariant."
 role = "legacy"
 context_files = []
 created_at = "2026-08-08T13:11:07"
-commits = []
+completed_at = "2026-08-08T13:59:31"
+commits = ["1b8389cdc95e7be0be9d36a059de5bb121f542bb"]
