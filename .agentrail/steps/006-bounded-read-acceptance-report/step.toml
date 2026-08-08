@@ -1,8 +1,9 @@
 number = 6
 slug = "bounded-read-acceptance-report"
-status = "in-progress"
+status = "completed"
 description = "Run the full gate, reconcile public claims, and publish bounded-read evidence and limitations."
 role = "legacy"
 context_files = []
 created_at = "2026-08-08T13:11:07"
-commits = []
+completed_at = "2026-08-08T14:14:25"
+commits = ["c3cf5b97b9bf91e60c48a864c41a936c8f7098e6"]
