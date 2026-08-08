@@ -1,8 +1,9 @@
 number = 2
 slug = "capability-probe"
-status = "in-progress"
+status = "completed"
 description = "Add executable deterministic probes against the configured sw-MLPL interprete..."
 role = "validation"
 context_files = []
 created_at = "2026-08-08T11:57:10"
-commits = []
+completed_at = "2026-08-08T12:40:05"
+commits = ["b7d847fb6d41bab42e1cc11d62c9895b7cf61de1"]
