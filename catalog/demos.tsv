@@ -7,3 +7,4 @@ compiler-args	probes/compiler_args.mlpl	native-executable	argument-lowering	mlpl
 compiler-bits	probes/compiler_bits.mlpl	native-executable	bit-operation-lowering	mlpl-native	not-applicable	no	compiled-bit-ops	constrained
 hexdump	demos/bytes/hexdump.mlpl	raw-bytes	hexdump	mlpl-native	whole-file	yes	read_bytes,decode_bytes	runnable
 byte-histogram	demos/bytes/histogram.mlpl	raw-bytes	histogram	mlpl-native	whole-file	yes	read_bytes,table,reduce_add	runnable
+mpeg-header-fields	demos/binary/mpeg_header.mlpl	mpeg-audio	header-field-extraction	mlpl	not-applicable	yes	bit-ops,endian-codecs	runnable

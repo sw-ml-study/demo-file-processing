@@ -1,6 +1,6 @@
 number = 4
 slug = "endian-and-bit-fields"
-status = "pending"
+status = "in-progress"
 description = "Implement reusable MLPL endian integer decode/encode helpers and data-describ..."
 role = "production"
 context_files = []

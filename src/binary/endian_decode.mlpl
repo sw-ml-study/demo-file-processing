@@ -1,0 +1,18 @@
+def u:decode_be_steps(bytes, index, ending, value) { "Fold big-endian bytes into one exact numeric value.";
+  if eq(index, ending) { value } else { u:decode_be_steps(bytes, index + 1, ending, value * 256 + take(bytes, 0, index)) }
+}
+
+def u:decode_le_steps(bytes, index, ending, position, value) { "Fold little-endian bytes into one exact numeric value.";
+  if eq(index, ending) { value } else { u:decode_le_steps(bytes, index + 1, ending, position + 1, value + take(bytes, 0, index) * pow(256, position)) }
+}
+
+def u:decode_uint(bytes, offset, width, endian) { "Decode a 1..6 byte unsigned integer at an exact in-buffer range.";
+  if u:bytes_valid(bytes) * eq(rank(offset), 0) * eq(rank(width), 0) {
+    range_ok = eq(offset, floor(offset)) * (1 - lt(offset, 0)) * eq(width, floor(width)) * gt(width, 0) * (1 - gt(width, 6)) * (1 - gt(offset + width, tally(bytes)));
+    if range_ok {
+      if equal(endian, "be") { ok(u:decode_be_steps(bytes, offset, offset + width, 0)) } else {
+        if equal(endian, "le") { ok(u:decode_le_steps(bytes, offset, offset + width, 0, 0)) } else { err({kind: "endian", message: "endian must be be or le"}) }
+      }
+    } else { err({kind: "range", message: "decode range must be integral, contained, and 1..6 bytes"}) }
+  } else { err({kind: "input", message: "decode_uint expects a byte vector and scalar range"}) }
+}

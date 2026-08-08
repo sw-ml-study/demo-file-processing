@@ -1,0 +1,15 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/endian_decode.mlpl";
+include "../../src/binary/bit_fields.mlpl";
+
+header = [255, 251, 144, 100];
+widths = [11, 2, 2, 1, 4, 2, 1, 1, 2, 2, 1, 1, 2];
+fields = u:unpack_fields(header, widths)?;
+expected = [2047, 3, 1, 1, 9, 0, 0, 0, 1, 2, 0, 1, 0];
+if equal(fields.values, expected) {
+  print("MPEG header bytes:", header);
+  print("field widths:", fields.widths);
+  print("field offsets:", fields.offsets);
+  print("field values:", fields.values);
+  ok({bytes: 4, fields: tally(fields.values), total_bits: fields.total_bits})
+} else { err({kind: "invariant", message: "MPEG header fields changed"}) }

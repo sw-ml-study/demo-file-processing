@@ -49,6 +49,10 @@ histogram:
 byte-demos:
     ./scripts/check-byte-demos
 
+# Decode a golden MPEG audio header through a data-described field layout.
+binary-fields:
+    ./scripts/run-binary-demo mpeg_header
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

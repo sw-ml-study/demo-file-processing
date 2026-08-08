@@ -1,0 +1,30 @@
+def u:field_widths_valid_from(widths, index, total) { "Validate positive integral field widths and return their total.";
+  if eq(index, tally(widths)) { ok(total) } else {
+    width = take(widths, 0, index);
+    if eq(width, floor(width)) * gt(width, 0) { u:field_widths_valid_from(widths, index + 1, total + width) } else { err({kind: "width", message: "field widths must be positive integers"}) }
+  }
+}
+
+def u:field_width_total(widths) { "Return the total for a rank-one positive-integer field description.";
+  if equal(type_of(widths), "array") { if eq(rank(widths), 1) { u:field_widths_valid_from(widths, 0, 0) } else { err({kind: "widths", message: "field widths must be a vector"}) } } else { err({kind: "widths", message: "field widths must be numeric"}) }
+}
+
+def u:extract_fields_from(word, total_bits, widths, index, consumed) { "Extract MSB-first fields described by widths from one packed word.";
+  if eq(index, tally(widths)) { [] } else {
+    width = take(widths, 0, index);
+    shift = total_bits - consumed - width;
+    concat(bmask(shr(word, shift), width), u:extract_fields_from(word, total_bits, widths, index + 1, consumed + width))
+  }
+}
+
+def u:field_offsets_from(widths, index, consumed) { "Return each field's MSB-first bit offset.";
+  if eq(index, tally(widths)) { [] } else { concat(consumed, u:field_offsets_from(widths, index + 1, consumed + take(widths, 0, index))) }
+}
+
+def u:unpack_fields(bytes, widths) { "Decode MSB-first fields whose widths are supplied as data.";
+  total = u:field_width_total(widths)?;
+  if u:bytes_valid(bytes) * gt(tally(bytes), 0) * (1 - gt(tally(bytes), 6)) * eq(total, tally(bytes) * 8) {
+    word = u:decode_uint(bytes, 0, tally(bytes), "be")?;
+    ok({values: u:extract_fields_from(word, total, widths, 0, 0), widths: widths, offsets: u:field_offsets_from(widths, 0, 0), total_bits: total})
+  } else { err({kind: "layout", message: "fields must consume exactly 1..6 validated bytes"}) }
+}

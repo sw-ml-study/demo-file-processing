@@ -37,10 +37,17 @@ histogram. The hexdump demonstrates a 16-byte formatting boundary; the
 histogram proves one count for every byte value. Both use tiny generated
 fixtures and state their current f64 representation and copy costs explicitly.
 
+The [endian and field-layout slice](docs/endian-and-fields.md) adds exact
+one-to-six-byte little/big-endian codecs and data-described MSB-first field
+extraction. Its narrated demo decodes a golden four-byte MPEG audio header,
+including fields that cross byte boundaries, entirely in MLPL.
+
 ```sh
 just hexdump
 just histogram
+just binary-fields
 just tests tests/bytes
+just tests tests/binary
 just check
 ```
 

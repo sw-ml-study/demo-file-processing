@@ -1,0 +1,33 @@
+include "src/bytes/validate.mlpl";
+include "src/binary/endian_decode.mlpl";
+include "src/binary/bit_fields.mlpl";
+
+@test {name: "data-described fields cross byte boundaries", tags: ["binary", "fields", "boundary"]}
+def u:test_cross_byte_fields() { "Verify MSB-first widths split a two-byte word independently of byte boundaries.";
+  fields = u:unpack_fields([214, 57], [3, 5, 4, 4])?;
+  u:assert_eq(fields.values, [6, 22, 3, 9], "cross-byte values");
+  u:assert_eq(fields.offsets, [0, 3, 8, 12], "MSB offsets");
+  u:assert_eq(fields.widths, [3, 5, 4, 4], "description is retained");
+  u:assert_eq(fields.total_bits, 16, "layout consumes two bytes")
+}
+
+@test {name: "MPEG audio header fields match a golden word", tags: ["binary", "fields", "mpeg", "golden"]}
+def u:test_mpeg_header_fields() { "Decode FF FB 90 64 using the MPEG audio header width description.";
+  widths = [11, 2, 2, 1, 4, 2, 1, 1, 2, 2, 1, 1, 2];
+  fields = u:unpack_fields([255, 251, 144, 100], widths)?;
+  u:assert_eq(fields.values, [2047, 3, 1, 1, 9, 0, 0, 0, 1, 2, 0, 1, 0], "MPEG-1 Layer III header fields");
+  u:assert_eq(fields.offsets, [0, 11, 13, 15, 16, 20, 22, 23, 24, 26, 28, 29, 30], "MPEG field offsets")
+}
+
+@test {name: "field layouts reject invalid descriptions", tags: ["binary", "fields", "invalid"]}
+def u:test_invalid_field_layouts() { "Verify widths are positive, integral, vector-shaped, exact, and within six bytes.";
+  u:assert_err(u:unpack_fields([255], [4, 3]), "layout leaves one bit");
+  u:assert_err(u:unpack_fields([255], [4, 5]), "layout exceeds bytes");
+  u:assert_err(u:unpack_fields([255], [4, 0, 4]), "zero field width");
+  u:assert_err(u:unpack_fields([255], [4, 1.5, 2.5]), "fractional widths");
+  u:assert_err(u:unpack_fields([], []), "empty input");
+  u:assert_err(u:unpack_fields(range(7), [56]), "more than six bytes");
+  u:assert_err(u:unpack_fields([255], reshape([4, 4], [1, 2])), "rank-two description")
+}
+
+u:run_registered_tests()
