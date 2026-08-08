@@ -1,0 +1,25 @@
+include "src/io/range_reader.mlpl";
+include "src/io/range_window.mlpl";
+
+@test {name: "bounded windows assemble exact bytes across chunks", tags: ["io", "range", "window"]}
+def u:test_range_window_exact() { "Verify small windows split at every internal position and preserve reader state.";
+  chunk_size = 1;
+  while lt(chunk_size, 17) {
+    reader = u:range_reader("fixtures/bytes/boundary-17.bin", chunk_size)?;
+    u:assert_eq(u:range_window(reader, 1, 16, 16), ok(range(16) + 1), "window bytes are chunk-invariant")?;
+    chunk_size = chunk_size + 1
+  };
+  u:assert_eq(chunk_size, 17, "every internal split budget was exercised")
+}
+
+@test {name: "bounded windows reject budgets and truncation", tags: ["io", "range", "window", "invalid"]}
+def u:test_range_window_invalid() { "Verify allocation budget, exact-domain, and metadata bounds reject before assembly.";
+  reader = u:range_reader("fixtures/bytes/boundary-17.bin", 7)?;
+  u:assert_err(u:range_window(reader, 0, 17, 16), "window budget")?;
+  u:assert_err(u:range_window(reader, 16, 2, 16), "window exceeds file")?;
+  u:assert_err(u:range_window(reader, -1, 1, 16), "negative offset")?;
+  u:assert_err(u:range_window(reader, 0, 1.5, 16), "fractional length")?;
+  u:assert_err(u:range_window(reader, 9007199254740991, 1, 16), "addition overflow")
+}
+
+u:run_registered_tests()

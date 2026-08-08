@@ -1,6 +1,6 @@
 number = 3
 slug = "range-wav-inspection"
-status = "pending"
+status = "in-progress"
 description = "Inspect WAV structure with bounded reads and test every relevant split boundary without output claims."
 role = "legacy"
 context_files = []

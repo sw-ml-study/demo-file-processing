@@ -58,12 +58,18 @@ empty/minimal mono files. It validates padding, lengths, derived rates, formats,
 and budgets while distinguishing byte-identical canonical round trips from
 semantic normalization of files containing unknown chunks.
 
+The [bounded WAV inspector](docs/wav-range-inspection.md) reads only RIFF,
+chunk, and PCM format headers through bounded ranges, skips sample payloads by
+validated offsets, and matches whole-buffer metadata across every relevant
+header split. It does not claim bounded copying or transformation.
+
 ```sh
 just hexdump
 just histogram
 just bounded-histogram
 just binary-fields
 just wav-inspect-copy
+just wav-range-inspect
 just tests tests/bytes
 just tests tests/io
 just tests tests/binary

@@ -1,0 +1,18 @@
+def u:range_window(reader, offset, length, max_window) { "Assemble one budgeted exact window through reads no larger than the reader chunk budget.";
+  if (1 - u:range_exact_nonnegative(offset)) + (1 - u:range_exact_nonnegative(length)) + (1 - u:range_exact_nonnegative(max_window)) { err({kind: "range", message: "window offset, length, and budget must be exact non-negative integers"}) } else {
+    if gt(length, max_window) { err({kind: "budget", message: "bounded window exceeds max_window"}) } else {
+      if gt(length, 9007199254740991 - offset) { err({kind: "overflow", message: "window offset plus length exceeds the exact f64 domain"}) } else {
+        if gt(offset + length, reader.size) { err({kind: "truncated", message: "bounded window exceeds the metadata snapshot"}) } else {
+        cursor = 0; bytes = [];
+        while lt(cursor, length) {
+          remaining = length - cursor; piece_length = if lt(remaining, reader.chunk_size) { remaining } else { reader.chunk_size };
+          piece = u:range_read_at(reader, offset + cursor, piece_length)?;
+          if 1 - eq(tally(piece), piece_length) { return err({kind: "short_read", message: "bounded window changed after metadata snapshot"}) } else { 0 };
+          bytes = concat(bytes, piece); cursor = cursor + piece_length
+        };
+          ok(bytes)
+        }
+      }
+    }
+  }
+}

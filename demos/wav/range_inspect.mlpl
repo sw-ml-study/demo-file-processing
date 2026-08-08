@@ -1,0 +1,14 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/slice.mlpl";
+include "../../src/binary/endian_decode.mlpl";
+include "../../src/wav/model.mlpl";
+include "../../src/wav/parse.mlpl";
+include "../../src/wav/range_inspect.mlpl";
+
+wav = u:inspect_wav_ranges("fixtures/wav/odd-unknown-mono8.wav", 7, 8)?;
+if eq(wav.channels, 1) * eq(wav.sample_rate, 8000) * eq(wav.data_bytes, 1) * eq(wav.frames, 1) * eq(wav.unknown_chunks, 1) {
+  print("bounded WAV inspection: 1 channel(s) 8000 Hz 8 bit");
+  print("metadata ranges: at most 7 bytes; sample payload retained: no");
+  print("data offset:", wav.data_offset, "data bytes:", wav.data_bytes, "unknown chunks:", wav.unknown_chunks);
+  ok(wav)
+} else { err({kind: "invariant", message: "bounded WAV metadata changed"}) }

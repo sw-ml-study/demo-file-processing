@@ -16,6 +16,7 @@ That specification is normative; repository fixtures are merely golden cases.
 ```sh
 just generate-wav-fixtures
 just wav-inspect-copy
+just wav-range-inspect
 just tests tests/wav
 just check
 ```
@@ -70,6 +71,11 @@ chunk before data. Native mlplunit tests cover those fixtures plus malformed
 lengths, truncated padding, huge declared payloads, signatures, missing chunks,
 unsupported variants, inconsistent rates/alignment, partial frames, and byte/
 chunk budgets.
+
+For read-only use, the [bounded WAV inspector](wav-range-inspection.md) reads
+only small headers, skips sample and unknown payloads by validated offsets, and
+matches this parser's metadata without retaining the `data` array. It makes no
+copy or output claim.
 
 Parsing is logically O(file bytes + chunks). The current immutable slice and
 recursive concatenation helpers can copy O(n²) bytes, and the parser retains a

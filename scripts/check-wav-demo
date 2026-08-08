@@ -3,9 +3,13 @@ set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 trap 'rm -f "$repo_root/.wav-copy-output.wav"' EXIT HUP INT TERM
-output=$("$repo_root/scripts/run-wav-demo")
+output=$("$repo_root/scripts/run-wav-demo" inspect_copy)
 printf '%s\n' "$output" | grep -Fqx 'WAV PCM: 1 channel(s) 8000 Hz 8 bit'
 printf '%s\n' "$output" | grep -Fqx 'canonical copy: byte-identical'
 [ ! -e "$repo_root/.wav-copy-output.wav" ]
+
+range_output=$("$repo_root/scripts/run-wav-demo" range_inspect)
+printf '%s\n' "$range_output" | grep -Fqx 'bounded WAV inspection: 1 channel(s) 8000 Hz 8 bit'
+printf '%s\n' "$range_output" | grep -Fqx 'metadata ranges: at most 7 bytes; sample payload retained: no'
 
 echo "PASS WAV demo"

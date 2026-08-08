@@ -1,0 +1,54 @@
+include "src/bytes/validate.mlpl";
+include "src/binary/slice.mlpl";
+include "src/binary/endian_decode.mlpl";
+include "src/wav/model.mlpl";
+include "src/wav/chunks.mlpl";
+include "src/wav/parse.mlpl";
+include "src/wav/range_inspect.mlpl";
+
+def u:wav_metadata(wav) { "Select fields shared by whole-buffer and bounded metadata parsers.";
+  [wav.audio_format, wav.channels, wav.sample_rate, wav.byte_rate, wav.block_align, wav.bits_per_sample, wav.data_bytes, wav.frames, wav.duration_seconds, wav.unknown_chunks, wav.chunks]
+}
+
+def u:verify_wav_range(path, chunk_size) { "Compare bounded metadata with the whole-buffer semantic oracle.";
+  expected = u:parse_wav(read_bytes(path)?, 1024, 8)?; actual = u:inspect_wav_ranges(path, chunk_size, 8)?;
+  u:assert_eq(u:wav_metadata(actual), u:wav_metadata(expected), "bounded WAV metadata matches whole-buffer parser")
+}
+
+@test {name: "bounded WAV metadata matches all canonical fixtures", tags: ["wav", "range", "parity"]}
+def u:test_wav_range_fixtures() { "Compare empty, minimal, and odd-padded unknown-chunk fixtures.";
+  u:verify_wav_range("fixtures/wav/empty-mono8.wav", 7)?;
+  u:verify_wav_range("fixtures/wav/minimal-mono8.wav", 7)?;
+  u:verify_wav_range("fixtures/wav/odd-unknown-mono8.wav", 7)
+}
+
+@test {name: "bounded WAV headers survive every relevant split", tags: ["wav", "range", "chunks", "boundary"]}
+def u:test_wav_range_header_splits() { "Split 16-byte fmt, 12-byte RIFF, and 8-byte chunk headers at every internal position.";
+  chunk_size = 1;
+  while lt(chunk_size, 17) { u:verify_wav_range("fixtures/wav/odd-unknown-mono8.wav", chunk_size)?; chunk_size = chunk_size + 1 };
+  u:verify_wav_range("fixtures/wav/odd-unknown-mono8.wav", 64)?;
+  u:verify_wav_range("fixtures/wav/odd-unknown-mono8.wav", 65536)
+}
+
+@test {name: "bounded WAV inspection skips sample payload storage", tags: ["wav", "range", "metadata"]}
+def u:test_wav_range_data_descriptor() { "Verify data location/length are reported without a sample-data field.";
+  minimal = u:inspect_wav_ranges("fixtures/wav/minimal-mono8.wav", 1, 8)?;
+  odd = u:inspect_wav_ranges("fixtures/wav/odd-unknown-mono8.wav", 1, 8)?;
+  u:assert_eq([minimal.data_offset, minimal.data_bytes, minimal.frames], [44, 3, 3], "minimal data descriptor")?;
+  u:assert_eq([odd.data_offset, odd.data_bytes, odd.unknown_chunks], [56, 1, 1], "unknown chunk padding advances data offset")?;
+  u:assert_false(has_field(minimal, "data"), "metadata result does not retain sample bytes")
+}
+
+@test {name: "bounded WAV inspection rejects malformed lengths and budgets", tags: ["wav", "range", "invalid"]}
+def u:test_wav_range_invalid() { "Verify truncation, declared overflow, signatures, formats, and chunk budgets remain errors.";
+  path = ".wav-range-invalid.wav"; valid = read_bytes("fixtures/wav/minimal-mono8.wav")?;
+  write_bytes(path, u:byte_slice(valid, 0, 11)?)?; u:assert_err(u:inspect_wav_ranges(path, 1, 8), "truncated RIFF header")?;
+  write_bytes(path, scatter(valid, 0, 0))?; u:assert_err(u:inspect_wav_ranges(path, 7, 8), "bad signature")?;
+  oversized = scatter(scatter(scatter(scatter(valid, 40, 255), 41, 255), 42, 255), 43, 255); write_bytes(path, oversized)?; u:assert_err(u:inspect_wav_ranges(path, 7, 8), "declared payload overflow")?;
+  write_bytes(path, scatter(valid, 20, 3))?; u:assert_err(u:inspect_wav_ranges(path, 7, 8), "unsupported encoding")?;
+  write_bytes(path, valid)?; u:assert_err(u:inspect_wav_ranges(path, 7, 1), "chunk budget")?;
+  u:assert_err(u:inspect_wav_ranges(path, 7, 0), "zero chunk budget")?;
+  remove_path(path)
+}
+
+u:run_registered_tests()

@@ -64,6 +64,10 @@ binary-fields:
 wav-inspect-copy:
     ./scripts/run-wav-demo
 
+# Inspect WAV metadata through bounded reads without retaining sample payloads.
+wav-range-inspect:
+    ./scripts/run-wav-demo range_inspect
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check
