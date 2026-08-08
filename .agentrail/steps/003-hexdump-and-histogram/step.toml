@@ -1,8 +1,9 @@
 number = 3
 slug = "hexdump-and-histogram"
-status = "in-progress"
+status = "completed"
 description = "Implement reusable MLPL whole-buffer byte formatting and histogram logic plus..."
 role = "production"
 context_files = []
 created_at = "2026-08-08T11:57:10"
-commits = []
+completed_at = "2026-08-08T12:44:54"
+commits = ["6a815e713bf9cd0b065eb0ffe068f2d746a839ec"]
