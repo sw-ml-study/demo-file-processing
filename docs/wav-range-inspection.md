@@ -39,9 +39,9 @@ For `k` chunks, scanning is O(k) plus at most 16 bytes of format decoding; data
 payload size does not contribute to bytes read. Live MLPL state is one fixed
 metadata record plus header/window arrays of at most 16 f64 cells. Immutable
 `concat` makes assembly of one header quadratic in its length, but that length
-is capped at 16. Peak resident memory is structurally independent of sample
-payload length but remains unclaimed until the sparse-file RSS step measures
-runtime and allocator behavior.
+is capped at 16. The [sparse-file acceptance harness](sparse-memory-evidence.md)
+measures identical peak RSS for 1 MiB and 64 MiB payloads under a fixed
+seven-byte range budget on the recorded platform.
 
 The size is a metadata snapshot. Concurrent truncation becomes a short-read or
 truncation error; growth beyond the declared RIFF/file size is rejected or

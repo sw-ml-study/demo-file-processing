@@ -8,6 +8,8 @@ compiler-bits	probes/compiler_bits.mlpl	native-executable	bit-operation-lowering
 hexdump	demos/bytes/hexdump.mlpl	raw-bytes	hexdump	mlpl-native	whole-file	yes	read_bytes,decode_bytes	runnable
 byte-histogram	demos/bytes/histogram.mlpl	raw-bytes	histogram	mlpl-native	whole-file	yes	read_bytes,table,reduce_add	runnable
 bounded-byte-histogram	demos/bytes/range_histogram.mlpl	raw-bytes	bounded-histogram	mlpl-native	chunk-bounded	yes	file_size,range-read,table,reduce_add	runnable
+sparse-byte-histogram	demos/bytes/sparse_histogram.mlpl	raw-bytes	sparse-bounded-histogram	mlpl-native	chunk-bounded	no	file_size,range-read,platform-time	runnable
 mpeg-header-fields	demos/binary/mpeg_header.mlpl	mpeg-audio	header-field-extraction	mlpl	not-applicable	yes	bit-ops,endian-codecs	runnable
 wav-inspect-copy	demos/wav/inspect_copy.mlpl	wav	inspect-canonical-copy	mlpl-native	whole-file	yes	read_bytes,write_bytes,endian-codecs	runnable
 wav-range-inspect	demos/wav/range_inspect.mlpl	wav	bounded-metadata-inspection	mlpl-native	chunk-bounded	yes	file_size,range-read,endian-codecs	runnable
+sparse-wav-range-inspect	demos/wav/sparse_range_inspect.mlpl	wav	sparse-bounded-metadata	mlpl-native	chunk-bounded	no	file_size,range-read,platform-time	runnable

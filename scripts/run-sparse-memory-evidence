@@ -1,0 +1,119 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mlpl=$("$repo_root/scripts/select-mlpl")
+mkdir -p "$repo_root/tmp"
+work_dir=$(mktemp -d "$repo_root/tmp/file-processing-sparse.XXXXXX")
+trap 'rm -rf "$work_dir"' EXIT HUP INT TERM
+
+histogram_small_bytes=65536
+histogram_large_bytes=1048576
+wav_small_data_bytes=1048576
+wav_large_data_bytes=67108864
+chunk_bytes=256
+max_rss_bytes=33554432
+max_growth_bytes=8388608
+
+echo "Sparse-file peak-memory demonstration"
+echo "Purpose: compare fixed read budgets while artifact sizes grow, using platform peak RSS as the external measurement oracle."
+echo "Histogram inputs: $histogram_small_bytes and $histogram_large_bytes bytes with 256-byte ranges."
+echo "WAV payloads: $wav_small_data_bytes and $wav_large_data_bytes bytes with metadata ranges capped at 7 bytes."
+echo "Acceptance: every run stays below $max_rss_bytes RSS bytes and size growth adds no more than $max_growth_bytes bytes."
+
+emit_u32_le() {
+  value=$1
+  output=$2
+  index=0
+  while [ "$index" -lt 4 ]; do
+    byte=$((value % 256))
+    printf "\\$(printf '%03o' "$byte")" >> "$output"
+    value=$((value / 256))
+    index=$((index + 1))
+  done
+}
+
+make_sparse_wav() {
+  data_bytes=$1
+  output=$2
+  : > "$output"
+  printf 'RIFF' >> "$output"
+  emit_u32_le $((data_bytes + 36)) "$output"
+  printf 'WAVEfmt ' >> "$output"
+  emit_u32_le 16 "$output"
+  printf '\001\000\001\000' >> "$output"
+  emit_u32_le 8000 "$output"
+  emit_u32_le 8000 "$output"
+  printf '\001\000\010\000data' >> "$output"
+  emit_u32_le "$data_bytes" "$output"
+  truncate -s $((data_bytes + 44)) "$output"
+}
+
+histogram_small="$work_dir/histogram-small.bin"
+histogram_large="$work_dir/histogram-large.bin"
+wav_small="$work_dir/wav-small.wav"
+wav_large="$work_dir/wav-large.wav"
+truncate -s "$histogram_small_bytes" "$histogram_small"
+truncate -s "$histogram_large_bytes" "$histogram_large"
+make_sparse_wav "$wav_small_data_bytes" "$wav_small"
+make_sparse_wav "$wav_large_data_bytes" "$wav_large"
+
+measure() {
+  label=$1
+  program=$2
+  artifact=$3
+  stdout_file="$work_dir/$label.out"
+  metrics_file="$work_dir/$label.time"
+  case $(uname -s) in
+    Darwin)
+      /usr/bin/time -l "$mlpl" --source-dir "$repo_root" "$program" -- "$artifact" >"$stdout_file" 2>"$metrics_file" || {
+        cat "$stdout_file"; cat "$metrics_file" >&2; exit 1;
+      }
+      rss=$(awk '/maximum resident set size/ { print $1; exit }' "$metrics_file")
+      ;;
+    Linux)
+      /usr/bin/time -v "$mlpl" --source-dir "$repo_root" "$program" -- "$artifact" >"$stdout_file" 2>"$metrics_file" || {
+        cat "$stdout_file"; cat "$metrics_file" >&2; exit 1;
+      }
+      rss_kib=$(awk -F: '/Maximum resident set size/ { gsub(/^[ \t]+/, "", $2); print $2; exit }' "$metrics_file")
+      rss=$((rss_kib * 1024))
+      ;;
+    *)
+      echo "SKIP sparse memory evidence: /usr/bin/time parser supports Darwin and Linux only" >&2
+      exit 77
+      ;;
+  esac
+  cat "$stdout_file"
+  [ -n "$rss" ] || {
+    echo "peak RSS was not reported; run outside a restricted metrics sandbox" >&2
+    cat "$metrics_file" >&2
+    exit 1
+  }
+  echo "$rss" > "$work_dir/$label.rss"
+  echo "MEASURE $label peak_rss_bytes=$rss"
+}
+
+measure histogram-small "$repo_root/demos/bytes/sparse_histogram.mlpl" "$histogram_small"
+measure histogram-large "$repo_root/demos/bytes/sparse_histogram.mlpl" "$histogram_large"
+measure wav-small "$repo_root/demos/wav/sparse_range_inspect.mlpl" "$wav_small"
+measure wav-large "$repo_root/demos/wav/sparse_range_inspect.mlpl" "$wav_large"
+
+histogram_small_rss=$(cat "$work_dir/histogram-small.rss")
+histogram_large_rss=$(cat "$work_dir/histogram-large.rss")
+wav_small_rss=$(cat "$work_dir/wav-small.rss")
+wav_large_rss=$(cat "$work_dir/wav-large.rss")
+histogram_growth=$((histogram_large_rss - histogram_small_rss))
+wav_growth=$((wav_large_rss - wav_small_rss))
+[ "$histogram_growth" -ge 0 ] || histogram_growth=0
+[ "$wav_growth" -ge 0 ] || wav_growth=0
+
+for rss in "$histogram_small_rss" "$histogram_large_rss" "$wav_small_rss" "$wav_large_rss"; do
+  [ "$rss" -le "$max_rss_bytes" ] || { echo "peak RSS $rss exceeded $max_rss_bytes bytes" >&2; exit 1; }
+done
+[ "$histogram_growth" -le "$max_growth_bytes" ] || { echo "histogram RSS growth $histogram_growth exceeded $max_growth_bytes bytes" >&2; exit 1; }
+[ "$wav_growth" -le "$max_growth_bytes" ] || { echo "WAV RSS growth $wav_growth exceeded $max_growth_bytes bytes" >&2; exit 1; }
+[ "$wav_large_data_bytes" -gt "$max_rss_bytes" ] || { echo "large WAV payload must exceed the RSS ceiling" >&2; exit 1; }
+
+echo "Measured result: histogram RSS growth=$histogram_growth bytes; WAV RSS growth=$wav_growth bytes."
+echo "Interpretation: observed high-water memory stayed within the fixed ceiling as file sizes increased; payload size did not drive resident growth."
+echo "ACCEPT sparse memory evidence chunk_bytes=$chunk_bytes ceiling_bytes=$max_rss_bytes growth_ceiling_bytes=$max_growth_bytes"

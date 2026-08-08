@@ -68,6 +68,10 @@ wav-inspect-copy:
 wav-range-inspect:
     ./scripts/run-wav-demo range_inspect
 
+# Opt-in: generate sparse inputs and enforce bounded-read peak-RSS ceilings.
+sparse-memory-evidence:
+    ./scripts/run-sparse-memory-evidence
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

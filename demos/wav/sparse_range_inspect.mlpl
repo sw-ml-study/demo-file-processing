@@ -1,0 +1,19 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/slice.mlpl";
+include "../../src/binary/endian_decode.mlpl";
+include "../../src/wav/model.mlpl";
+include "../../src/wav/parse.mlpl";
+include "../../src/wav/range_inspect.mlpl";
+
+path = list_get(args(), 0)?; size = file_size(path)?;
+wav = u:inspect_wav_ranges(path, 7, 8)?;
+if eq(wav.data_offset, 44) * eq(wav.data_bytes, size - 44) * eq(wav.frames, wav.data_bytes) * eq(wav.channels, 1) * eq(wav.sample_rate, 8000) * eq(wav.bits_per_sample, 8) {
+  print("Sparse WAV range-inspection demonstration");
+  print("Purpose: inspect a WAV whose payload is larger than the RSS ceiling without reading its samples.");
+  print("Input: canonical mono 8-bit PCM with", wav.data_bytes, "sparse payload bytes in a", size, "byte file.");
+  print("MLPL work: validate RIFF/chunk lengths, decode PCM fields, and derive", wav.frames, "frames at", wav.sample_rate, "Hz.");
+  print("Native runtime work: report file size and serve header ranges of at most 7 bytes.");
+  print("Output: data begins at byte", wav.data_offset, "and lasts", wav.duration_seconds, "seconds; sample payload retained: no.");
+  print("Interpretation: metadata cost is independent of the declared audio payload because validated payload bytes are skipped by offset.");
+  ok(wav)
+} else { err({kind: "invariant", message: "sparse WAV metadata changed"}) }

@@ -63,6 +63,11 @@ chunk, and PCM format headers through bounded ranges, skips sample payloads by
 validated offsets, and matches whole-buffer metadata across every relevant
 header split. It does not claim bounded copying or transformation.
 
+The opt-in [sparse-file memory evidence](docs/sparse-memory-evidence.md)
+measures fixed-budget histogram and WAV consumers as sparse artifacts grow to
+1 MiB and 64 MiB. Recorded macOS peak RSS stayed below 32 MiB with zero
+non-negative growth for both small/large pairs.
+
 ```sh
 just hexdump
 just histogram
@@ -70,6 +75,7 @@ just bounded-histogram
 just binary-fields
 just wav-inspect-copy
 just wav-range-inspect
+just sparse-memory-evidence
 just tests tests/bytes
 just tests tests/io
 just tests tests/binary

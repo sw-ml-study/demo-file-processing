@@ -1,6 +1,6 @@
 number = 4
 slug = "sparse-file-memory-evidence"
-status = "pending"
+status = "in-progress"
 description = "Measure peak RSS on deterministic sparse input and prove or reject the bounded-memory invariant."
 role = "legacy"
 context_files = []

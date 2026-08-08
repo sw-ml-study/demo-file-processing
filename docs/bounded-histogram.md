@@ -34,6 +34,6 @@ chunk and runtime/container overhead. Adding each partial histogram also
 allocates a new 256-cell accumulator under current immutable array semantics.
 
 This is bounded by chunk size in the program structure and avoids whole-file
-materialization. It is not yet a measured peak-memory claim: the sparse-file
-step will test resident high-water behavior and account for allocator/runtime
-retention.
+materialization. The [sparse-file acceptance harness](sparse-memory-evidence.md)
+now backs that structure with fixed-budget peak-RSS evidence across a 16-fold
+input-size increase.

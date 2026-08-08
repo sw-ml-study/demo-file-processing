@@ -1,0 +1,16 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/bytes/histogram.mlpl";
+include "../../src/bytes/range_histogram.mlpl";
+
+path = list_get(args(), 0)?;
+result = u:range_byte_histogram(path, 256)?;
+if eq(take(result.counts, 0, 0), result.bytes) * eq(reduce_add(result.counts), result.bytes) * eq(tally(u:histogram_nonzero(result.counts)?.bytes), 1) {
+  print("Sparse bounded-histogram demonstration");
+  print("Purpose: count a file larger than the algorithmic working budget without a whole-file read.");
+  print("Input: a deterministic sparse file whose unwritten bytes read as zero; size:", result.bytes, "bytes.");
+  print("MLPL work: traverse", result.chunks, "ranges of at most", result.chunk_size, "bytes and merge one 256-bin array reduction per range.");
+  print("Native runtime work: report file size and materialize only the current bounded range.");
+  print("Populated bins:", u:histogram_nonzero(result.counts)?);
+  print("Interpretation: every byte is zero, so bin 0 equals the file size and all other bins are empty.");
+  ok(result)
+} else { err({kind: "invariant", message: "sparse zero histogram changed"}) }
