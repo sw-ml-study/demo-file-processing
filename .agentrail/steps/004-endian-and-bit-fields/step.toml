@@ -1,0 +1,8 @@
+number = 4
+slug = "endian-and-bit-fields"
+status = "pending"
+description = "Implement reusable MLPL endian integer decode/encode helpers and data-describ..."
+role = "production"
+context_files = []
+created_at = "2026-08-08T11:57:10"
+commits = []

@@ -1,0 +1,8 @@
+number = 1
+slug = "repository-check-gate"
+status = "pending"
+description = "Create the initial repository validation workflow. Add a thin justfile delega..."
+role = "production"
+context_files = []
+created_at = "2026-08-08T11:57:10"
+commits = []

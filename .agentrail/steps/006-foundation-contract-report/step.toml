@@ -1,0 +1,8 @@
+number = 6
+slug = "foundation-contract-report"
+status = "pending"
+description = "Run the complete repository suite and produce the foundation acceptance repor..."
+role = "meta"
+context_files = []
+created_at = "2026-08-08T11:57:10"
+commits = []

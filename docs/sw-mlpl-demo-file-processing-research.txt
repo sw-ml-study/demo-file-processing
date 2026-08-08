@@ -1,0 +1,1047 @@
+ChatGPT Pro
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+consider https://github.com/orgs/sw-ml-study/repositories and help me design a new demo that shows low-level bit manipulation in files.  This is yet another "forcing function" for finding/adding missing language features in sw-mlpl (or opportunities to Rust-based extensions, sw-mlpl libraries).  I'm thinking of a demo application that converts mp3 files to ogg files.
+
+Worked for 50s
+You want a new downstream demo repository whose real purpose is to force sw-MLPL across the boundary from numerical/array programming into practical binary file processing, with MP3→Ogg as a motivating application. That fits the philosophy already established by demo-memory: make an honest runnable approximation where possible, identify precisely what cannot yet be expressed, and turn each blockage into an earned upstream capability request. demo-memory explicitly follows that model.
+
+I would create demo-binary-files
+I prefer that over something audio-specific such as demo-audio, because the capability being tested is much broader:
+
+demo-binary-files
+The progression could eventually cover:
+
+bytes → bits → fields → records → chunks → streams → containers → codecs
+That gives you applications involving audio, images, archives, executable formats, model formats, network captures, etc. MP3/Ogg then becomes one particularly demanding vertical slice rather than defining the repository.
+
+This is especially appropriate because you've already reached an interesting boundary in demo-memory: MLPL has fixed-width bit operations including masking, shifts, Boolean operations, popcount, and bit-vector conversion, but the values are still exact integer-valued f64s. Packed physical storage is explicitly still missing.
+
+So this new demo can pick up almost exactly where demo-memory stops.
+
+But I would not start with MP3 → Ogg
+MP3→Ogg is a good ultimate demo, but a poor first forcing function.
+
+A transcoder is roughly:
+
+MP3 file
+   ↓
+MP3 container/frame parser
+   ↓
+MP3 Huffman/bitstream decoder
+   ↓
+frequency-domain reconstruction
+   ↓
+PCM audio
+   ↓
+Vorbis/Opus encoder
+   ↓
+Ogg packetizer
+   ↓
+Ogg file
+Only the outer layers are primarily file/bit manipulation.
+
+The middle is substantial signal-processing and codec work.
+
+If you implement the whole thing in MLPL, you've accidentally turned the experiment into:
+
+"Can sw-MLPL implement two sophisticated audio codecs?"
+
+rather than:
+
+"Can sw-MLPL conveniently process real binary files?"
+
+That's eventually valuable, but it muddies the forcing signal.
+
+Instead, I suggest a staged architecture.
+
+Stage 1 — make binary files first-class
+Start with something as mundane as:
+
+demo-binary-files/
+    demos/
+        hexdump/
+        fields/
+        mp3/
+        ogg/
+        wav/
+    src/
+        bytes.mlpl
+        bits.mlpl
+        binary.mlpl
+        mp3.mlpl
+        ogg.mlpl
+        wav.mlpl
+    tests/
+    docs/
+        upstream-contract.md
+The very first demo should be an MLPL hexdump.
+
+For example, conceptually:
+
+bytes
+|> chunks(16)
+|> each(format_hex)
+|> print
+That sounds trivial.
+
+It is exactly the kind of trivial application that will expose whether the language has the right low-level substrate.
+
+You immediately discover whether you have satisfactory answers for:
+
+binary open/read/write
+
+byte arrays
+
+EOF
+
+streaming
+
+chunking
+
+offsets
+
+integer formatting
+
+byte→integer conversion
+
+avoiding f64 expansion
+
+large-file processing
+
+That is a much cleaner forcing function.
+
+Stage 2 — binary field extraction
+Next make MLPL pleasant for operations like:
+
+byte 0
+bits 7..5
+bits 4..3
+bits 2..0
+MP3 is excellent for this because MPEG audio frame headers are compact bitfields.
+
+A frame starts with fields conceptually like:
+
+sync             11 bits
+version           2 bits
+layer             2 bits
+protection        1 bit
+bitrate_index     4 bits
+sample_rate       2 bits
+padding           1 bit
+private           1 bit
+channel_mode      2 bits
+...
+That is an almost ideal MLPL demo.
+
+You could express something like:
+
+header = read_u32_be(stream)
+
+frame = {
+    sync:        bits(header, 21, 11),
+    version:     bits(header, 19, 2),
+    layer:       bits(header, 17, 2),
+    bitrate:     bits(header, 12, 4),
+    sample_rate: bits(header, 10, 2),
+    padding:     bit(header, 9)
+}
+Notice that this is not particularly APL-like.
+
+I think the more interesting MLPL expression would be to make the format description data:
+
+fields = [
+    ["sync",        11],
+    ["version",      2],
+    ["layer",        2],
+    ["protection",   1],
+    ["bitrate",      4],
+    ["sample_rate",  2],
+    ["padding",      1],
+    ...
+]
+
+header |> unpack_bits(fields)
+Now you're back in MLPL territory:
+
+binary parsing as array transformation.
+
+That could become a very attractive language demonstration.
+
+Stage 3 — MP3 inspector, not decoder
+The first genuinely useful application should therefore be:
+
+mp3-info.mlpl
+It streams through an MP3 file and reports:
+
+ID3v2:
+  version: 2.4
+  tag bytes: 18342
+
+Audio:
+  MPEG-1 Layer III
+  frames: 8421
+  duration: 219.98 s
+  sample rate: 44100 Hz
+
+Bitrate:
+  min: 128 kbps
+  max: 256 kbps
+  mean: 191 kbps
+
+Channels:
+  joint stereo: 100%
+
+Frame sizes:
+  min: ...
+  max: ...
+  histogram: ...
+No audio decoding required.
+
+Yet it exercises:
+
+file
+ ↓
+stream
+ ↓
+bytes
+ ↓
+bitfields
+ ↓
+records
+ ↓
+array analysis
+ ↓
+statistics
+That feels extremely characteristic of sw-MLPL.
+
+And importantly, you can process a 500 MB MP3 without ever loading 500 MB into an MLPL array.
+
+That becomes one of the nonfunctional requirements:
+
+All demos must support inputs substantially larger than available MLPL heap memory.
+
+Stage 4 — manipulate the file
+Inspection alone tests reading. You also want writing.
+
+Good next applications are:
+
+Strip ID3
+MP3 + ID3 → MP3 without ID3
+Copy selected metadata
+MP3 → sanitized MP3
+Rewrite an ID3 title
+MP3 → modified MP3
+Extract MPEG frames
+MP3 → raw MPEG audio frames
+Concatenate compatible streams
+Potentially:
+
+MP3 + MP3 → MP3
+subject to format constraints.
+
+Now MLPL has to handle:
+
+read → parse → transform → serialize → write
+That is the complete binary-data pipeline.
+
+Stage 5 — Ogg parser
+Before encoding anything, teach MLPL the Ogg container.
+
+Ogg is particularly nice because it is structurally very different from MP3:
+
+MP3:
+frames frames frames frames
+
+Ogg:
+pages
+  ↓
+segments
+  ↓
+packets
+An ogg-info.mlpl could parse:
+
+capture pattern
+version
+header type
+granule position
+serial number
+page sequence
+CRC
+segment count
+segment table
+payload
+Now you get another useful forcing function:
+
+CRC calculation
+That exercises:
+
+xor
+shift
+mask
+fold
+byte stream
+You can compare:
+
+stored CRC
+computed CRC
+and flag damaged pages.
+
+That's a very satisfying standalone demo.
+
+Then MP3 → Ogg
+At this point I would add:
+
+mp3-to-ogg.mlpl
+but deliberately divide responsibilities.
+
+MLPL owns the pipeline
+MP3 reader
+    ↓
+MP3 decoder extension
+    ↓
+PCM chunks
+    ↓
+optional MLPL transforms
+    ↓
+Vorbis encoder extension
+    ↓
+Ogg writer
+The interesting architecture is:
+
+                    sw-MLPL
+
+      parse/control/transform/pipeline
+                     │
+            ┌────────┴────────┐
+            │                 │
+       native decode     native encode
+            │                 │
+         Rust crate         Rust crate
+I think that's preferable to shelling out to ffmpeg.
+
+An external ffmpeg demo proves process execution.
+
+A Rust codec extension proves your extension architecture.
+
+Those are very different claims.
+
+The extension boundary I would want
+Something roughly like:
+
+decoder = mp3_decoder(open_bytes("song.mp3"))
+
+pcm_chunks =
+    decoder
+    |> decode_chunks
+
+pcm_chunks
+|> map(normalize)
+|> vorbis_encode({quality: 5})
+|> write_bytes("song.ogg")
+You don't necessarily need objects if they don't fit MLPL.
+
+It could instead be functional:
+
+input = file_open_read("song.mp3")
+output = file_open_write("song.ogg")
+
+state = mp3_decoder_new(input)
+
+decode_pcm(state)
+|> each(vorbis_encode)
+|> each(file_write(output))
+Eventually I'd aim for something cleaner like:
+
+"song.mp3"
+|> audio_decode
+|> audio_encode("vorbis")
+|> file_write("song.ogg")
+but only after the low-level demos exist.
+
+Otherwise the abstraction hides precisely what you're trying to test.
+
+What this should force into sw-MLPL
+I see roughly three tiers.
+
+Tier 1: MLPL language/runtime primitives
+These are fundamental enough that I would put them upstream rather than hide them in an audio extension.
+
+1. A real byte-buffer type
+This is the biggest one.
+
+Today, packed bit algorithms can run over integer-valued f64 arrays, but the existing upstream contract explicitly says packed storage remains unresolved.
+
+For file processing you really want something like:
+
+bytes
+backed by Rust:
+
+Vec<u8>
+or perhaps a generalized typed array:
+
+array<u8>
+array<i16>
+array<i32>
+array<f32>
+array<f64>
+That would have value far beyond binary files.
+
+It immediately helps your ML work too:
+
+u8   quantized tensors
+i8   quantized tensors
+i16  PCM
+f16  model tensors
+f32  model tensors
+So binary files may be the forcing function that finally earns typed arrays.
+
+That's a particularly productive outcome.
+
+2. Streaming file I/O
+I would avoid a simplistic:
+
+read_file(path)
+as the primary interface.
+
+You need:
+
+open
+read
+read_exact
+write
+seek
+tell
+close
+but MLPL should probably expose a more compositional layer too:
+
+file_chunks(path, 65536)
+Then:
+
+file_chunks("huge.bin", 65536)
+|> each(analyze)
+|> reduce(combine)
+That is exactly where an array/functional language should shine.
+
+3. Integer endian operations
+Useful primitives:
+
+u16_le
+u16_be
+u24_be
+u32_le
+u32_be
+u64_le
+u64_be
+plus serialization:
+
+put_u16_le
+put_u32_be
+I would implement these as a library on top of bytes where practical.
+
+4. Bitstream reader/writer
+This is slightly different from bit operations.
+
+You currently have word-level operations such as band, bor, shifts, masks, and popcount.
+
+Codecs need:
+
+read_bits(1)
+read_bits(3)
+read_bits(11)
+read_bits(17)
+across byte boundaries.
+
+I'd initially make this an MLPL library:
+
+bit_reader(bytes)
+read_bits(reader, n)
+and see whether the ergonomics justify a native implementation.
+
+Things that should not become language keywords
+I'd be conservative here.
+
+Don't add:
+
+read_u32_be
+crc32
+mp3_frame
+ogg_page
+as language features.
+
+Those belong in libraries.
+
+Likewise:
+
+bits
+bytes
+file
+stream
+may deserve core runtime types/functions, but:
+
+MP3
+Vorbis
+Ogg
+ID3
+definitely should not.
+
+This demo should test whether small general primitives compose into specialized functionality.
+
+That is exactly the kind of completeness story you're trying to build for MLPL.
+
+A generalized binary-layout library could be the real prize
+I'd seriously consider whether this demo eventually produces something analogous to Python's struct, but more array-oriented.
+
+For example:
+
+mpeg_header = layout([
+    field("sync",       bits(11)),
+    field("version",    bits(2)),
+    field("layer",      bits(2)),
+    field("protected",  bits(1)),
+    field("bitrate",    bits(4)),
+    field("sample_rate",bits(2)),
+    field("padding",    bits(1))
+])
+Then:
+
+decode(mpeg_header, bytes)
+returns a record.
+
+And:
+
+encode(mpeg_header, record)
+produces bytes.
+
+Now consider what else this handles:
+
+PNG chunks
+ELF headers
+WAV RIFF
+TCP packets
+GGUF headers
+safetensors headers
+BMP
+ZIP
+TAR
+PCAP
+SQLite pages
+FPGA bitstreams
+MCU firmware images
+This creates a surprising bridge between several things you're already exploring.
+
+The same infrastructure underlying:
+
+MP3 frame parsing
+could later underpin:
+
+GGUF inspection
+in demo-ml-utils.
+
+That's a very good sign architecturally.
+
+My proposed forcing sequence
+I would make the repository progression:
+
+Milestone	Demo	What it forces
+1	hexdump	real byte buffers, binary read
+2	binary-stats	streaming/chunk reduction
+3	wav-info	endian integers, structured fields
+4	wav-copy	binary write, round-trip invariants
+5	mp3-info	arbitrary bitfields, scanning
+6	id3-info	variable-length records/text
+7	ogg-info	pages, segmentation, 64-bit fields
+8	ogg-crc	CRC, streaming bit algorithms
+9	mp3-frame-extract	large streaming transformation
+10	audio-decode	Rust extension boundary
+11	audio-encode	Rust extension boundary
+12	mp3-to-ogg	full pipeline integration
+That gives MP3→Ogg the right role:
+
+capstone, not foundation.
+
+One especially interesting demo before transcoding
+I'd add:
+
+mp3-waveform
+Decode MP3 using a Rust extension, but do all subsequent processing in MLPL:
+
+MP3
+ ↓ Rust decoder
+PCM chunks
+ ↓ MLPL
+abs
+ ↓
+window
+ ↓
+max / rms
+ ↓
+downsample
+ ↓
+waveform data
+That demonstrates the distinction beautifully:
+
+Rust handles a mature low-level codec; MLPL handles array-centric analysis.
+
+And because PCM is naturally an array, this also connects binary-file processing back to MLPL's main strengths.
+
+Tests matter particularly here
+The repository should copy demo-memory's distinction between what is logically expressed and what is physically demonstrated. Its existing README explicitly separates honest current measurements, runnable approximations, and blocked experiments with precise upstream requests.
+
+For binary files I'd make round-trip invariants central:
+
+decode(encode(x)) == x
+where applicable.
+
+For example:
+
+bytes → WAV record → bytes
+must be byte-identical for canonical fixtures.
+
+MP3 header tests:
+
+known 4 bytes
+→ known fields
+Ogg:
+
+page bytes
+→ fields
+→ computed CRC == stored CRC
+Streaming:
+
+parse whole file
+==
+parse with chunk sizes 1, 7, 64, 4096
+That last one is particularly valuable because it catches accidental assumptions about record boundaries aligning with input chunks.
+
+The most important upstream feature
+If this demo earns only one major enhancement, I would make it:
+
+typed/packed arrays, beginning with u8
+Not "file support."
+
+You can implement file access through Rust extensions fairly readily.
+
+But representing a 100 MB file as approximately 100 MB of bytes rather than hundreds of MB of floating-point MLPL values is a fundamental capability.
+
+It also unlocks:
+
+binary files
+network packets
+image pixels
+audio PCM
+quantized tensors
+GGUF tensors
+safetensors
+memory-mapped datasets
+compressed indexes
+The existing demo-memory upstream contract already points toward packed storage as the missing systems-level capability.
+
+So I think this new demo has a very natural mission statement:
+
+demo-binary-files asks whether sw-MLPL can inspect, transform, and stream real binary data without pretending that floating-point arrays are byte buffers.
+
+And its capstone can absolutely be:
+
+MP3 → decode → PCM → encode → Ogg
+with the codec kernels initially supplied as Rust extensions and the container parsing, streaming pipeline, transformations, analysis, and orchestration exposed visibly in MLPL.
+
+That would test substantially more of sw-MLPL's claim to being a general-purpose language than merely implementing another algorithm, while also producing infrastructure that feeds directly into GGUF/safetensors/model-file work.
+
+
+binary is an overloaded term.  Yes, we want to be able to read/write/edit binary files (including via streaming for files too big to fit in memory, but also process smaller files in memory, and importantly leverage APL-inspired array fucntionality.  But, binary also describes executable code.  Another goal (not sure of the status) is to package up an app (e.g., mp3-to-ogg) as a standalone binary.  This might involve generating a bootstrap/wrapper that combines the mlpl code and a script or REPL engine; but preferably fully compile an mlpl application to a (rust-like?) binary.  Where are we on that?
+
+Worked for 25s
+You are right that binary is too overloaded here. There are two distinct capabilities worth forcing:
+
+Binary data processing — bytes, bitfields, files, streaming, array-oriented transforms.
+
+Native executable production — turning an MLPL application into a standalone OS executable.
+
+And the good news is that the second capability is already substantially implemented, though not yet broadly enough for something like mp3-to-ogg.
+
+Where sw-MLPL is today on native executables
+Current sw-MLPL has a real compile path, not merely a bundled interpreter. The documented command is:
+
+mlpl build foo.mlpl -o foo
+and it produces a native executable. There is also an mlpl! procedural macro for embedding MLPL inside Rust.
+
+The architecture today is approximately:
+
+foo.mlpl
+   │
+   ▼
+MLPL lexer/parser
+   │
+   ▼
+MLPL AST
+   │
+   ▼
+lower-to-Rust
+   │
+   ▼
+generated temporary Rust crate
+   │
+   ▼
+cargo build --release
+   │
+   ▼
+native executable
+Most importantly, the resulting executable does not contain the parser or interpreter. It links the compact compiled runtime (mlpl-rt, mlpl-array, mlpl-core) instead.
+
+So the preferred architecture you described—actually compile MLPL into something Rust-like—is already the direction the project took.
+
+That is much better than:
+
+[MLPL source] + [REPL executable] + bootstrap wrapper
+although that latter approach could still be useful as a fallback packaging mode.
+
+The limitation: the compiler currently handles a subset
+The compiler is presently closer to a numeric kernel compiler than a general-purpose application compiler.
+
+It lowers things including:
+
+array/scalar literals
+arithmetic
+broadcasting
+iota
+reshape
+transpose
+reductions
+matmul
+dot
+exp/log/sqrt/abs/pow
+sigmoid/tanh
+labeled shapes
+but many general-purpose constructs are explicitly not lowered yet, including for, repeat, loaders/datasets, much of the ML runtime, and numerous higher-level operations.
+
+For mp3-to-ogg, the bigger issue is that the current build mechanism is also intentionally simple: it generates a tiny Rust main() around the lowered MLPL and prints the resulting scalar.
+
+So today:
+
+mlpl build numerical-demo.mlpl
+is real.
+
+But:
+
+mlpl build mp3-to-ogg.mlpl
+./mp3-to-ogg input.mp3 output.ogg
+is not yet the kind of application surface the compiler was designed to support.
+
+That makes this new demo an unusually good forcing function.
+
+I think the demo should explicitly force both sides
+Rather than call it demo-binary-files, I'd probably call it something like:
+
+demo-file-processing
+or perhaps:
+
+demo-data-formats
+I slightly prefer demo-file-processing because the fundamental question is broader:
+
+Can sw-MLPL behave like a general-purpose Unix-style data-processing language while retaining its array-language advantages?
+
+That gives you both:
+
+small file → load entirely → array operations → write
+and:
+
+huge file → stream chunks → transform/reduce → write
+without binding the repository name to representation.
+
+The executable aspect can then be a first-class acceptance criterion for the repository rather than part of its name.
+
+The capstone should be more demanding than “runs in the REPL”
+For this repository I would establish three execution levels.
+
+Level A — interactive
+mlpl-repl -f demos/mp3-info.mlpl
+Useful while developing.
+
+Level B — script
+Something eventually like:
+
+mlpl demos/mp3-info.mlpl song.mp3
+still interpreter-backed.
+
+Level C — native application
+mlpl build apps/mp3-to-ogg.mlpl -o mp3-to-ogg
+
+./mp3-to-ogg song.mp3 song.ogg
+This should be the graduation criterion.
+
+That distinguishes this repository from your existing algorithm demos.
+
+What mp3-to-ogg would force into the compiler
+This is where the project becomes particularly useful.
+
+You wouldn't merely discover missing file APIs. You'd discover missing compiled-language application features.
+
+The first set is basic control flow. The compiler currently doesn't lower constructs such as for and repeat.
+
+A streaming codec application will quickly need:
+
+while input remains:
+    read chunk
+    process chunk
+    write chunk
+Whether MLPL spells that as while, recursion, a stream combinator, or each over a lazy sequence is a language-design decision.
+
+For an APL-inspired language, I'd strongly resist immediately adding conventional imperative machinery just because Rust has it.
+
+A better target might be:
+
+file_chunks(input, 65536)
+|> each(decode)
+|> each(transform)
+|> each(encode)
+|> write_chunks(output)
+That keeps the forcing function aligned with MLPL's identity.
+
+Command-line applications are another earned capability
+A real standalone application needs at least:
+
+argv
+stdin
+stdout
+stderr
+exit status
+Potentially MLPL should expose something as simple as:
+
+args()
+returning strings.
+
+Then:
+
+input  = arg(0)
+output = arg(1)
+or an array-oriented equivalent.
+
+The compiled runtime would implement those directly using Rust std::env::args.
+
+This is a small feature, but it makes an enormous difference in the claim:
+
+sw-MLPL programs can be ordinary command-line tools.
+
+Then comes I/O
+For both interpreted and compiled execution, I would want the same conceptual APIs:
+
+read_bytes(path)
+write_bytes(path, bytes)
+
+open_read(path)
+open_write(path)
+
+read_chunk(stream, n)
+write_chunk(stream, bytes)
+
+seek(stream, offset)
+tell(stream)
+The important architectural rule should be:
+
+The MLPL program should not know whether these calls are executing through the interpreter or through generated Rust.
+
+For example:
+
+read_bytes
+would have two implementations:
+
+Interpreter
+   ↓
+evaluator builtin
+   ↓
+Rust file implementation
+versus:
+
+Compiled MLPL
+   ↓
+generated mlpl_rt::read_bytes(...)
+   ↓
+same Rust file implementation
+That preserves interpreter/compiler parity.
+
+This suggests an important refactoring principle
+Anything intended to work in compiled MLPL should ideally not be implemented exclusively inside the evaluator.
+
+Instead:
+
+                ┌─ interpreter evaluator
+MLPL operation ─┤
+                └─ generated Rust
+                        │
+                        ▼
+                  shared mlpl-rt
+So file I/O, byte buffers, CRC, codec bridges, etc. should be runtime capabilities whenever practical.
+
+That will prevent the compile path from perpetually lagging the interpreter.
+
+Native extensions become particularly interesting here
+Suppose MLPL expresses:
+
+pcm =
+    file_chunks(input, 65536)
+    |> mp3_decode
+You probably do not want the actual MP3 decoder translated from MLPL to generated scalar Rust on day one.
+
+Instead:
+
+MLPL
+  │
+  ▼
+mp3_decode(...)
+  │
+  ▼
+mlpl-rt / extension facade
+  │
+  ▼
+Rust codec crate
+The exact same call can work:
+
+in the REPL,
+
+in WASM where supported,
+
+in a native compiled executable.
+
+That is a much stronger extension architecture than shelling out to ffmpeg.
+
+And it gives you three implementation levels
+For any operation you can deliberately choose:
+
+Pure MLPL
+Good for teaching and exercising language completeness:
+
+CRC
+ID3 parsing
+Ogg page parsing
+bit extraction
+statistics
+Rust runtime primitive
+Good when MLPL requires representation/runtime assistance:
+
+file handles
+u8 buffers
+mmap
+stream reads
+Rust extension/library
+Good for complicated optimized implementations:
+
+MP3 decoder
+Vorbis encoder
+Opus encoder
+Then the demo shows that these compose naturally.
+
+That is exactly what a general-purpose language should permit.
+
+Typed arrays become even more important once compilation enters the story
+Our earlier discussion about u8 becomes stronger here.
+
+For interpreted MLPL, representing bytes using exact integer-valued f64s is wasteful but survivable for tiny demos.
+
+For a compiled command-line program processing a 2 GB file, it becomes indefensible.
+
+The compiled runtime should eventually have representations such as:
+
+Array<u8>
+Array<i16>
+Array<i32>
+Array<f32>
+Array<f64>
+or whatever syntax/semantics you settle on.
+
+Then MLPL's array operations could potentially operate directly on them:
+
+samples : i16[...] = ...
+abs(samples)
+reshape(samples, ...)
+window(samples, ...)
+and the compiler lowers those into corresponding Rust typed buffers.
+
+That is a much more important general-purpose enhancement than merely adding a read_file() builtin.
+
+The especially attractive target
+I'd eventually want this:
+
+input = args()[0]
+output = args()[1]
+
+input
+|> file_chunks(65536)
+|> mp3_decode
+|> map(audio_transform)
+|> vorbis_encode
+|> write_chunks(output)
+followed by:
+
+mlpl build mp3-to-ogg.mlpl -o mp3-to-ogg
+producing:
+
+mp3-to-ogg
+with no MLPL source, parser, REPL, or interpreter needed at runtime.
+
+That is consistent with the compiler architecture you already have rather than requiring a new architecture. The work is principally about expanding lowering coverage and the compiled runtime surface. The existing compiler documentation explicitly positions mlpl build as the case where “the MLPL is the program.”
+
+I would therefore revise the demo roadmap
+The forcing sequence becomes two-dimensional:
+
+Demo	Data capability	Compiler capability
+hexdump	byte input	CLI args + output
+byte histogram	array operations on bytes	typed array lowering
+WAV inspector	endian fields	records/functions
+WAV copy	binary output	file APIs
+huge-file histogram	streaming	compiled streaming
+MP3 inspector	bitstream parsing	control/composition
+Ogg inspector	structured pages	larger application
+Ogg CRC verifier	bit ops/reductions	parity test
+MP3→PCM	native codec extension	extension linking
+PCM→Ogg	native codec extension	extension linking
+MP3→Ogg	entire stack	standalone app
+That makes the repository much more consequential.
+
+The final success criterion is not merely:
+
+“We managed to parse an MP3.”
+
+It's:
+
+“We wrote a practical file-processing utility in MLPL, exploited array-language operations where they made sense, streamed data larger than memory, used optimized Rust components where appropriate, and compiled the MLPL application into an ordinary standalone native executable.”
+
+That is a compelling demonstration of general-purpose-language completeness.
+
+And because mlpl build already exists and already avoids embedding the interpreter, I would not invest much in the bootstrap/wrapper approach except as a temporary compatibility mode. The stronger path is already there; this demo should pressure it from its present numerical subset toward a genuine application compiler.
+
+
+what would this new repo be called?
+
+I’d call it demo-file-processing.
+
+That name cleanly covers the actual forcing function: reading, writing, editing, streaming, parsing formats, exploiting array operations, and eventually compiling the MLPL utility into a standalone executable. It avoids overloading “binary,” and it doesn’t lock the repo to audio.
+
+Good alternatives, in order, would be:
+
+demo-file-processing — best overall
+
+demo-data-formats — better if parsing/serialization becomes the main theme
+
+demo-systems-io — broader, but sounds more OS-oriented
+
+demo-stream-processing — too narrow because small in-memory files matter too
+
+demo-binary-data — still has the executable-code ambiguity you identified
+
+For the initial progression, I’d expect demo-file-processing to contain things like hexdump, WAV/MP3/Ogg inspection, large-file streaming, rewriting metadata, and eventually mp3-to-ogg as the capstone standalone application.

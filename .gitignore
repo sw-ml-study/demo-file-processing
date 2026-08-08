@@ -1,0 +1,29 @@
+# OS and editor state
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+
+# Generated build, test, and demo output
+target/
+out/
+dist/
+coverage/
+tmp/
+*.tmp
+*.log
+
+# Generated or downloaded media belongs outside version control.
+# Tiny deterministic fixtures under fixtures/ remain trackable.
+artifacts/
+media/
+
+# Raw Agentrail transcripts are local; durable saga metadata remains tracked.
+.agentrail/sessions/

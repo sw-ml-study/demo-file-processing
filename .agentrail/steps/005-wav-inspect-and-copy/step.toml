@@ -1,0 +1,8 @@
+number = 5
+slug = "wav-inspect-and-copy"
+status = "pending"
+description = "Generate tiny redistributable PCM WAV fixtures and implement MLPL inspection ..."
+role = "production"
+context_files = []
+created_at = "2026-08-08T11:57:10"
+commits = []
