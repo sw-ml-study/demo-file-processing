@@ -5,7 +5,13 @@ bytes = read_bytes("fixtures/bytes/boundary-17.bin")?;
 rendered = u:hexdump(bytes, 16)?;
 expected = decode_bytes(concat(tokenize_bytes("00000000  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F"), concat([10], tokenize_bytes("00000010  10"))));
 if equal(rendered, expected) {
-  print("hexdump: fixtures/bytes/boundary-17.bin");
+  print("Whole-buffer hexdump demonstration");
+  print("Purpose: turn raw bytes into stable offset-prefixed hexadecimal rows.");
+  print("Input: fixtures/bytes/boundary-17.bin contains the 17 values 0x00 through 0x10, one beyond a 16-byte row.");
+  print("MLPL work: validate bytes, split nibbles, map uppercase hex digits, and place offsets and row boundaries.");
+  print("Native runtime work: read the complete 17-byte fixture and decode the final display bytes as text.");
+  print("Output:");
   print(rendered);
+  print("Interpretation: offset 00000010 starts the second row, proving the formatter handles the exact width boundary.");
   ok({bytes: tally(bytes), line_width: 16, lines: 2})
 } else { err({kind: "invariant", message: "hexdump output changed"}) }

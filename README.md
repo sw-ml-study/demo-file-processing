@@ -32,6 +32,11 @@ defect and unsupported byte/process/bit lowering are tracked explicitly.
 
 ## What runs now
 
+Every user-facing recipe below follows the
+[demonstration output contract](docs/demo-output.md): it describes its purpose,
+input, MLPL/native ownership, operation, and how to interpret the result.
+Repository tests and audits remain terse validation tools rather than demos.
+
 The [whole-buffer byte foundations](docs/byte-foundations.md) provide reusable
 MLPL validation, hexadecimal formatting, and a 256-bin array-oriented byte
 histogram. The hexdump demonstrates a 16-byte formatting boundary; the
@@ -45,8 +50,8 @@ not yet a bounded-memory demo claim.
 
 The [bounded histogram](docs/bounded-histogram.md) merges 256-bin MLPL results
 across arbitrary ranges and matches the whole-buffer oracle for chunk sizes 1,
-7, 64, and 65,536. Its allocation is structurally chunk-bounded; measured peak
-resident memory remains a later acceptance step.
+7, 64, and 65,536. Its structurally chunk-bounded allocation is backed by the
+opt-in sparse-file peak-RSS evidence below.
 
 The [endian and field-layout slice](docs/endian-and-fields.md) adds exact
 one-to-six-byte little/big-endian codecs and data-described MSB-first field
@@ -65,8 +70,8 @@ header split. It does not claim bounded copying or transformation.
 
 The opt-in [sparse-file memory evidence](docs/sparse-memory-evidence.md)
 measures fixed-budget histogram and WAV consumers as sparse artifacts grow to
-1 MiB and 64 MiB. Recorded macOS peak RSS stayed below 32 MiB with zero
-non-negative growth for both small/large pairs.
+1 MiB and 64 MiB. Recorded macOS peak RSS stayed below 32 MiB, with growth
+between zero and roughly 1.1 MiB across repeated small/large comparisons.
 
 ```sh
 just hexdump

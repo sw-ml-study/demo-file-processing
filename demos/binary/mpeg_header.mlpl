@@ -7,9 +7,15 @@ widths = [11, 2, 2, 1, 4, 2, 1, 1, 2, 2, 1, 1, 2];
 fields = u:unpack_fields(header, widths)?;
 expected = [2047, 3, 1, 1, 9, 0, 0, 0, 1, 2, 0, 1, 0];
 if equal(fields.values, expected) {
-  print("MPEG header bytes:", header);
-  print("field widths:", fields.widths);
-  print("field offsets:", fields.offsets);
-  print("field values:", fields.values);
+  print("Declarative MPEG audio-header demonstration");
+  print("Purpose: decode packed fields that do not align to byte boundaries without a format-specific native parser.");
+  print("Input: FF FB 90 64, a four-byte MPEG-1 Layer III frame header.");
+  print("MLPL work: expand bytes to MSB-first bits and apply this data-described width vector:", fields.widths);
+  print("Native runtime work: fixed-width bit operations only; no MPEG parser or external tool is used.");
+  print("Bit offsets:", fields.offsets);
+  print("Raw field values:", fields.values);
+  print("Decoded meaning: sync=0x7FF, MPEG-1, Layer III, no CRC, bitrate index 9 (128 kbps), sample-rate index 0 (44.1 kHz).");
+  print("Decoded meaning: no padding, joint stereo, mode extension 2, not copyrighted, original, no emphasis.");
+  print("Interpretation: the 11-bit sync and following fields cross byte boundaries yet consume exactly", fields.total_bits, "bits.");
   ok({bytes: 4, fields: tally(fields.values), total_bits: fields.total_bits})
 } else { err({kind: "invariant", message: "MPEG header fields changed"}) }

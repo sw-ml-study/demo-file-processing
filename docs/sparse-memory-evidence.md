@@ -25,16 +25,18 @@ Measured on 2026-08-08 on arm64 macOS 26.5 with `mlpl-repl 0.20.0`:
 
 | Run | Peak RSS |
 | --- | ---: |
-| histogram, 65,536 bytes | 20,955,136 bytes |
-| histogram, 1,048,576 bytes | 20,381,696 bytes |
-| WAV, 1,048,576-byte payload | 10,027,008 bytes |
-| WAV, 67,108,864-byte payload | 10,027,008 bytes |
+| histogram, 65,536 bytes | 20,316,160 bytes |
+| histogram, 1,048,576 bytes | 21,397,504 bytes |
+| WAV, 1,048,576-byte payload | 10,043,392 bytes |
+| WAV, 67,108,864-byte payload | 10,190,848 bytes |
 
-The enforced non-negative growth metric was zero for both pairs (the larger
-histogram process measured slightly lower). These observations satisfy the
-configured ceilings and support the claim that retained memory depends on
-chunk plus fixed analysis state rather than total file size. They are not a
-universal platform maximum; the executable ceilings are the repeatable
+The enforced non-negative growth metric was 1,081,344 bytes for histogram and
+147,456 bytes for WAV. An earlier run measured zero growth for both pairs,
+showing the expected process/allocator variability. Both runs satisfy the
+configured 8 MiB growth and 32 MiB absolute ceilings and support the claim that
+retained memory depends on chunk plus fixed analysis state rather than total
+file size. These observations are not universal platform maxima; the
+executable ceilings, rather than exact point values, are the repeatable
 acceptance contract.
 
 ## Method and boundaries

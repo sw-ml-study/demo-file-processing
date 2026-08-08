@@ -14,8 +14,13 @@ write_bytes(".wav-copy-output.wav", canonical)?;
 copied = read_bytes(".wav-copy-output.wav")?;
 remove_path(".wav-copy-output.wav")?;
 if equal(input, copied) {
-  print("WAV PCM:", wav.channels, "channel(s)", wav.sample_rate, "Hz", wav.bits_per_sample, "bit");
-  print("frames:", wav.frames, "data bytes:", wav.data_bytes, "duration seconds:", wav.duration_seconds);
-  print("canonical copy: byte-identical");
+  print("Whole-buffer PCM WAV inspect-and-copy demonstration");
+  print("Purpose: parse a real binary container, derive audio metadata, and canonically encode it back to identical bytes.");
+  print("Input: fixtures/wav/minimal-mono8.wav is a", tally(input), "byte canonical RIFF/WAVE containing sample bytes", wav.data, ".");
+  print("MLPL work: traverse RIFF chunks, decode little-endian fields, validate PCM relationships and padding, and serialize the canonical form.");
+  print("Native runtime work: whole-file byte read, temporary byte write/read, and cleanup only.");
+  print("Output format:", wav.channels, "channel(s),", wav.sample_rate, "Hz,", wav.bits_per_sample, "bit;", wav.frames, "frames in", wav.data_bytes, "data bytes.");
+  print("Interpretation: unsigned 8-bit samples 0, 127, and 255 span low, midpoint, and high values; duration is", wav.duration_seconds, "seconds.");
+  print("Round trip: canonical encoding is byte-identical, including the required pad after the odd three-byte data chunk.");
   ok({bytes: tally(copied), frames: wav.frames, unknown_chunks: wav.unknown_chunks})
 } else { err({kind: "invariant", message: "canonical WAV copy changed bytes"}) }

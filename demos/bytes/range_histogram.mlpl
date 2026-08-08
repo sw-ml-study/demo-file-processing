@@ -4,7 +4,12 @@ include "../../src/bytes/range_histogram.mlpl";
 
 result = u:range_byte_histogram("fixtures/bytes/all-bytes.bin", 7)?;
 if equal(result.counts, fill([256], 1)) * eq(result.bytes, 256) * eq(result.chunks, 37) {
-  print("bounded histogram: 256 bytes in 37 ranges of at most 7 bytes");
-  print(u:histogram_nonzero(result.counts)?);
+  print("Bounded range-histogram demonstration");
+  print("Purpose: reproduce a whole-file histogram while materializing at most seven input bytes per read.");
+  print("Input: all 256 byte values exactly once; 256 bytes require", result.chunks, "ranges at chunk size", result.chunk_size, ".");
+  print("MLPL work: advance immutable range state, calculate each partial 256-bin histogram, and merge counts.");
+  print("Native runtime work: report file size and return each requested bounded byte range.");
+  print("Populated bins:", u:histogram_nonzero(result.counts)?);
+  print("Interpretation: every final count is 1 even though values crossed 36 internal boundaries; chunking did not change the answer.");
   ok(result)
 } else { err({kind: "invariant", message: "bounded histogram changed across ranges"}) }

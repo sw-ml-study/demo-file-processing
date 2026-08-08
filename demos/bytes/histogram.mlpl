@@ -6,9 +6,17 @@ repeated = read_bytes("fixtures/bytes/repeated-7.bin")?; repeated_counts = u:byt
 boundary = read_bytes("fixtures/bytes/boundary-17.bin")?; boundary_counts = u:byte_histogram(boundary)?;
 empty = read_bytes("fixtures/bytes/empty.bin")?; empty_counts = u:byte_histogram(empty)?;
 if equal(all_counts, fill([256], 1)) * eq(reduce_add(repeated_counts), 12) * eq(reduce_add(boundary_counts), 17) * eq(reduce_add(empty_counts), 0) {
-  print("all-bytes histogram: one occurrence of every value 0..255"); print(u:histogram_nonzero(all_counts)?);
-  print("repeated histogram: byte 7 occurs 12 times"); print(u:histogram_nonzero(repeated_counts)?);
-  print("boundary histogram: bytes 0..16 occur once"); print(u:histogram_nonzero(boundary_counts)?);
-  print("empty histogram: no populated bins"); print(u:histogram_nonzero(empty_counts)?);
+  print("Whole-buffer byte-histogram demonstration");
+  print("Purpose: compare four distributions while always producing the same 256-bin result shape.");
+  print("MLPL work: build byte-value equality tables, reduce each row, and compress populated bins for display.");
+  print("Native runtime work: read four tiny deterministic fixtures as ordinary f64-backed byte arrays.");
+  print("Case 1 — uniform coverage: every possible byte appears once."); print(u:histogram_nonzero(all_counts)?);
+  print("Interpretation: 256 populated bins with count 1 prove complete byte-domain coverage.");
+  print("Case 2 — concentrated spike: byte 7 appears twelve times."); print(u:histogram_nonzero(repeated_counts)?);
+  print("Interpretation: one populated bin separates frequency from input position.");
+  print("Case 3 — short ramp: bytes 0 through 16 appear once."); print(u:histogram_nonzero(boundary_counts)?);
+  print("Interpretation: the compact view reports only 17 populated bins; the full result still has 256.");
+  print("Case 4 — empty input."); print(u:histogram_nonzero(empty_counts)?);
+  print("Interpretation: empty input is represented by 256 zero counts, not a missing histogram.");
   ok({fixtures: 4, bins: tally(all_counts), total_bytes: reduce_add(all_counts) + reduce_add(repeated_counts) + reduce_add(boundary_counts)})
 } else { err({kind: "invariant", message: "histogram totals changed"}) }

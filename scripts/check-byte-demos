@@ -5,16 +5,20 @@ repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 mlpl=$("$repo_root/scripts/select-mlpl")
 
 hexdump=$("$mlpl" --source-dir "$repo_root" "$repo_root/demos/bytes/hexdump.mlpl")
+printf '%s\n' "$hexdump" | grep -Fqx 'Whole-buffer hexdump demonstration'
 printf '%s\n' "$hexdump" | grep -Fqx '00000000  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F'
 printf '%s\n' "$hexdump" | grep -Fqx '00000010  10'
+printf '%s\n' "$hexdump" | grep -Fqx 'Interpretation: offset 00000010 starts the second row, proving the formatter handles the exact width boundary.'
 
 histogram=$("$mlpl" --source-dir "$repo_root" "$repo_root/demos/bytes/histogram.mlpl")
-printf '%s\n' "$histogram" | grep -Fqx 'all-bytes histogram: one occurrence of every value 0..255'
-printf '%s\n' "$histogram" | grep -Fqx 'repeated histogram: byte 7 occurs 12 times'
-printf '%s\n' "$histogram" | grep -Fqx 'boundary histogram: bytes 0..16 occur once'
-printf '%s\n' "$histogram" | grep -Fqx 'empty histogram: no populated bins'
+printf '%s\n' "$histogram" | grep -Fqx 'Whole-buffer byte-histogram demonstration'
+printf '%s\n' "$histogram" | grep -Fqx 'Case 1 — uniform coverage: every possible byte appears once.'
+printf '%s\n' "$histogram" | grep -Fqx 'Case 2 — concentrated spike: byte 7 appears twelve times.'
+printf '%s\n' "$histogram" | grep -Fqx 'Case 3 — short ramp: bytes 0 through 16 appear once.'
+printf '%s\n' "$histogram" | grep -Fqx 'Case 4 — empty input.'
 
 range_histogram=$("$mlpl" --source-dir "$repo_root" "$repo_root/demos/bytes/range_histogram.mlpl")
-printf '%s\n' "$range_histogram" | grep -Fqx 'bounded histogram: 256 bytes in 37 ranges of at most 7 bytes'
+printf '%s\n' "$range_histogram" | grep -Fqx 'Bounded range-histogram demonstration'
+printf '%s\n' "$range_histogram" | grep -Fqx 'Interpretation: every final count is 1 even though values crossed 36 internal boundaries; chunking did not change the answer.'
 
 echo "PASS byte demos"

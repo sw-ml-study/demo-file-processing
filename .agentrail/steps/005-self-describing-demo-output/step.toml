@@ -1,6 +1,6 @@
 number = 5
 slug = "self-describing-demo-output"
-status = "pending"
+status = "in-progress"
 description = "Audit every user-facing demonstration recipe in the root justfile and make it..."
 role = "production"
 context_files = []

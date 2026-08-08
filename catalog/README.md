@@ -26,3 +26,8 @@ Implementation ownership is explicit: `mlpl` performs substantive work in the
 language; `mlpl-native` uses only a generic runtime effect/representation;
 `codec-extension` delegates a named mature codec kernel while MLPL owns the
 pipeline; and `external` is a named oracle, baseline, or fallback.
+
+Runnable user-facing rows also follow the
+[demonstration output contract](../docs/demo-output.md). Their output narrates
+purpose, input, ownership, and interpretation; a lone pass/fail marker belongs
+in a validation recipe, not a demonstration.

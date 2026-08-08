@@ -3,7 +3,8 @@ set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 output=$("$repo_root/scripts/run-binary-demo" mpeg_header)
-printf '%s\n' "$output" | grep -Fqx 'field widths: 11 2 2 1 4 2 1 1 2 2 1 1 2'
-printf '%s\n' "$output" | grep -Fqx 'field values: 2047 3 1 1 9 0 0 0 1 2 0 1 0'
+printf '%s\n' "$output" | grep -Fqx 'Declarative MPEG audio-header demonstration'
+printf '%s\n' "$output" | grep -Fqx 'Raw field values: 2047 3 1 1 9 0 0 0 1 2 0 1 0'
+printf '%s\n' "$output" | grep -Fqx 'Decoded meaning: sync=0x7FF, MPEG-1, Layer III, no CRC, bitrate index 9 (128 kbps), sample-rate index 0 (44.1 kHz).'
 
 echo "PASS binary demos"

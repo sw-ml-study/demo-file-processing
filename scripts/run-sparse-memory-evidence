@@ -84,6 +84,16 @@ measure() {
       ;;
   esac
   cat "$stdout_file"
+  case "$label" in
+    histogram-*)
+      grep -Fqx 'Sparse bounded-histogram demonstration' "$stdout_file"
+      grep -Fqx 'Interpretation: every byte is zero, so bin 0 equals the file size and all other bins are empty.' "$stdout_file"
+      ;;
+    wav-*)
+      grep -Fqx 'Sparse WAV range-inspection demonstration' "$stdout_file"
+      grep -Fqx 'Interpretation: metadata cost is independent of the declared audio payload because validated payload bytes are skipped by offset.' "$stdout_file"
+      ;;
+  esac
   [ -n "$rss" ] || {
     echo "peak RSS was not reported; run outside a restricted metrics sandbox" >&2
     cat "$metrics_file" >&2
