@@ -1,8 +1,9 @@
 number = 3
 slug = "range-wav-inspection"
-status = "in-progress"
+status = "completed"
 description = "Inspect WAV structure with bounded reads and test every relevant split boundary without output claims."
 role = "legacy"
 context_files = []
 created_at = "2026-08-08T13:11:07"
-commits = []
+completed_at = "2026-08-08T13:46:14"
+commits = ["bf8ae2da6e8d91e9040613af6d5d55a76cbd567a"]
