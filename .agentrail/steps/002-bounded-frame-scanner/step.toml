@@ -1,0 +1,8 @@
+number = 2
+slug = "bounded-frame-scanner"
+status = "pending"
+description = "Implement chunk-invariant bounded MPEG frame scanning, resynchronization, budgets, and statistics."
+role = "legacy"
+context_files = []
+created_at = "2026-08-08T14:41:05"
+commits = []

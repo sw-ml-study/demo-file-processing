@@ -1,0 +1,6 @@
+targets = ["AGENTS.md"]
+auto_apply = false
+exclude = [
+    "global/branch-handoff.md",
+    "global/push-discipline.md",
+]

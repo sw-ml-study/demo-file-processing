@@ -1,0 +1,8 @@
+number = 4
+slug = "mp3-fixtures-oracle-demos"
+status = "pending"
+description = "Add tiny fixtures, malformed cases, explicit oracle comparison, chunk-invariance evidence, and narrated demos."
+role = "legacy"
+context_files = []
+created_at = "2026-08-08T14:41:05"
+commits = []

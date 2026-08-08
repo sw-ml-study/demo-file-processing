@@ -1,39 +1,39 @@
-# Bounded range analysis
+# MP3 and ID3 inspection
 
-## 1. Range reader conformance
+## 1. MPEG audio frame-header model
 
-Implement the smallest reusable MLPL range-reader state/helper over
-`file_size` and `read_bytes(path, offset, length)`. Test chunk sizes 1, 7, 64,
-and 65,536; empty files; zero-length reads; EOF clamping; beyond-EOF offsets;
-invalid offsets/lengths and overflow; missing/denied paths; and sandbox escape
-behavior. Use mlplunit for every executable MLPL test and keep ownership and
-f64 offset limits explicit.
+Turn the existing golden bit-field example into a reusable semantic MPEG audio
+header parser. Cover MPEG versions, layers, bitrate/sample-rate tables, channel
+modes, padding, frame-length formulas, reserved combinations, and free bitrate
+policy with authoritative references and mlplunit vectors. Keep format logic in
+MLPL and use no native MPEG parser.
 
-## 2. Chunk-invariant histogram
+## 2. Bounded resynchronizing frame scanner
 
-Implement bounded range traversal and a 256-bin reduction without whole-file
-materialization. Compare every configured chunk size with the existing
-whole-buffer oracle, including empty and all-byte fixtures. Document carried
-state, complexity, allocation, and any unavoidable MLPL array copies.
+Scan seekable MP3 files through accepted range/window contracts, carrying only
+bounded state across arbitrary chunk splits. Define deterministic sync recovery,
+false-positive rejection, truncation, scan budgets, and constant/variable
+bitrate statistics. Compare chunk sizes 1, 7, 64, and 65,536.
 
-## 3. Range-based WAV inspection
+## 3. Bounded ID3v2 inspection
 
-Inspect RIFF/WAVE structure and PCM metadata through bounded reads. Split RIFF
-and chunk headers at every relevant boundary, cover padding and malformed
-lengths, and prove results match the existing canonical whole-buffer parser.
-Do not add copy/write claims.
+Parse supported ID3v2 headers and frames through bounded reads with synchsafe
+sizes, version/flag validation, text decoding policy, padding, extended-header
+handling where supported, and strict byte/frame/text budgets. Emit metadata and
+audio range descriptors without stripping, copying, or writing.
 
-## 4. Sparse-file memory evidence
+## 4. Fixtures, oracle, and narrated demos
 
-Generate or describe a deterministic sparse input larger than the configured
-memory budget, run bounded histogram and WAV inspection where applicable, and
-measure peak resident memory with a documented portable-enough method. Prove
-the high-water mark depends on chunk plus state rather than total file size, or
-record the exact failed criterion and smallest unblock.
+Add tiny generated or clearly redistributable MP3/ID3 fixtures, malformed cases,
+and an explicit pinned oracle for opt-in comparison. Prove chunk invariance and
+scanner/tag statistics through mlplunit. Add self-describing frame, scan, and
+ID3 demonstrations that explain input, MLPL/native/oracle ownership, operation,
+and interpretation.
 
-## 5. Bounded-read acceptance report
+## 5. Read-only MP3/ID3 acceptance report
 
-Run `just check`, reconcile README/catalog/capability/upstream documentation,
-and publish executable results and limitations. Stabilize only APIs earned by
-the demos. Identify `incremental-binary-output` as gated unless its generic
-sink contract has separately been delivered and authorized.
+Run `just check`, document complexity, allocation, measured memory where needed,
+supported/unsupported variants, stabilized read-only APIs, and output
+descriptors for the later incremental-output saga. Reconcile README, catalog,
+plans, saga queue, and upstream contracts; report blockers and the next
+highest-value unblocked saga.
