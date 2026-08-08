@@ -14,7 +14,8 @@ when a runtime, codec extension, or validation oracle performs the work.
 
 ## Project status
 
-This repository has its initial validation and native-test foundation. See
+The file-processing foundation is accepted with 27 native mlplunit tests across
+9 suites. See [the foundation acceptance report](docs/foundation-report.md),
 [the development guide](docs/development.md),
 [the measured capability baseline](docs/capabilities.md),
 [the upstream contracts](docs/upstream-contract.md), and

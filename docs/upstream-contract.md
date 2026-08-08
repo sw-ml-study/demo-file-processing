@@ -4,6 +4,10 @@ This downstream repository does not modify `../sw-mlpl`. Each request below is
 the smallest general capability motivated by an executable probe. Ordering is
 based on what blocks the next planned demo, not on speculative completeness.
 
+The [foundation acceptance report](foundation-report.md) closes the measured
+foundation work and separates the unblocked bounded-read path from capabilities
+that still require upstream authorization.
+
 ## Delivered: bounded range reads
 
 The configured interpreter already supplies:

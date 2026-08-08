@@ -24,19 +24,28 @@ editing durable `.agentrail/` state by hand.
    capability evidence, and write the smallest bounded-I/O/compiler upstream
    contracts needed to unblock later sagas.
 
-## Saga 2 — `bounded-file-streaming`
+## Saga 2 — `bounded-range-analysis`
 
-Gate: bounded range reads are already verified. Read-only steps are unblocked;
-bounded-copy/transformation steps require a separately authorized incremental
-binary sink if whole-output materialization violates their acceptance bound.
+Status: unblocked by verified bounded range reads; no upstream change is needed.
 
-1. Bounded reader/writer conformance, sandbox, EOF, short-I/O, and overflow tests.
+1. Range-reader conformance for sandbox, EOF, offsets, lengths, and overflow.
 2. Chunk-boundary invariant histogram and reduction.
-3. Streaming WAV copy and a simple PCM array transform.
-4. Sparse file larger than the memory budget with measured peak RSS.
-5. Streaming acceptance report and downstream API stabilization.
+3. Range-based WAV inspection with headers split at every relevant boundary.
+4. Sparse input larger than the memory budget with measured peak RSS.
+5. Bounded-read acceptance report and downstream API stabilization.
 
-## Saga 3 — `mp3-id3-tools`
+## Saga 3 — `incremental-binary-output`
+
+Gate: separately authorized upstream work provides a generic incremental binary
+sink with partial-write, flush, close, cleanup, sandbox, and error semantics.
+
+1. Sink conformance including partial writes, errors, flush, close, and cleanup.
+2. Chunked copy with byte-identical and hash oracles.
+3. Bounded WAV copy and a simple PCM array transform.
+4. Output larger than the memory budget with measured peak RSS.
+5. Bounded-output acceptance report and API stabilization.
+
+## Saga 4 — `mp3-id3-tools`
 
 1. MPEG audio frame-header bitfield vectors and parser.
 2. Resynchronizing frame scanner and deterministic MP3 statistics.
@@ -44,7 +53,7 @@ binary sink if whole-output materialization violates their acceptance bound.
 4. Tag strip/sanitize and raw MPEG-frame extraction with byte preservation.
 5. MP3/ID3 oracle comparison and malformed-input report.
 
-## Saga 4 — `ogg-container-tools`
+## Saga 5 — `ogg-container-tools`
 
 1. Ogg page and lacing parser with 64-bit field handling.
 2. Cross-page packet reconstruction and continuation tests.
@@ -52,7 +61,7 @@ binary sink if whole-output materialization violates their acceptance bound.
 4. Canonical page copy/rewrite with recomputed CRC.
 5. Container acceptance report and codec-extension requirements.
 
-## Saga 5 — `standalone-file-applications`
+## Saga 6 — `standalone-file-applications`
 
 Gate: separately authorized compiler/runtime work provides the generic CLI and
 I/O surface demonstrated necessary by Sagas 1–4.
@@ -63,7 +72,7 @@ I/O surface demonstrated necessary by Sagas 1–4.
 4. Clean-environment artifact audit proving no source/parser/REPL dependency.
 5. Standalone application capability report.
 
-## Saga 6 — `audio-codec-extensions`
+## Saga 7 — `audio-codec-extensions`
 
 1. Chunk-oriented PCM/packet codec extension contract and test double.
 2. Rust MP3 decoder extension integration and golden PCM validation.
@@ -71,7 +80,7 @@ I/O surface demonstrated necessary by Sagas 1–4.
 4. Rust Vorbis encoder extension and Ogg packetization integration.
 5. Backpressure, flush, metadata, malformed-stream, and bounded-memory tests.
 
-## Saga 7 — `mp3-to-ogg-capstone`
+## Saga 8 — `mp3-to-ogg-capstone`
 
 1. Compose the MLPL-owned decode/transform/encode/write pipeline.
 2. Add CLI behavior, deterministic diagnostics, and cleanup/error tests.

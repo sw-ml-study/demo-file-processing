@@ -121,21 +121,34 @@ executable, gated, extension-backed, or external.
 Acceptance: MLPL visibly performs the array analysis and parsing; current
 physical representation and copy costs are documented without streaming claims.
 
-### Phase 2 — bounded file processing
+### Phase 2a — bounded range analysis
 
-Gate: bounded range reads are available. Read-only chunk work may proceed;
-steps requiring bounded output remain gated until an incremental binary sink is
-available through separately authorized upstream work.
+Status: unblocked by the measured `read_bytes(path, offset, length)` and
+`file_size` APIs.
 
-- Add chunk-invariant histogram/reduction and bounded WAV copy/transformation.
+- Add range-reader conformance for EOF, offsets, lengths, overflow, permissions,
+  and sandbox escape attempts.
+- Add chunk-invariant histogram/reduction and bounded WAV inspection.
 - Exercise chunk sizes 1, 7, 64, and 65,536 plus boundaries within fields.
-- Add sparse inputs larger than the configured memory budget and measure peak
+- Add a sparse input larger than the configured memory budget and measure peak
   resident memory using a documented method.
-- Verify error semantics for EOF, short reads/writes, offset overflow,
-  permissions, and sandbox escape attempts.
 
-Acceptance: results match whole-buffer reference paths and measured peak memory
-is bounded by documented state plus chunk size, not total file size.
+Acceptance: read-side results match whole-buffer references and measured peak
+memory is bounded by documented state plus chunk size, not total file size.
+
+### Phase 2b — incremental binary output
+
+Gate: separately authorized upstream work supplies a generic incremental binary
+sink with partial-write, flush, close, cleanup, sandbox, and deterministic error
+semantics.
+
+- Add sink conformance and chunked byte-copy tests.
+- Add bounded WAV copy and a simple PCM array transformation.
+- Verify byte/hash oracles across chunk sizes and output error paths.
+- Measure peak resident memory for output larger than the configured budget.
+
+Acceptance: copy/transformation output matches the reference path and peak
+memory is bounded independently of total input and output size.
 
 ### Phase 3 — MP3 and ID3 inspection/manipulation
 
@@ -209,10 +222,9 @@ Ogg/Vorbis; failures are deterministic; the native artifact meets Phase 5.
 
 ## Recommended order
 
-Start with the `file-processing-foundations` saga in [sagas.md](sagas.md).
-It creates the repository gate, measures the language/runtime/compiler rather
-than trusting assumptions, and delivers useful in-memory byte/field/WAV demos.
-The measured range API already removes the original read-side blocker; finish
-the in-memory foundations next, then use their evidence to minimize the
-remaining incremental-write/compiler requests. This isolates file-processing
-needs from codec complexity and keeps later extension work evidence-driven.
+The `file-processing-foundations` saga is accepted; see its
+[executable evidence and limitations](foundation-report.md). Archive it, then
+start `bounded-range-analysis` from [sagas.md](sagas.md). The measured range API
+removes the read-side blocker, while bounded copy/transformation remains in a
+separate gated saga until a generic incremental sink exists. This isolates
+read-side progress from upstream write/compiler work and codec complexity.
