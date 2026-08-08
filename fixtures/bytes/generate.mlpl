@@ -1,0 +1,6 @@
+write_bytes("fixtures/bytes/empty.bin", [])?;
+write_bytes("fixtures/bytes/singleton-ff.bin", [255])?;
+write_bytes("fixtures/bytes/boundary-17.bin", range(17))?;
+write_bytes("fixtures/bytes/repeated-7.bin", fill([12], 7))?;
+write_bytes("fixtures/bytes/all-bytes.bin", range(256))?;
+ok(5)

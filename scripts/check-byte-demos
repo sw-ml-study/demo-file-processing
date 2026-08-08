@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mlpl=$("$repo_root/scripts/select-mlpl")
+
+hexdump=$("$mlpl" --source-dir "$repo_root" "$repo_root/demos/bytes/hexdump.mlpl")
+printf '%s\n' "$hexdump" | grep -Fqx '00000000  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F'
+printf '%s\n' "$hexdump" | grep -Fqx '00000010  10'
+
+histogram=$("$mlpl" --source-dir "$repo_root" "$repo_root/demos/bytes/histogram.mlpl")
+printf '%s\n' "$histogram" | grep -Fqx 'byte histogram: one occurrence of every value 0..255'
+
+echo "PASS byte demos"

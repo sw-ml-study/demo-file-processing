@@ -29,6 +29,21 @@ streams/writes, and compiled application APIs are not current claims. The
 native compiler handles a narrow numeric case; a minimized arithmetic codegen
 defect and unsupported byte/process/bit lowering are tracked explicitly.
 
+## What runs now
+
+The [whole-buffer byte foundations](docs/byte-foundations.md) provide reusable
+MLPL validation, hexadecimal formatting, and a 256-bin array-oriented byte
+histogram. The hexdump demonstrates a 16-byte formatting boundary; the
+histogram proves one count for every byte value. Both use tiny generated
+fixtures and state their current f64 representation and copy costs explicitly.
+
+```sh
+just hexdump
+just histogram
+just tests tests/bytes
+just check
+```
+
 ## Development and testing
 
 The repository uses a thin root `justfile` over portable scripts, with

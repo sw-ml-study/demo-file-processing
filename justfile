@@ -35,6 +35,20 @@ capabilities:
     ./scripts/check-process-io
     ./scripts/check-compiler
 
+# Regenerate and validate tiny deterministic byte fixtures.
+generate-byte-fixtures:
+    ./scripts/generate-byte-fixtures --write
+
+# Run the readable byte-processing applications.
+hexdump:
+    ./scripts/run-byte-demo hexdump
+
+histogram:
+    ./scripts/run-byte-demo histogram
+
+byte-demos:
+    ./scripts/check-byte-demos
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

@@ -1,0 +1,34 @@
+include "src/bytes/validate.mlpl";
+include "src/bytes/histogram.mlpl";
+
+@test {name: "byte histogram handles empty and singleton inputs", tags: ["bytes", "histogram", "boundary"]}
+def u:test_histogram_small() { "Verify 256 stable bins for zero and one input byte.";
+  empty = u:byte_histogram([])?;
+  singleton = u:byte_histogram([255])?;
+  u:assert_eq(empty, fill([256], 0), "empty input has zero counts");
+  u:assert_eq(reduce_add(singleton), 1, "singleton total is one");
+  u:assert_eq(take(singleton, 0, 255), 1, "255 bin receives singleton")
+}
+
+@test {name: "byte histogram covers all byte values", tags: ["bytes", "histogram", "all-values"]}
+def u:test_histogram_all_values() { "Verify range(256) contributes exactly one count to each bin.";
+  u:assert_eq(u:byte_histogram(range(256)), ok(fill([256], 1)), "every byte bin is one")
+}
+
+@test {name: "byte histogram counts repeated values", tags: ["bytes", "histogram", "repeated"]}
+def u:test_histogram_repeated() { "Verify repeated bytes accumulate without changing other bins.";
+  counts = u:byte_histogram(fill([12], 7))?;
+  u:assert_eq(reduce_add(counts), 12, "histogram total matches input length");
+  u:assert_eq(take(counts, 0, 7), 12, "repeated byte count accumulates");
+  u:assert_eq(take(counts, 0, 6) + take(counts, 0, 8), 0, "neighboring bins remain empty")
+}
+
+@test {name: "byte histogram rejects invalid byte vectors", tags: ["bytes", "histogram", "invalid"]}
+def u:test_histogram_invalid() { "Verify invalid cells and ranks return Err.";
+  u:assert_err(u:byte_histogram([0, 256]), "out-of-range byte");
+  u:assert_err(u:byte_histogram([0, 0.5]), "fractional byte");
+  u:assert_err(u:byte_histogram(7), "scalar input");
+  u:assert_err(u:byte_histogram(reshape(range(4), [2, 2])), "rank-two input")
+}
+
+u:run_registered_tests()

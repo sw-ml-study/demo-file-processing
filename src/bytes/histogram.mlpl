@@ -1,0 +1,5 @@
+def u:byte_histogram(bytes) { "Count every byte value with an equality outer product and axis reduction.";
+  if u:bytes_valid(bytes) {
+    if eq(tally(bytes), 0) { ok(fill([256], 0)) } else { ok(reduce_add(table(:eq, range(256), bytes), 1)) }
+  } else { err({kind: "bytes", message: "byte_histogram expects a byte vector"}) }
+}

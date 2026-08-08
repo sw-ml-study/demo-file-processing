@@ -1,0 +1,34 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mode=${1:---write}
+
+case "$mode" in
+  --write)
+    mlpl=$("$repo_root/scripts/select-mlpl")
+    "$mlpl" --source-dir "$repo_root" "$repo_root/fixtures/bytes/generate.mlpl" >/dev/null
+    ;;
+  --check)
+    expected='empty.bin 0 0
+singleton-ff.bin 1 255
+boundary-17.bin 17 136
+repeated-7.bin 12 84
+all-bytes.bin 256 32640'
+    actual=
+    for path in empty.bin singleton-ff.bin boundary-17.bin repeated-7.bin all-bytes.bin; do
+      file="$repo_root/fixtures/bytes/$path"
+      [ -f "$file" ] || { echo "missing byte fixture: $path" >&2; exit 1; }
+      count=$(wc -c < "$file" | tr -d ' ')
+      sum=$(od -An -tu1 -v "$file" | awk '{ for (i=1; i<=NF; i++) total += $i } END { print total + 0 }')
+      actual="${actual}${actual:+
+}$path $count $sum"
+    done
+    [ "$actual" = "$expected" ] || { echo "byte fixture manifest mismatch" >&2; printf '%s\n' "$actual" >&2; exit 1; }
+    sequence=$(od -An -tu1 -v "$repo_root/fixtures/bytes/all-bytes.bin" | awk '{ for (i=1; i<=NF; i++) { if ($i != n) exit 1; n++ } } END { if (n != 256) exit 1; print "ok" }')
+    [ "$sequence" = ok ]
+    ;;
+  *) echo "usage: generate-byte-fixtures [--write|--check]" >&2; exit 2 ;;
+esac
+
+echo "PASS byte fixtures ($mode)"

@@ -1,0 +1,10 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/bytes/histogram.mlpl";
+
+bytes = read_bytes("fixtures/bytes/all-bytes.bin")?;
+counts = u:byte_histogram(bytes)?;
+if equal(counts, fill([256], 1)) * eq(reduce_add(counts), tally(bytes)) {
+  print("byte histogram: one occurrence of every value 0..255");
+  print(counts);
+  ok({bytes: tally(bytes), bins: tally(counts), total: reduce_add(counts)})
+} else { err({kind: "invariant", message: "histogram totals changed"}) }

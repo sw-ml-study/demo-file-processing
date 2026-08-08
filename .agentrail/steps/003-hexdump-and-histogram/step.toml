@@ -1,6 +1,6 @@
 number = 3
 slug = "hexdump-and-histogram"
-status = "pending"
+status = "in-progress"
 description = "Implement reusable MLPL whole-buffer byte formatting and histogram logic plus..."
 role = "production"
 context_files = []
