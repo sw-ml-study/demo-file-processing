@@ -1,0 +1,12 @@
+include "../io/range_reader.mlpl";
+
+def u:range_byte_histogram(path, chunk_size) { "Reduce bounded file ranges into 256 counts without retaining prior chunks.";
+  reader = u:range_reader(path, chunk_size)?; counts = fill([256], 0); chunks = 0;
+  while lt(reader.offset, reader.size) {
+    part = u:range_next(reader)?;
+    counts = counts + u:byte_histogram(part.bytes)?;
+    chunks = chunks + 1;
+    reader = part.reader
+  };
+  ok({counts: counts, bytes: reader.offset, chunks: chunks, chunk_size: chunk_size})
+}

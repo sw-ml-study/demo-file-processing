@@ -14,4 +14,7 @@ printf '%s\n' "$histogram" | grep -Fqx 'repeated histogram: byte 7 occurs 12 tim
 printf '%s\n' "$histogram" | grep -Fqx 'boundary histogram: bytes 0..16 occur once'
 printf '%s\n' "$histogram" | grep -Fqx 'empty histogram: no populated bins'
 
+range_histogram=$("$mlpl" --source-dir "$repo_root" "$repo_root/demos/bytes/range_histogram.mlpl")
+printf '%s\n' "$range_histogram" | grep -Fqx 'bounded histogram: 256 bytes in 37 ranges of at most 7 bytes'
+
 echo "PASS byte demos"

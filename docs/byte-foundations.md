@@ -68,6 +68,11 @@ all byte values once, byte 7 repeated twelve times, values 0 through 16 once,
 and the empty input. Its compact view uses MLPL `compress` to report only
 populated byte/count bins; the full 256-bin arrays remain the tested result.
 
+The later [bounded histogram](bounded-histogram.md) reuses the same visible
+array reduction per range and merges the resulting 256-bin vectors. It matches
+this whole-buffer result across the required chunk sizes without materializing
+the full file.
+
 ## Validation and limits
 
 Both APIs accept only rank-one numeric arrays of integral values `0..=255` and

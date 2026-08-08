@@ -43,6 +43,11 @@ exact offsets and chunk budgets, advances immutable read state, and preserves
 runtime sandbox and filesystem errors. It is executable conformance evidence,
 not yet a bounded-memory demo claim.
 
+The [bounded histogram](docs/bounded-histogram.md) merges 256-bin MLPL results
+across arbitrary ranges and matches the whole-buffer oracle for chunk sizes 1,
+7, 64, and 65,536. Its allocation is structurally chunk-bounded; measured peak
+resident memory remains a later acceptance step.
+
 The [endian and field-layout slice](docs/endian-and-fields.md) adds exact
 one-to-six-byte little/big-endian codecs and data-described MSB-first field
 extraction. Its narrated demo decodes a golden four-byte MPEG audio header,
@@ -56,6 +61,7 @@ semantic normalization of files containing unknown chunks.
 ```sh
 just hexdump
 just histogram
+just bounded-histogram
 just binary-fields
 just wav-inspect-copy
 just tests tests/bytes

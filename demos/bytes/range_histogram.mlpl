@@ -1,0 +1,10 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/bytes/histogram.mlpl";
+include "../../src/bytes/range_histogram.mlpl";
+
+result = u:range_byte_histogram("fixtures/bytes/all-bytes.bin", 7)?;
+if equal(result.counts, fill([256], 1)) * eq(result.bytes, 256) * eq(result.chunks, 37) {
+  print("bounded histogram: 256 bytes in 37 ranges of at most 7 bytes");
+  print(u:histogram_nonzero(result.counts)?);
+  ok(result)
+} else { err({kind: "invariant", message: "bounded histogram changed across ranges"}) }

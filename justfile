@@ -49,6 +49,10 @@ hexdump:
 histogram:
     ./scripts/run-byte-demo histogram
 
+# Count bytes through bounded file ranges without whole-file materialization.
+bounded-histogram:
+    ./scripts/run-byte-demo range_histogram
+
 byte-demos:
     ./scripts/check-byte-demos
 

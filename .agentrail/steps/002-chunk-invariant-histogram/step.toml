@@ -1,6 +1,6 @@
 number = 2
 slug = "chunk-invariant-histogram"
-status = "pending"
+status = "in-progress"
 description = "Implement bounded histogram reduction and prove equality with whole-buffer references across required chunk sizes."
 role = "legacy"
 context_files = []
