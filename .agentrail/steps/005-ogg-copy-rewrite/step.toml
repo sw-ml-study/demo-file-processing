@@ -1,8 +1,9 @@
 number = 5
 slug = "ogg-copy-rewrite"
-status = "in-progress"
+status = "completed"
 description = "Implement bounded Ogg page copy and one descriptor-driven rewrite with recomp..."
 role = "production"
 context_files = []
 created_at = "2026-08-09T08:57:10"
-commits = []
+completed_at = "2026-08-09T09:54:59"
+commits = ["1497b8be77585575a6b4388b0fa037c13f4774e6"]
