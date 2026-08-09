@@ -1,8 +1,9 @@
 number = 3
 slug = "ogg-crc-verification"
-status = "in-progress"
+status = "completed"
 description = "Implement visible MLPL Ogg CRC-32 calculation and stored-checksum verificatio..."
 role = "production"
 context_files = []
 created_at = "2026-08-08T19:47:40"
-commits = []
+completed_at = "2026-08-08T20:06:35"
+commits = ["b8221bce980403710a33b254de8a0e3b1b3c8299"]
