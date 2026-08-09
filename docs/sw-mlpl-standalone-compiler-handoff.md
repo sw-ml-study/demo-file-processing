@@ -35,7 +35,7 @@ oracles accept:
 - bounded file copy/rewrite/extraction and raw/WAV/Ogg binary stdout; and
 - growing file-output and stdout RSS evidence under fixed chunk budgets.
 
-The full downstream gate currently passes 100 native mlplunit tests across 30
+The full downstream gate currently passes 104 native mlplunit tests across 31
 suites plus exact binary, CRC, narration, compiler-boundary, and artifact-audit
 oracles. The missing capability is compiler parity, not an absent downstream
 file-format algorithm.

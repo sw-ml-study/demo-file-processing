@@ -15,8 +15,9 @@ when a runtime, codec extension, or validation oracle performs the work.
 ## Project status
 
 The foundation, bounded range analysis, MP3/ID3 and Ogg inspection, and
-sandboxed incremental file and binary stdout output are accepted with 100 native
-mlplunit tests across 30 suites. See [the structural media doctor](docs/media-doctor.md),
+sandboxed incremental file and binary stdout output are accepted with 104 native
+mlplunit tests across 31 suites. See [the bounded WAV transformation app](docs/wav-transform-app.md),
+[the structural media doctor](docs/media-doctor.md),
 [the unified media inspector](docs/media-inspector.md),
 [the stdout acceptance report](docs/stdout-report.md),
 [the compiled process conformance report](docs/compiler-process-conformance.md),
@@ -102,6 +103,11 @@ The [structural media doctor](docs/media-doctor.md) turns the same bounded
 evidence into conservative healthy, warning, rejected, or unknown diagnoses.
 Its five-case portfolio explains exactly which next action is safe, including
 ancillary WAV normalization caveats and confirmed-frame MP3 recovery.
+
+The [bounded WAV transformation app](docs/wav-transform-app.md) accepts source,
+destination, mode, and chunk arguments; creates a real canonical copy or
+unsigned-8-bit inversion artifact; boundedly reparses it; and explains layout,
+sample, cleanup, allocation, and interpreter/compiler boundaries.
 
 The [whole-buffer byte foundations](docs/byte-foundations.md) provide reusable
 MLPL validation, hexadecimal formatting, and a 256-bin array-oriented byte

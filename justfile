@@ -151,6 +151,10 @@ media-inspect path="fixtures/mp3/synthetic-vbr-id3.mp3":
 media-doctor:
     ./scripts/run-media-doctor
 
+# Create a canonical WAV copy or unsigned-8-bit inversion artifact.
+wav-transform source="fixtures/wav/minimal-mono8.wav" destination=".wav-tool-output.wav" mode="invert_u8" chunk_size="2":
+    ./scripts/run-wav-transform "{{source}}" "{{destination}}" "{{mode}}" "{{chunk_size}}"
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

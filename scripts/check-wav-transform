@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+copy="$repo_root/.wav-tool-oracle-copy.wav"
+invert="$repo_root/.wav-tool-oracle-invert.wav"
+trap 'rm -f "$copy" "$invert"' EXIT HUP INT TERM
+rm -f "$copy" "$invert"
+
+copy_output=$("$repo_root/scripts/run-wav-transform" fixtures/wav/minimal-mono8.wav .wav-tool-oracle-copy.wav copy 2)
+printf '%s\n' "$copy_output" | grep -Fqx 'Bounded WAV transforming application'
+printf '%s\n' "$copy_output" | grep -Fqx 'Sample preview before: 0 127 255 ; after: 0 127 255 .'
+printf '%s\n' "$copy_output" | grep -Fqx 'Interpretation: canonical copy preserves every PCM sample; unknown ancillary chunks are intentionally omitted and RIFF padding is regenerated.'
+cmp "$repo_root/fixtures/wav/minimal-mono8.wav" "$copy"
+
+invert_output=$("$repo_root/scripts/run-wav-transform" fixtures/wav/minimal-mono8.wav .wav-tool-oracle-invert.wav invert_u8 2)
+printf '%s\n' "$invert_output" | grep -Fqx 'Chunk output: 2 sample writes; last write 1 bytes; RIFF pad bytes 1 .'
+printf '%s\n' "$invert_output" | grep -Fqx 'Sample preview before: 0 127 255 ; after: 255 128 0 .'
+printf '%s\n' "$invert_output" | grep -Fqx 'Boundary: this is a seekable-file interpreter application, not decoded/compressed audio, binary stdout, or a standalone compiled executable.'
+[ "$(wc -c < "$invert" | tr -d ' ')" = 48 ]
+[ "$(od -An -tu1 -j44 -N3 "$invert" | tr -s ' ' | sed 's/^ *//;s/ *$//')" = '255 128 0' ]
+
+echo "PASS bounded WAV transforming application"

@@ -55,6 +55,7 @@ the authority for downstream claims.
 | Standalone file application | Process, byte, format, and isolated-artifact gates are all executable; actual hexdump, histogram, WAV, and Ogg compilation is attempted | Not accepted. No useful file-processing artifact exists, and the ordered generic compiler/runtime unblock is recorded in the standalone report. |
 | Unified media inspector | One argument-driven interpreter application dispatches bounded WAV, Ogg+CRC, MP3/ID3, and honest unknown input into a stable common summary; representative and error branches pass native mlplunit and exact narration oracles | A recognizable multi-format application is available now without codecs or compiler claims. It composes previously accepted bounded primitives and adds no new peak-RSS claim. |
 | Structural media doctor | A five-case interpreter application classifies healthy WAV/Ogg/MP3, WAV normalization caveats, MP3 gap recovery, Ogg CRC/continuation rejection, unsupported/missing input, and unknown bytes with safe next actions | Structural evidence now drives conservative application policy without automatic repair or codec-validity claims; it composes existing bounded primitives and adds no new RSS claim. |
+| WAV transforming application | Source/destination/mode/chunk arguments drive canonical copy or unsigned-8-bit inversion; output geometry is boundedly reparsed, previews are compared, canonical bytes pass `cmp`, and inverted payload is `[255,128,0]` | A real argument-driven interpreter transformation app is accepted with O(chunk) production payload state, new-destination safety, and explicit cleanup; it is not a codec or compiled executable. |
 
 ## Claim boundaries
 
@@ -78,6 +79,8 @@ The repository can now truthfully claim:
   format dispatch and structural WAV/Ogg/MP3 evidence.
 - a structural media-doctor application that distinguishes permitted bounded
   operations from rejection and unknown input.
+- an argument-driven bounded WAV copy/inversion application producing verified
+  real artifacts through the interpreter file-path sink.
 
 It cannot yet claim:
 

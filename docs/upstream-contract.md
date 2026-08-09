@@ -118,6 +118,10 @@ compiler parity needed to turn the same MLPL application into a native artifact.
 The [media doctor](media-doctor.md) further demonstrates that Result errors,
 records, control flow, and format-specific policy compose at the interpreter
 level; it introduces no new upstream format or codec request.
+The [bounded WAV transformation app](wav-transform-app.md) likewise composes
+existing interpreter range reads, append output, Results, and record/control
+flow. Its only upstream gap is the same queued compiler parity; no WAV-specific
+runtime or codec builtin is requested.
 
 ## Upstream coordination status
 

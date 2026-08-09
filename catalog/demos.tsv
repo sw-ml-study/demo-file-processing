@@ -37,3 +37,4 @@ sparse-bounded-copy	demos/bytes/sparse_copy.mlpl	raw-bytes	sparse-bounded-output
 sparse-bounded-stdout	demos/stdout/sparse.mlpl	raw-bytes	sparse-binary-stdout	mlpl-native	chunk-bounded	no	file_size,range-read,write_stdout,platform-time	runnable
 media-inspector	demos/apps/media_inspector.mlpl	multi-format	bounded-identify-inspect	mlpl-native	chunk-bounded	yes	args,file_size,range-read,wav,ogg-crc,id3,mpeg-scan	runnable
 media-doctor	demos/apps/media_doctor.mlpl	multi-format	structural-health-actions	mlpl-native	chunk-bounded	yes	file_size,range-read,wav,ogg-crc,ogg-packets,id3,mpeg-scan	runnable
+wav-transform-app	demos/apps/wav_transform.mlpl	wav	bounded-copy-invert-app	mlpl-native	chunk-bounded	yes	args,file_size,range-read,append_bytes,endian-codecs	runnable

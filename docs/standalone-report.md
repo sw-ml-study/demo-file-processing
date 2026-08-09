@@ -33,8 +33,8 @@ claims remain accepted independently.
 
 The default `just check` gate now includes:
 
-- 100 native mlplunit tests across 30 suites, including the later unified media
-  inspector and structural media-doctor application coverage;
+- 104 native mlplunit tests across 31 suites, including the later unified media
+  inspector, structural media doctor, and WAV transformation app coverage;
 - exact interpreter process and binary-stdout contracts;
 - numeric/arithmetic compiler parity;
 - exact partial `args`/`arg`/`write_stdout` compiler behavior;
