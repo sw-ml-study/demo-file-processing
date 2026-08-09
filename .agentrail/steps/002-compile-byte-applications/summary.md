@@ -1,0 +1,1 @@
+Attempted the actual hexdump and four-case histogram applications. Both fail before artifact production on unresolved include directives; mechanically flattened equivalents then fail on unsupported user function definitions. Added a default-gate negative oracle and blocker report; 11 byte mlplunit tests and the full 93-test/28-suite gate pass.
