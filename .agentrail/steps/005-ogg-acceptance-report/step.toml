@@ -1,8 +1,9 @@
 number = 5
 slug = "ogg-acceptance-report"
-status = "in-progress"
+status = "completed"
 description = "Run the full gate and publish stabilized read-only Ogg contracts, rewrite des..."
 role = "meta"
 context_files = []
 created_at = "2026-08-08T19:47:40"
-commits = []
+completed_at = "2026-08-09T08:30:08"
+commits = ["c641de1ef08b0cd986dcb182bc2c9078aca34e78"]
