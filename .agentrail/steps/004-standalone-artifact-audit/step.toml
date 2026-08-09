@@ -1,8 +1,9 @@
 number = 4
 slug = "standalone-artifact-audit"
-status = "in-progress"
+status = "completed"
 description = "Run the full gate and audit a clean-environment native artifact to prove it n..."
 role = "validation"
 context_files = []
 created_at = "2026-08-09T13:09:42"
-commits = []
+completed_at = "2026-08-09T13:46:51"
+commits = ["3cbb46b2f96e356dbac402048a838097f9062ff5"]
