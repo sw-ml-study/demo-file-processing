@@ -1,8 +1,9 @@
 number = 1
 slug = "bounded-ogg-page-model"
-status = "in-progress"
+status = "completed"
 description = "Implement budgeted bounded Ogg page-header, lacing, body-range, flags, split-..."
 role = "production"
 context_files = []
 created_at = "2026-08-08T19:47:40"
-commits = []
+completed_at = "2026-08-08T19:51:03"
+commits = ["37bd1b8f9c4d3ea73a95ec8ebda4863caabd315d"]
