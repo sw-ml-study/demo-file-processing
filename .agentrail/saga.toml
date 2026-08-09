@@ -1,6 +1,6 @@
-name = "mp3-id3-inspection"
-status = "completed"
-current_step = 6
-created_at = "2026-08-08T14:40:44"
+name = "ogg-container-inspection"
+status = "active"
+current_step = 1
+created_at = "2026-08-08T19:47:40"
 plan_file = ".agentrail/plan.md"
 retroactive = false

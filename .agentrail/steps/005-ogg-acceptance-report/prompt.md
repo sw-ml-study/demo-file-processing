@@ -1,0 +1,1 @@
+Run the full gate and publish stabilized read-only Ogg contracts, rewrite descriptors, complexity/allocation evidence, supported variants, limitations, blockers, and next work; reconcile repository documentation and catalog.

@@ -1,0 +1,8 @@
+number = 2
+slug = "cross-page-packets"
+status = "pending"
+description = "Implement bounded packet-boundary and continuation state across Ogg pages and..."
+role = "production"
+context_files = []
+created_at = "2026-08-08T19:47:40"
+commits = []

@@ -1,0 +1,1 @@
+Add tiny generated valid and malformed Ogg fixtures, chunk-invariance tests, a pinned opt-in external oracle, and self-describing page, packet, and CRC demos.

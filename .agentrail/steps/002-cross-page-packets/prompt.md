@@ -1,0 +1,1 @@
+Implement bounded packet-boundary and continuation state across Ogg pages and arbitrary read chunks, with packet budgets and deterministic sequence/continuation/truncation errors.

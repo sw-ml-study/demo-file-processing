@@ -1,0 +1,8 @@
+number = 5
+slug = "ogg-acceptance-report"
+status = "pending"
+description = "Run the full gate and publish stabilized read-only Ogg contracts, rewrite des..."
+role = "meta"
+context_files = []
+created_at = "2026-08-08T19:47:40"
+commits = []

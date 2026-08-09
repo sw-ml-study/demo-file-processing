@@ -1,0 +1,1 @@
+Implement visible MLPL Ogg CRC-32 calculation and stored-checksum verification with golden vectors, page integration, and documented cost/allocation behavior.
