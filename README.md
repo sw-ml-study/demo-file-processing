@@ -22,6 +22,7 @@ mlplunit tests across 28 suites. See [the stdout acceptance report](docs/stdout-
 [the compiled format-application report](docs/compiled-format-applications.md),
 [the standalone artifact audit](docs/standalone-artifact-audit.md),
 [the standalone application assessment](docs/standalone-report.md),
+[the sendable sw-MLPL compiler handoff](docs/sw-mlpl-standalone-compiler-handoff.md),
 [the bounded-output acceptance report](docs/bounded-output-report.md),
 [the Ogg acceptance report](docs/ogg-report.md),
 [the MP3/ID3 acceptance report](docs/mp3-id3-report.md),

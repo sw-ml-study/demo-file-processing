@@ -107,6 +107,9 @@ byte and format artifact parity plus a repeated clean-environment audit. Codec
 extensions and binary source handles are tracked separately and do not explain
 the current compile failures.
 
+The standalone request is also available as a self-contained sendable handoff:
+[`sw-mlpl-standalone-compiler-handoff.md`](sw-mlpl-standalone-compiler-handoff.md).
+
 ### Minimum acceptance
 
 Shared runtime operations, with interpreter and compiled implementations using

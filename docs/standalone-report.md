@@ -98,3 +98,9 @@ parity changes. Re-run `just check` against each new adjacent development build;
 the first expected-failure oracle that breaks identifies the next positive
 downstream parity step. Do not start a new file-application implementation by
 wrapping the interpreter or duplicating MLPL algorithms externally.
+
+For upstream coordination, send
+[`sw-mlpl-standalone-compiler-handoff.md`](sw-mlpl-standalone-compiler-handoff.md),
+which presents the exact evidence, requested order, non-blocking later items,
+reproduction commands, and first actionable downstream resume trigger without
+requiring the recipient to reconstruct this repository's saga history.
