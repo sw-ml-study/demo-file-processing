@@ -15,8 +15,9 @@ when a runtime, codec extension, or validation oracle performs the work.
 ## Project status
 
 The foundation, bounded range analysis, MP3/ID3 and Ogg inspection, and
-sandboxed incremental file and binary stdout output are accepted with 93 native
-mlplunit tests across 28 suites. See [the stdout acceptance report](docs/stdout-report.md),
+sandboxed incremental file and binary stdout output are accepted with 96 native
+mlplunit tests across 29 suites. See [the unified media inspector](docs/media-inspector.md),
+[the stdout acceptance report](docs/stdout-report.md),
 [the compiled process conformance report](docs/compiler-process-conformance.md),
 [the compiled byte-application report](docs/compiled-byte-applications.md),
 [the compiled format-application report](docs/compiled-format-applications.md),
@@ -89,6 +90,12 @@ Every user-facing recipe below follows the
 [demonstration output contract](docs/demo-output.md): it describes its purpose,
 input, MLPL/native ownership, operation, and how to interpret the result.
 Repository tests and audits remain terse validation tools rather than demos.
+
+The [unified media inspector](docs/media-inspector.md) is an argument-driven
+interpreter application that identifies WAV, Ogg, MP3/ID3, or unknown input
+from bounded signature bytes and produces a stable common summary plus useful
+format-specific facts. It validates Ogg CRC, WAV chunk geometry, and ID3/MPEG
+structure without delegating to a native media parser or codec.
 
 The [whole-buffer byte foundations](docs/byte-foundations.md) provide reusable
 MLPL validation, hexadecimal formatting, and a 256-bin array-oriented byte

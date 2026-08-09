@@ -257,7 +257,10 @@ sagas are accepted; see their [foundation](foundation-report.md),
 [bounded-read](bounded-read-report.md), [MP3/ID3](mp3-id3-report.md), and
 [Ogg](ogg-report.md), and [bounded-output](bounded-output-report.md) reports.
 The standalone-file-application assessment is complete with a blocked verdict.
-The next downstream action is to rerun its executable change detectors when
+The active unblocked downstream sequence builds higher-level interpreter media
+applications, beginning with the accepted unified bounded inspector, then a
+media doctor and a transforming tool. Separately, rerun standalone executable
+change detectors when
 upstream source loading, application lowering, byte I/O, and process parity
 change. Binary stdout remains accepted in the interpreter; binary stdin/source
 handles remain separate. Codec-extension prototyping may proceed against

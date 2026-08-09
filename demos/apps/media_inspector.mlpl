@@ -1,0 +1,28 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/slice.mlpl";
+include "../../src/binary/endian_decode.mlpl";
+include "../../src/binary/bit_fields.mlpl";
+include "../../src/wav/model.mlpl";
+include "../../src/wav/parse.mlpl";
+include "../../src/wav/range_inspect.mlpl";
+include "../../src/id3/inspect.mlpl";
+include "../../src/mp3/scanner.mlpl";
+include "../../src/ogg/page.mlpl";
+include "../../src/ogg/crc.mlpl";
+include "../../src/apps/media_inspector.mlpl";
+
+path = unwrap_or(list_get(args(), 0), "fixtures/mp3/synthetic-vbr-id3.mp3"); result = u:inspect_media(path, 7)?;
+print("Unified bounded media-inspector application");
+print("Purpose: identify one file and dispatch to the existing WAV, Ogg, or MP3/ID3 structural inspector through a common result.");
+print("Input:", result.path, "; bytes", result.file_bytes, "; detected format", result.format, ".");
+print("Detection evidence:", result.evidence, ".");
+print("MLPL work: signature dispatch, format parsing, extent and budget validation, metadata aggregation, MPEG synchronization, Ogg lacing, and CRC where applicable.");
+print("Native runtime work: file metadata and offset/length reads capped at", result.chunk_size, "bytes per requested window; no native media parser or codec participates.");
+if equal(result.format, "wav") { print("WAV output: channels", result.channels, "; sample rate", result.sample_rate_hz, "Hz; width", result.bits_per_sample, "bits; frames", result.frames, "; unknown chunks", result.unknown_chunks, ".") } else {
+  if equal(result.format, "ogg") { print("Ogg output: serial", result.serial, "; sequence", result.sequence, "; first-page body bytes", result.body_bytes, "; packet endings", result.frames, "; CRC valid", result.crc_valid, ".") } else {
+    if equal(result.format, "mp3") { print("MP3 output: title =", result.title, "; artist =", result.artist, "; frames", result.frames, "; bitrate range", result.min_bitrate_kbps, "to", result.max_bitrate_kbps, "kbit/s; sample rate", result.sample_rate_hz, "Hz.") } else { print("Unknown output: no format parser was selected; the file is reported without guessing from its extension.") }
+  }
+};
+print("Interpretation: the stable common record exposes zero/default values for facts that do not apply to the detected format; format-specific lines explain the populated fields.");
+print("Boundary: this is an interpreter application over seekable files, not decoded audio and not a standalone compiled executable.");
+ok(result)

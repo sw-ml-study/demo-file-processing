@@ -1,0 +1,1 @@
+Run the full gate, reconcile README, catalog, capabilities, plans, sagas, upstream boundaries, demo-output contract, and counts; publish an acceptance report that clearly labels these as interpreter applications and records remaining compiler, binary-source, and codec blockers.

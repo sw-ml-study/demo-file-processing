@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+
+mp3=$("$repo_root/scripts/run-media-inspector" fixtures/mp3/synthetic-vbr-id3.mp3)
+printf '%s\n' "$mp3" | grep -Fqx 'Unified bounded media-inspector application'
+printf '%s\n' "$mp3" | grep -Fqx 'Input: fixtures/mp3/synthetic-vbr-id3.mp3 ; bytes 1432 ; detected format mp3 .'
+printf '%s\n' "$mp3" | grep -Fqx 'MP3 output: title = Bounded VBR demo ; artist = sw-MLPL ; frames 3 ; bitrate range 128 to 160 kbit/s; sample rate 44100 Hz.'
+
+wav=$("$repo_root/scripts/run-media-inspector" fixtures/wav/odd-unknown-mono8.wav)
+printf '%s\n' "$wav" | grep -Fqx 'WAV output: channels 1 ; sample rate 8000 Hz; width 8 bits; frames 1 ; unknown chunks 1 .'
+
+ogg=$("$repo_root/scripts/run-media-inspector" fixtures/ogg/structural-cross-page.ogg)
+printf '%s\n' "$ogg" | grep -Fqx 'Ogg output: serial 99 ; sequence 10 ; first-page body bytes 255 ; packet endings 0 ; CRC valid 1 .'
+
+unknown=$("$repo_root/scripts/run-media-inspector" fixtures/bytes/boundary-17.bin)
+printf '%s\n' "$unknown" | grep -Fqx 'Unknown output: no format parser was selected; the file is reported without guessing from its extension.'
+printf '%s\n' "$unknown" | grep -Fqx 'Boundary: this is an interpreter application over seekable files, not decoded audio and not a standalone compiled executable.'
+
+echo "PASS unified media-inspector application"

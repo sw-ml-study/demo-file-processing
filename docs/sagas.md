@@ -100,6 +100,17 @@ The consolidated verdict and ordered unblock are in the
 4. Clean-environment artifact audit proving no source/parser/REPL dependency.
 5. Standalone application capability report.
 
+## Saga 6b — `interpreter-media-apps`
+
+Status: active. The [unified media inspector](media-inspector.md) composes the
+accepted bounded WAV, Ogg/CRC, and MP3/ID3 primitives into an argument-driven
+application while retaining an honest unknown branch and interpreter boundary.
+
+1. Unified bounded media inspector.
+2. Structural media doctor with warnings and safe next actions.
+3. Argument-driven bounded WAV or Ogg transforming tool.
+4. Interpreter-application acceptance and documentation reconciliation.
+
 ## Saga 7 — `audio-codec-extensions`
 
 1. Chunk-oriented PCM/packet codec extension contract and test double.

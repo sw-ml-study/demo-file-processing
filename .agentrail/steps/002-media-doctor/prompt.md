@@ -1,0 +1,1 @@
+Build an interpreter media-doctor application that classifies structural health and explains warnings, damage, unsupported features, and safe next actions for WAV, Ogg, and MP3/ID3 fixtures. Reuse existing bounded validators, add mlplunit coverage and a demonstrable multi-case output.

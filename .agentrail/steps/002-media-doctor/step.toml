@@ -1,0 +1,8 @@
+number = 2
+slug = "media-doctor"
+status = "pending"
+description = "Build an interpreter media-doctor application that classifies structural heal..."
+role = "production"
+context_files = []
+created_at = "2026-08-09T14:05:51"
+commits = []

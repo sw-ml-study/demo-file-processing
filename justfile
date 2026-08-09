@@ -143,6 +143,10 @@ bounded-output-memory-evidence:
 stdout-memory-evidence:
     ./scripts/run-stdout-memory-evidence
 
+# Identify and structurally inspect WAV, Ogg, MP3/ID3, or unknown input.
+media-inspect path="fixtures/mp3/synthetic-vbr-id3.mp3":
+    ./scripts/run-media-inspector "{{path}}"
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

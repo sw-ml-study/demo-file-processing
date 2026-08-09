@@ -1,0 +1,1 @@
+1. Publish a sendable sw-mlpl compiler/runtime handoff that explains the not-accepted verdict, exact evidence, ordered unblock, and downstream resume triggers; run the full gate and reconcile documentation links.

@@ -1,0 +1,1 @@
+Build an argument-driven interpreter transformation application using existing bounded WAV or Ogg output primitives. Produce a real artifact, explain changes and memory bounds, compare exact bytes or semantic reparsing, cover errors and cleanup with mlplunit, and keep narration separate from any binary stdout.

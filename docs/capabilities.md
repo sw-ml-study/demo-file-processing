@@ -53,6 +53,7 @@ the authority for downstream claims.
 | Compiled format applications | Actual bounded WAV copy/invert and Ogg copy/rewrite demos fail on unresolved `include`; dependency-concatenated equivalents fail on unsupported `FnDef` | No native format artifact exists to compare or memory-audit. General application lowering blocks before RIFF/Ogg-specific parity is reached. |
 | Isolated artifact audit | Numeric and partial-stdout artifacts run in a fresh source-free directory under an empty environment; dependency inspection finds no named MLPL parser/REPL/evaluator dynamic library | The compiler produces genuinely executable artifacts for its narrow subset. This control does not satisfy useful file-application acceptance because no byte/WAV/Ogg program compiles. |
 | Standalone file application | Process, byte, format, and isolated-artifact gates are all executable; actual hexdump, histogram, WAV, and Ogg compilation is attempted | Not accepted. No useful file-processing artifact exists, and the ordered generic compiler/runtime unblock is recorded in the standalone report. |
+| Unified media inspector | One argument-driven interpreter application dispatches bounded WAV, Ogg+CRC, MP3/ID3, and honest unknown input into a stable common summary; representative and error branches pass native mlplunit and exact narration oracles | A recognizable multi-format application is available now without codecs or compiler claims. It composes previously accepted bounded primitives and adds no new peak-RSS claim. |
 
 ## Claim boundaries
 
@@ -72,6 +73,8 @@ The repository can now truthfully claim:
   growth at the accepted chunk size.
 - exact interpreter-driven binary stdout bytes through ordered, counted,
   per-call-flushed writes with diagnostics kept on stderr.
+- an argument-driven interpreter media-inspection application with bounded
+  format dispatch and structural WAV/Ogg/MP3 evidence.
 
 It cannot yet claim:
 

@@ -1,0 +1,43 @@
+include "src/bytes/validate.mlpl";
+include "src/binary/slice.mlpl";
+include "src/binary/endian_decode.mlpl";
+include "src/binary/bit_fields.mlpl";
+include "src/wav/model.mlpl";
+include "src/wav/parse.mlpl";
+include "src/wav/range_inspect.mlpl";
+include "src/id3/inspect.mlpl";
+include "src/mp3/scanner.mlpl";
+include "src/ogg/page.mlpl";
+include "src/ogg/crc.mlpl";
+include "src/apps/media_inspector.mlpl";
+
+@test {name: "media inspector identifies representative WAV Ogg and MP3 files", tags: ["apps", "media", "dispatch", "formats"]}
+def u:test_media_inspector_formats() { "Verify common and format-specific facts for all supported dispatch branches.";
+  wav = u:inspect_media("fixtures/wav/odd-unknown-mono8.wav", 7)?; ogg = u:inspect_media("fixtures/ogg/structural-cross-page.ogg", 7)?; mp3 = u:inspect_media("fixtures/mp3/synthetic-vbr-id3.mp3", 7)?;
+  u:assert_eq(wav.format, "wav", "WAV dispatch")?; u:assert_eq([wav.channels, wav.sample_rate_hz, wav.frames, wav.unknown_chunks], [1, 8000, 1, 1], "WAV application facts")?;
+  u:assert_eq(ogg.format, "ogg", "Ogg dispatch")?; u:assert_eq([ogg.sequence, ogg.body_bytes, ogg.crc_valid], [10, 255, 1], "Ogg application facts")?;
+  u:assert_eq(mp3.format, "mp3", "MP3 dispatch")?; u:assert_eq([mp3.frames, mp3.min_bitrate_kbps, mp3.max_bitrate_kbps], [3, 128, 160], "MP3 application facts")?;
+  u:assert_eq(mp3.title, "Bounded VBR demo", "MP3 title")?; u:assert_eq(mp3.artist, "sw-MLPL", "MP3 artist")
+}
+
+@test {name: "media inspector is chunk invariant and reports empty or unknown input", tags: ["apps", "media", "chunks", "empty", "unknown"]}
+def u:test_media_inspector_boundaries() { "Compare bounded budgets and retain an honest unknown result for non-media bytes.";
+  small = u:inspect_media("fixtures/ogg/structural-cross-page.ogg", 1)?; large = u:inspect_media("fixtures/ogg/structural-cross-page.ogg", 65536)?; empty = u:inspect_media("fixtures/bytes/empty.bin", 7)?; unknown = u:inspect_media("fixtures/bytes/boundary-17.bin", 7)?;
+  u:assert_eq([small.file_bytes, small.serial, small.sequence, small.body_bytes, small.crc_valid], [large.file_bytes, large.serial, large.sequence, large.body_bytes, large.crc_valid], "Ogg facts are chunk invariant")?;
+  u:assert_eq(empty.format, "unknown", "empty dispatch")?; u:assert_eq(unknown.format, "unknown", "unknown dispatch")?; u:assert_eq([empty.file_bytes, unknown.file_bytes], [0, 17], "empty and unknown sizes")
+}
+
+@test {name: "media inspector preserves truncated malformed unsupported and path errors", tags: ["apps", "media", "errors", "malformed", "unsupported"]}
+def u:test_media_inspector_errors() { "Ensure dispatch does not hide parser, budget, or filesystem failures.";
+  unsupported = ".media-inspector-unsupported-id3.mp3"; truncated_ogg = ".media-inspector-truncated.ogg"; write_bytes(unsupported, [73, 68, 51, 3, 0, 128, 0, 0, 0, 0])?; write_bytes(truncated_ogg, [79, 103, 103, 83, 0])?;
+  u:assert_err(u:inspect_media("fixtures/mp3/malformed-truncated-id3.mp3", 7), "truncated ID3")?;
+  u:assert_err(u:inspect_media("fixtures/ogg/malformed-crc.ogg", 7), "damaged Ogg CRC")?;
+  u:assert_err(u:inspect_media(truncated_ogg, 7), "truncated Ogg header")?;
+  u:assert_err(u:inspect_media(unsupported, 7), "unsupported ID3 flags")?;
+  u:assert_err(u:inspect_media("fixtures/bytes/missing.bin", 7), "missing path")?;
+  u:assert_err(u:inspect_media("../sandbox-escape.bin", 7), "sandbox path")?;
+  u:assert_err(u:inspect_media("fixtures/wav/minimal-mono8.wav", 0), "invalid chunk budget")?;
+  remove_path(unsupported); remove_path(truncated_ogg); ok(1)
+}
+
+u:run_registered_tests()

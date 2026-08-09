@@ -110,6 +110,12 @@ the current compile failures.
 The standalone request is also available as a self-contained sendable handoff:
 [`sw-mlpl-standalone-compiler-handoff.md`](sw-mlpl-standalone-compiler-handoff.md).
 
+The [unified media inspector](media-inspector.md) demonstrates that no new
+upstream format builtin is required for higher-level interpreter applications:
+existing bounded file, endian, bit, Result, record, and process surfaces compose
+successfully. Its remaining upstream boundary is the already documented
+compiler parity needed to turn the same MLPL application into a native artifact.
+
 ### Minimum acceptance
 
 Shared runtime operations, with interpreter and compiled implementations using

@@ -1,0 +1,40 @@
+def u:media_prefix(bytes, prefix) { "Return one when a bounded header begins with an exact byte prefix.";
+  if lt(tally(bytes), tally(prefix)) { 0 } else { equal(u:byte_slice(bytes, 0, tally(prefix))?, prefix) }
+}
+
+def u:media_kind(path) { "Identify a supported container from at most twelve leading bytes.";
+  size = file_size(path)?; width = if lt(size, 12) { size } else { 12 }; header = read_bytes(path, 0, width)?;
+  if u:media_prefix(header, [82, 73, 70, 70]) { ok("wav") } else {
+    if u:media_prefix(header, [79, 103, 103, 83]) { ok("ogg") } else {
+      if u:media_prefix(header, [73, 68, 51]) { ok("mp3") } else {
+        if gt(tally(header), 1) { if eq(take(header, 0, 0), 255) * eq(band(take(header, 0, 1), 224), 224) { ok("mp3") } else { ok("unknown") } } else { ok("unknown") }
+      }
+    }
+  }
+}
+
+def u:media_summary(path, format, evidence, file_bytes, chunk_size, channels, sample_rate_hz, bits_per_sample, frames, duration_seconds, title, artist, min_bitrate_kbps, max_bitrate_kbps, serial, sequence, body_bytes, crc_valid, unknown_chunks) { "Build the stable cross-format application result.";
+  {path: path, format: format, evidence: evidence, file_bytes: file_bytes, chunk_size: chunk_size, channels: channels, sample_rate_hz: sample_rate_hz, bits_per_sample: bits_per_sample, frames: frames, duration_seconds: duration_seconds, title: title, artist: artist, min_bitrate_kbps: min_bitrate_kbps, max_bitrate_kbps: max_bitrate_kbps, serial: serial, sequence: sequence, body_bytes: body_bytes, crc_valid: crc_valid, unknown_chunks: unknown_chunks}
+}
+
+def u:inspect_media(path, chunk_size) { "Identify and inspect one WAV, Ogg, MP3/ID3, or unknown file through bounded format readers.";
+  if (1 - u:range_exact_nonnegative(chunk_size)) + eq(chunk_size, 0) { err({kind: "chunk_size", message: "media inspector chunk_size must be a positive exact integer"}) } else {
+    size = file_size(path)?; kind = u:media_kind(path)?;
+    if equal(kind, "wav") {
+      wav = u:inspect_wav_ranges(path, chunk_size, 1024)?;
+      ok(u:media_summary(path, "wav", "RIFF signature plus validated WAVE chunks", size, chunk_size, wav.channels, wav.sample_rate, wav.bits_per_sample, wav.frames, wav.duration_seconds, "", "", 0, 0, 0, 0, wav.data_bytes, 0, wav.unknown_chunks))
+    } else {
+      if equal(kind, "ogg") {
+        page = u:open_ogg_page(path, chunk_size, 0, 1048576, 255, 1048576)?; integrity = u:verify_ogg_page_crc(path, chunk_size, 0, 1048576, 255, 1048576, 1048576, chunk_size)?;
+        ok(u:media_summary(path, "ogg", "OggS capture plus version, lacing, extent, and CRC validation", size, chunk_size, 0, 0, 0, page.packet_endings, 0, "", "", 0, 0, page.serial, page.sequence, page.body_bytes, integrity.valid, 0))
+      } else {
+        if equal(kind, "mp3") {
+          tag = u:inspect_id3v2(path, chunk_size, 1048576, 4096, 65536)?; scan = u:scan_mpeg_layer3(path, chunk_size, tag.audio_offset, size, tag.audio_bytes, 4096)?;
+          ok(u:media_summary(path, "mp3", "ID3 or MPEG synchronization followed by bounded Layer III scanning", size, chunk_size, 0, scan.sample_rate_hz, 0, scan.frames, scan.duration_seconds, tag.title, tag.artist, scan.min_bitrate_kbps, scan.max_bitrate_kbps, 0, 0, scan.total_frame_bytes, 0, tag.unknown_frames))
+        } else {
+          ok(u:media_summary(path, "unknown", "no supported RIFF, OggS, ID3, or MPEG Layer III signature", size, chunk_size, 0, 0, 0, 0, 0, "", "", 0, 0, 0, 0, 0, 0, 0))
+        }
+      }
+    }
+  }
+}
