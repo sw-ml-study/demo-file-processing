@@ -1,8 +1,9 @@
 number = 5
 slug = "complete-mp3-statistics"
-status = "in-progress"
+status = "completed"
 description = "Close the Phase 3 statistics gap before acceptance: extend the bounded MPEG s..."
 role = "production"
 context_files = []
 created_at = "2026-08-08T19:29:11"
-commits = []
+completed_at = "2026-08-08T19:32:01"
+commits = ["2ab42f3609339b723e2fbe54c4966c4ff12f0ca3"]
