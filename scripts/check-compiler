@@ -33,11 +33,13 @@ if "$mlpl_build" "$repo_root/probes/compiler_bits.mlpl" -o "$scratch/compiler-bi
 fi
 grep -Fq 'unsupported construct: fncall band/2' "$scratch/bits.err"
 
-if "$mlpl_build" "$repo_root/probes/compiler_arithmetic.mlpl" -o "$scratch/compiler-arithmetic" >"$scratch/arithmetic.out" 2>"$scratch/arithmetic.err"; then
-  echo "compiler arithmetic defect unexpectedly disappeared; update the capability report" >&2
+arithmetic_interpreted=$("$mlpl" "$repo_root/probes/compiler_arithmetic.mlpl")
+"$mlpl_build" "$repo_root/probes/compiler_arithmetic.mlpl" -o "$scratch/compiler-arithmetic" >/dev/null
+arithmetic_compiled=$("$scratch/compiler-arithmetic")
+[ "$arithmetic_compiled" = "$arithmetic_interpreted" ] || {
+  echo "compiler arithmetic parity mismatch: interpreter=$arithmetic_interpreted compiled=$arithmetic_compiled" >&2
   exit 1
-fi
-grep -Fq 'ApplyBinopExt' "$scratch/arithmetic.err"
+}
 
 if command -v otool >/dev/null 2>&1; then
   otool -L "$scratch/compiler-numeric" > "$scratch/libraries"
@@ -47,4 +49,4 @@ if command -v otool >/dev/null 2>&1; then
   fi
 fi
 
-echo "PASS compiler parity and application-lowering boundaries ($compiled)"
+echo "PASS compiler numeric/arithmetic parity and application-lowering boundaries ($compiled, $arithmetic_compiled)"

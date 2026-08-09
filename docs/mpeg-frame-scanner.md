@@ -36,5 +36,6 @@ sizes 1, 7, 64, and 65,536.
 Traversal is structurally bounded: each input window is four bytes and the
 aggregate state has fixed size independent of file length. This step does not
 claim measured peak-memory evidence. Free-bitrate Layer III remains unsupported
-because one header cannot determine frame length. ID3 discovery is separate and
-will supply audio bounds in the next step.
+because one header cannot determine frame length. The separate
+[ID3v2 inspector](id3v2-inspection.md) now supplies a validated audio offset and
+length suitable for this scanner.

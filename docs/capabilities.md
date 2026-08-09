@@ -28,13 +28,14 @@ the authority for downstream claims.
 | Bit operations | `band`, `bor`, `bxor`, `bnot`, `popcount`, `shl`, `shr`, `bits`, and `from_bits` pass golden vectors | In-memory endian and field work is unblocked in the interpreter. |
 | Endian/layout library | MLPL codecs round-trip exact u8..u48 in both byte orders; width vectors extract MSB-first fields across byte boundaries | WAV-sized integers and MPEG headers need no format/runtime builtin; scalar u56/u64 remains intentionally rejected. |
 | MPEG frame scanner | MLPL acquires synchronization with two compatible semantic headers, skips payloads by decoded frame length, reacquires byte-by-byte after damage, and reports fixed-size frame/bitrate statistics | Read-only MP3 ranges can be inspected under explicit byte and frame budgets; free bitrate and measured memory evidence remain out of scope. |
+| ID3v2 inspector | MLPL parses bounded v2.3/v2.4 headers and frames, extended headers, padding and v2.4 footers; selected UTF-8/ASCII-compatible text is capped and unknown payloads are skipped by offset | Validated tag/audio descriptors are available without output writes; UTF-16, non-ASCII Latin-1, unsynchronization, compression and encryption remain explicit unsupported cases. |
 | PCM WAV library | MLPL parses RIFF chunks, validates PCM mono/stereo 8/16-bit metadata/data, and canonically re-encodes tiny fixtures | Small-file WAV inspection/copy is unblocked; unknown chunks normalize away and whole-file f64 copies are not streaming. |
 | Bounded WAV inspection | MLPL reads at most 16 header bytes per window, skips payloads by validated offsets, and matches whole-buffer metadata for every header split | Read-only WAV metadata scales structurally without sample retention; copy/write and measured-RSS claims remain separate. |
 | Sparse-file peak RSS | Fixed-budget histogram and WAV consumers stayed below a 32 MiB ceiling as artifacts grew to 1 MiB and 64 MiB; repeat growth stayed at or below 1,081,344 bytes | The measured read-side high-water mark depends on chunk plus state, not total file size, on the recorded platform. |
 | Exact integer domain | Numeric arrays are f64-backed; `2^53` and mathematical `2^53+1` compare equal; bit operations reject operands at the upper domain boundary upstream | Byte and ordinary 32-bit field work is exact; 64-bit file fields require a split-word representation or a new type. |
 | Script process surface | `args`, `read_stdin`, `print`, `eprint`, and `exit(7)` produced separated streams and the requested status | Interpreter-backed Unix-style tools are available now. `read_stdin` is whole-input text, not binary chunk streaming. |
 | Native numeric build | `reduce_add(iota(8))` produced `28` in both interpreter and compiled artifact | The native path is real for its supported numeric subset. The artifact runs directly; `otool -L` shows no named MLPL interpreter/parser/evaluator dynamic dependency. |
-| Arithmetic build | `(iota(8) + 1) * 2` lowers but generated Rust fails because `ApplyBinopExt` is not imported | Current adjacent `mlpl-build` has a minimized compiler defect even inside the documented numeric subset. |
+| Arithmetic build | `(iota(8) + 1) * 2` compiles and its reduction prints `72`, matching the interpreter | The prior generated-trait import defect is resolved in the selected adjacent development build; the gate now requires positive parity. |
 | Application lowering | `read_bytes/1`, `args/0`, and `band/2` each fail at lowering as unsupported function calls | A compiled file-processing CLI is gated on generic runtime/lowering parity; interpreter success does not imply compiler success. |
 
 ## Claim boundaries
@@ -53,8 +54,8 @@ It cannot yet claim:
 - exact scalar representation of arbitrary 64-bit file fields;
 - interpreter/compiler parity for byte I/O, process APIs, or bit operations;
 - compilation of a useful file-processing application;
-- broad arithmetic build reliability until the `ApplyBinopExt` generation
-  defect is fixed and the positive probe replaces its expected failure.
+- compiler lowering of byte I/O, process APIs, or bit operations needed by a
+  useful standalone file-processing application.
 
 ## Reproduction
 

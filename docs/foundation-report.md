@@ -40,8 +40,8 @@ ownership rather than implying that MLPL owns work performed elsewhere.
 - WAV canonicalization does not promise byte preservation for arbitrary unknown
   chunks.
 - Compiled byte/process/bit application parity is absent.
-- The documented arithmetic compiler case fails because generated Rust omits
-  `ApplyBinopExt` from scope.
+- The arithmetic compiler defect recorded at acceptance has since been fixed;
+  the current capability gate requires interpreter/native parity at `72`.
 - No large-file peak-RSS result or codec implementation is claimed yet.
 
 ## Complexity and allocation findings

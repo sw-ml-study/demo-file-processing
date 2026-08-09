@@ -75,8 +75,8 @@ or bounded-memory blocker.
    close, cleanup, sandbox, and deterministic error semantics. This blocks
    bounded copies/transforms and all byte-preserving rewrites.
 2. **Compiled application parity:** generated applications do not lower byte,
-   bit, argument, diagnostic, and exit APIs; arithmetic generation also omits
-   `ApplyBinopExt`. This blocks standalone file applications.
+   bit, argument, diagnostic, and exit APIs. Arithmetic parity now passes, but
+   the remaining runtime surface still blocks standalone file applications.
 3. **Sequential/non-seekable input:** range reads cover seekable paths, not
    binary stdin, backpressure, or a consumable stream handle. This is not needed
    for the next file inspectors but remains a codec/pipeline requirement.

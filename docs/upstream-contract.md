@@ -28,7 +28,7 @@ parsing and invalidates the older research assumption that range I/O is absent.
 No upstream request is needed before the in-memory hexdump/histogram, bitfield,
 or WAV foundation steps.
 
-## Defect: restore documented numeric `mlpl-build`
+## Delivered: documented numeric `mlpl-build`
 
 ### Evidence
 
@@ -38,20 +38,19 @@ or WAV foundation steps.
 reduce_add((iota(8) + 1) * 2)
 ```
 
-The expression is documented as lowered, but generated Rust fails because the
-`ApplyBinopExt` trait is not in scope. `scripts/check-compiler` keeps this as an
-expected failure while a simpler numeric expression proves the compiler itself
-works.
+The selected adjacent development build now compiles the expression and its
+artifact prints `72`, matching the interpreter. `scripts/check-compiler` has
+replaced the former expected failure with positive parity.
 
-### Minimum acceptance
+### Accepted evidence
 
 - The arithmetic probe builds without modifying its MLPL source.
 - The artifact prints the same value as the interpreter (`72`).
 - Existing compiler parity tests remain green.
 - This downstream expected-failure check is replaced by positive parity.
 
-This defect does not block interpreter-only foundation demos, but it blocks an
-honest claim that the documented numeric compiler subset is currently usable.
+This resolves the minimized arithmetic-generation defect. File applications
+remain blocked by the separate byte/process/bit lowering boundary below.
 
 ## Gate: compiled application runtime parity
 

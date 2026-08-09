@@ -1,6 +1,6 @@
 number = 3
 slug = "bounded-id3v2-inspection"
-status = "pending"
+status = "in-progress"
 description = "Parse budgeted ID3v2 metadata and emit audio range descriptors without output writes."
 role = "legacy"
 context_files = []

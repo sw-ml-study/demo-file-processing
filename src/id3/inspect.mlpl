@@ -1,0 +1,132 @@
+include "../io/range_reader.mlpl";
+include "../io/range_window.mlpl";
+include "../binary/endian_decode.mlpl";
+include "../binary/slice.mlpl";
+
+def u:id3_synchsafe(bytes) { "Decode four synchsafe bytes after rejecting any set high bit.";
+  if (1 - u:bytes_valid(bytes)) + (1 - eq(tally(bytes), 4)) { err({kind: "synchsafe", message: "synchsafe value must contain four bytes"}) } else {
+    if gt(take(bytes, 0, 0), 127) + gt(take(bytes, 0, 1), 127) + gt(take(bytes, 0, 2), 127) + gt(take(bytes, 0, 3), 127) { err({kind: "synchsafe", message: "synchsafe bytes must have clear high bits"}) } else {
+      ok(take(bytes, 0, 0) * 2097152 + take(bytes, 0, 1) * 16384 + take(bytes, 0, 2) * 128 + take(bytes, 0, 3))
+    }
+  }
+}
+
+def u:id3_ascii_identifier(bytes) { "Return one for a four-byte uppercase ASCII letter/digit frame identifier.";
+  if 1 - eq(tally(bytes), 4) { 0 } else {
+    a = take(bytes, 0, 0); b = take(bytes, 0, 1); c = take(bytes, 0, 2); d = take(bytes, 0, 3);
+    ((gt(a, 64) * lt(a, 91)) + (gt(a, 47) * lt(a, 58))) * ((gt(b, 64) * lt(b, 91)) + (gt(b, 47) * lt(b, 58))) * ((gt(c, 64) * lt(c, 91)) + (gt(c, 47) * lt(c, 58))) * ((gt(d, 64) * lt(d, 91)) + (gt(d, 47) * lt(d, 58)))
+  }
+}
+
+def u:id3_text_identifier(id) { "Recognize the bounded metadata fields returned by the inspector.";
+  equal(id, [84, 73, 84, 50]) + equal(id, [84, 80, 69, 49]) + equal(id, [84, 65, 76, 66]) + equal(id, [84, 82, 67, 75]) + equal(id, [84, 89, 69, 82]) + equal(id, [84, 68, 82, 67])
+}
+
+def u:id3_trim_nuls(bytes) { "Remove terminal NUL padding from one bounded text payload.";
+  ending = tally(bytes); while gt(ending, 0) { if eq(take(bytes, 0, ending - 1), 0) { ending = ending - 1 } else { return u:byte_slice(bytes, 0, ending)? } }; []
+}
+
+def u:id3_text_bytes_valid(bytes, encoding) { "Enforce the supported text policy and reject embedded NULs.";
+  index = 0; while lt(index, tally(bytes)) { value = take(bytes, 0, index); if eq(value, 0) { return 0 } else { 0 }; if eq(encoding, 0) * gt(value, 127) { return 0 } else { 0 }; index = index + 1 }; 1
+}
+
+def u:id3_decode_text(payload) { "Decode UTF-8 or ASCII-compatible ISO-8859-1 text after stripping terminal NULs.";
+  if eq(tally(payload), 0) { err({kind: "text", message: "ID3 text frame has no encoding byte"}) } else {
+    encoding = take(payload, 0, 0); bytes = u:id3_trim_nuls(u:byte_slice(payload, 1, tally(payload) - 1)?);
+    if (1 - eq(encoding, 0)) * (1 - eq(encoding, 3)) { err({kind: "unsupported_text", message: "only UTF-8 and ASCII-compatible ISO-8859-1 text are supported"}) } else {
+      if 1 - u:id3_text_bytes_valid(bytes, encoding) { err({kind: "text", message: "text contains embedded NUL or non-ASCII ISO-8859-1 bytes"}) } else { ok(decode_bytes(bytes)) }
+    }
+  }
+}
+
+def u:id3_padding_zero(reader, offset, ending) { "Validate padding in fixed 64-byte windows without retaining the padding region.";
+  cursor = offset; while lt(cursor, ending) { remaining = ending - cursor; width = if lt(remaining, 64) { remaining } else { 64 }; bytes = u:range_window(reader, cursor, width, 64)?; index = 0; while lt(index, tally(bytes)) { if 1 - eq(take(bytes, 0, index), 0) { return err({kind: "padding", message: "non-zero bytes follow ID3 padding"}) } else { 0 }; index = index + 1 }; cursor = cursor + width }; ok(1)
+}
+
+def u:id3_initial_state() { "Create fixed-size metadata aggregation state.";
+  {frames: 0, text_frames: 0, text_bytes: 0, unknown_frames: 0, title: "", artist: "", album: "", track: "", year: ""}
+}
+
+def u:id3_store_text(state, id, text, size) { "Store one recognized text value while preserving fixed-size counters.";
+  {frames: state.frames + 1, text_frames: state.text_frames + 1, text_bytes: state.text_bytes + size, unknown_frames: state.unknown_frames, title: if equal(id, [84, 73, 84, 50]) { text } else { state.title }, artist: if equal(id, [84, 80, 69, 49]) { text } else { state.artist }, album: if equal(id, [84, 65, 76, 66]) { text } else { state.album }, track: if equal(id, [84, 82, 67, 75]) { text } else { state.track }, year: if equal(id, [84, 89, 69, 82]) + equal(id, [84, 68, 82, 67]) { text } else { state.year }}
+}
+
+def u:id3_skip_frame(state) { "Count one structurally valid unrecognized frame without reading its payload.";
+  {frames: state.frames + 1, text_frames: state.text_frames, text_bytes: state.text_bytes, unknown_frames: state.unknown_frames + 1, title: state.title, artist: state.artist, album: state.album, track: state.track, year: state.year}
+}
+
+def u:id3_extended_end(reader, version, flags, offset, frames_end) { "Validate and skip a supported v2.3 or v2.4 extended header.";
+  extended = if eq(version, 3) { band(flags, 64) } else { band(flags, 64) };
+  if eq(extended, 0) { ok(offset) } else {
+    if gt(offset + 4, frames_end) { err({kind: "truncated", message: "ID3 extended-header size is truncated"}) } else {
+      size_bytes = u:range_window(reader, offset, 4, 4)?;
+      size = if eq(version, 3) { u:decode_uint(size_bytes, 0, 4, "be")? + 4 } else { u:id3_synchsafe(size_bytes)? };
+      minimum = if eq(version, 3) { 10 } else { 6 };
+      if lt(size, minimum) + gt(offset + size, frames_end) { err({kind: "extended_header", message: "ID3 extended header has invalid or truncated size"}) } else { ok(offset + size) }
+    }
+  }
+}
+
+def u:id3_no_tag(size) { "Describe a file whose audio range begins at byte zero.";
+  {id3_present: 0, version: 0, revision: 0, flags: 0, tag_bytes: 0, audio_offset: 0, audio_bytes: size, extended_header: 0, footer: 0, frames: 0, text_frames: 0, text_bytes: 0, unknown_frames: 0, title: "", artist: "", album: "", track: "", year: ""}
+}
+
+def u:id3_validate_footer(reader, header, tag_bytes, footer) { "Validate the optional ID3v2.4 footer against the leading header.";
+  if 1 - footer { ok(1) } else {
+    bytes = u:range_window(reader, tag_bytes - 10, 10, 10)?;
+    expected = concat([51, 68, 73], u:byte_slice(header, 3, 7)?);
+    if equal(bytes, expected) { ok(1) } else { err({kind: "footer", message: "ID3v2.4 footer does not mirror the tag header"}) }
+  }
+}
+
+def u:inspect_id3v2(path, chunk_size, max_tag_bytes, max_frames, max_text_bytes) { "Inspect bounded ID3v2.3/v2.4 metadata and return a read-only audio range descriptor.";
+  if (1 - u:range_exact_nonnegative(max_tag_bytes)) + (1 - u:range_exact_nonnegative(max_frames)) + (1 - u:range_exact_nonnegative(max_text_bytes)) { err({kind: "budget", message: "ID3 budgets must be exact non-negative integers"}) } else {
+    if eq(max_tag_bytes, 0) + eq(max_frames, 0) { err({kind: "budget", message: "max_tag_bytes and max_frames must be positive"}) } else {
+      reader = u:range_reader(path, chunk_size)?;
+      if lt(reader.size, 3) { ok(u:id3_no_tag(reader.size)) } else {
+        signature = u:range_window(reader, 0, 3, 3)?;
+        if 1 - equal(signature, [73, 68, 51]) { ok(u:id3_no_tag(reader.size)) } else {
+          if lt(reader.size, 10) { err({kind: "truncated", message: "ID3v2 header is truncated"}) } else {
+            header = u:range_window(reader, 0, 10, 10)?; version = take(header, 0, 3); revision = take(header, 0, 4); flags = take(header, 0, 5); body_size = u:id3_synchsafe(u:byte_slice(header, 6, 4)?)?;
+            if (1 - eq(version, 3)) * (1 - eq(version, 4)) { err({kind: "version", message: "only ID3v2.3 and ID3v2.4 are supported"}) } else {
+              known_mask = if eq(version, 3) { 224 } else { 240 }; footer = if eq(version, 4) { gt(band(flags, 16), 0) } else { 0 };
+              if 1 - eq(band(flags, 255 - known_mask), 0) { err({kind: "flags", message: "ID3 header contains reserved flag bits"}) } else {
+                if gt(band(flags, 128), 0) { err({kind: "unsupported", message: "ID3 tag-level unsynchronization is not supported"}) } else {
+                  if gt(band(flags, 32), 0) { err({kind: "unsupported", message: "ID3 experimental tags are not supported"}) } else {
+                    tag_bytes = 10 + body_size; frames_end = tag_bytes - footer * 10;
+                    if gt(tag_bytes, max_tag_bytes) { err({kind: "budget", message: "declared ID3 tag exceeds max_tag_bytes"}) } else {
+                      if gt(tag_bytes, reader.size) + lt(frames_end, 10) { err({kind: "truncated", message: "declared ID3 tag or footer is truncated"}) } else {
+                        u:id3_validate_footer(reader, header, tag_bytes, footer)?; offset = u:id3_extended_end(reader, version, flags, 10, frames_end)?; state = u:id3_initial_state(); padding = 0;
+                        while lt(offset, frames_end) {
+                          marker = u:range_window(reader, offset, 1, 1)?;
+                          if eq(take(marker, 0, 0), 0) { u:id3_padding_zero(reader, offset, frames_end)?; padding = frames_end - offset; offset = frames_end } else {
+                            if gt(offset + 10, frames_end) { return err({kind: "truncated", message: "ID3 frame header is truncated"}) } else { 0 };
+                            frame_header = u:range_window(reader, offset, 10, 10)?; id = u:byte_slice(frame_header, 0, 4)?;
+                            if 1 - u:id3_ascii_identifier(id) { return err({kind: "frame_id", message: "ID3 frame identifier is malformed"}) } else { 0 };
+                            if gt(state.frames + 1, max_frames) { return err({kind: "budget", message: "ID3 frame count exceeds max_frames"}) } else { 0 };
+                            size_bytes = u:byte_slice(frame_header, 4, 4)?; size = if eq(version, 4) { u:id3_synchsafe(size_bytes)? } else { u:decode_uint(size_bytes, 0, 4, "be")? }; flag1 = take(frame_header, 0, 8); flag2 = take(frame_header, 0, 9); payload = offset + 10; ending = payload + size;
+                            if gt(ending, frames_end) { return err({kind: "truncated", message: "ID3 frame payload exceeds the tag boundary"}) } else { 0 };
+                            reserved = if eq(version, 3) { band(flag1, 31) + band(flag2, 31) } else { band(flag1, 143) + band(flag2, 176) };
+                            if gt(reserved, 0) { return err({kind: "frame_flags", message: "ID3 frame contains reserved flag bits"}) } else { 0 };
+                            unsupported = if eq(version, 3) { band(flag2, 224) } else { band(flag2, 79) };
+                            if gt(unsupported, 0) { return err({kind: "unsupported", message: "compressed, encrypted, grouped, unsynchronized, or data-length-indicated frames are unsupported"}) } else { 0 };
+                            if u:id3_text_identifier(id) {
+                              if gt(state.text_bytes + size, max_text_bytes) { return err({kind: "budget", message: "recognized ID3 text exceeds max_text_bytes"}) } else { 0 };
+                              text = u:id3_decode_text(u:range_window(reader, payload, size, max_text_bytes)?)?; state = u:id3_store_text(state, id, text, size)
+                            } else { state = u:id3_skip_frame(state) };
+                            offset = ending
+                          }
+                        };
+                        ok({id3_present: 1, version: version, revision: revision, flags: flags, tag_bytes: tag_bytes, audio_offset: tag_bytes, audio_bytes: reader.size - tag_bytes, extended_header: gt(band(flags, 64), 0), footer: footer, padding_bytes: padding, frames: state.frames, text_frames: state.text_frames, text_bytes: state.text_bytes, unknown_frames: state.unknown_frames, title: state.title, artist: state.artist, album: state.album, track: state.track, year: state.year})
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
