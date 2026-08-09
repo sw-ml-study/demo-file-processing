@@ -1,8 +1,9 @@
 number = 3
 slug = "bounded-wav-output"
-status = "in-progress"
+status = "completed"
 description = "Implement bounded WAV copy and one visible PCM transformation using accepted ..."
 role = "production"
 context_files = []
 created_at = "2026-08-09T08:57:10"
-commits = []
+completed_at = "2026-08-09T09:24:48"
+commits = ["dc207aea1984b296affe121ac97f362630f09a0a"]
