@@ -1,0 +1,1 @@
+Validate compiled CLI arguments, stdin/stdout/stderr, exit status, and error behavior against the selected interpreter. Use exact stdout/stderr/status oracles, distinguish partial lowering from usable application parity, update capability and upstream contracts, use mlplunit for executable MLPL tests, and run the full gate.

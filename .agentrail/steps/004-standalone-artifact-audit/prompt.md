@@ -1,0 +1,1 @@
+Run the full gate and audit a clean-environment native artifact to prove it needs no MLPL source, parser, REPL, or interpreter at runtime; verify CLI streams, statuses, errors, and binary output.

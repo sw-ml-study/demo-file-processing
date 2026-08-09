@@ -1,0 +1,8 @@
+number = 5
+slug = "standalone-acceptance"
+status = "pending"
+description = "Publish the standalone application capability report, reconcile README, plans..."
+role = "meta"
+context_files = []
+created_at = "2026-08-09T13:09:42"
+commits = []

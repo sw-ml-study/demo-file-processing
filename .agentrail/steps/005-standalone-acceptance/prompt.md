@@ -1,0 +1,1 @@
+Publish the standalone application capability report, reconcile README, plans, saga status, demo catalog, capability and upstream contracts, run the full gate, and explicitly record any remaining codec or runtime blockers.

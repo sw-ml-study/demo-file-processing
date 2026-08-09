@@ -1,0 +1,1 @@
+Compile demonstrable hexdump and histogram applications and verify exact interpreter/compiler parity across representative, empty, malformed, and boundary inputs. Keep narration separate from data output and use mlplunit for executable MLPL tests.

@@ -1,0 +1,1 @@
+Compile a useful WAV or Ogg inspector/copy application with exact binary I/O parity, bounded-memory behavior where claimed, malformed-input coverage, and self-describing demonstrations.

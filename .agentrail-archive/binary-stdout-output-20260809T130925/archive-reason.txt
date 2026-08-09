@@ -1,0 +1,1 @@
+Binary stdout output accepted and pushed at a403bca; advance to documented Saga 6.
