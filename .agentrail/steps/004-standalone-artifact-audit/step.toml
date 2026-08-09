@@ -1,6 +1,6 @@
 number = 4
 slug = "standalone-artifact-audit"
-status = "pending"
+status = "in-progress"
 description = "Run the full gate and audit a clean-environment native artifact to prove it n..."
 role = "validation"
 context_files = []

@@ -92,6 +92,13 @@ format-specific lowering, artifact byte parity, or bounded-memory auditing can
 begin. No new codec builtin is requested: the existing MLPL algorithms need the
 generic compiler surface first.
 
+The [standalone artifact audit](standalone-artifact-audit.md) confirms that
+numeric and partial-stdout control artifacts run in a clean source-free
+directory without a named parser/REPL/evaluator dynamic dependency. This
+isolates the blocker to application coverage and semantics rather than an
+artifact-launch mechanism; the control is explicitly not accepted as a useful
+file-processing CLI.
+
 ### Minimum acceptance
 
 Shared runtime operations, with interpreter and compiled implementations using

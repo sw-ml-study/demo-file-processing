@@ -20,6 +20,7 @@ mlplunit tests across 28 suites. See [the stdout acceptance report](docs/stdout-
 [the compiled process conformance report](docs/compiler-process-conformance.md),
 [the compiled byte-application report](docs/compiled-byte-applications.md),
 [the compiled format-application report](docs/compiled-format-applications.md),
+[the standalone artifact audit](docs/standalone-artifact-audit.md),
 [the bounded-output acceptance report](docs/bounded-output-report.md),
 [the Ogg acceptance report](docs/ogg-report.md),
 [the MP3/ID3 acceptance report](docs/mp3-id3-report.md),
@@ -51,6 +52,12 @@ no standalone byte application is claimed.
 The same gate attempts the bounded WAV copy/invert and Ogg page copy/rewrite
 applications. Their real and temporarily flattened sources stop at the same
 loader and user-function boundaries before any native format artifact exists.
+
+An isolated-execution control proves that the supported numeric and partial
+stdout artifacts run from a source-free directory with no named parser/REPL/
+evaluator dynamic dependency. That control is not a standalone file application;
+the intended artifact audit remains blocked until a real byte or format program
+compiles.
 
 The [binary stdout contract](docs/write-stdout.md) verifies exact bytes, counts,
 multi-call ordering, empty/scalar writes, validation errors, and stderr

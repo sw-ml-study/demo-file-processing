@@ -1,0 +1,41 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mlpl_build=$("$repo_root/scripts/select-mlpl-build")
+scratch=$(mktemp -d "${TMPDIR:-/tmp}/demo-file-artifact-audit.XXXXXX")
+trap 'rm -rf "$scratch"' EXIT HUP INT TERM
+mkdir "$scratch/clean"
+
+"$mlpl_build" "$repo_root/probes/compiler_numeric.mlpl" -o "$scratch/clean/numeric" >/dev/null
+"$mlpl_build" "$repo_root/probes/compiler_stdout.mlpl" -o "$scratch/clean/stdout" >/dev/null
+
+(
+  cd "$scratch/clean"
+  env -i PATH=/usr/bin:/bin ./numeric >numeric.out 2>numeric.err
+  env -i PATH=/usr/bin:/bin ./stdout >stdout.out 2>stdout.err
+)
+
+[ "$(cat "$scratch/clean/numeric.out")" = 28 ]
+[ ! -s "$scratch/clean/numeric.err" ]
+[ ! -s "$scratch/clean/stdout.err" ]
+printf '\000\3772\n' >"$scratch/stdout.expected"
+cmp "$scratch/stdout.expected" "$scratch/clean/stdout.out"
+
+if command -v otool >/dev/null 2>&1; then
+  otool -L "$scratch/clean/numeric" >"$scratch/numeric.libs"
+  otool -L "$scratch/clean/stdout" >"$scratch/stdout.libs"
+  if grep -Eq 'mlpl-repl|mlpl-parser|mlpl-eval' "$scratch/numeric.libs" "$scratch/stdout.libs"; then
+    echo "isolated artifact links an interpreter/parser component" >&2
+    exit 1
+  fi
+elif command -v ldd >/dev/null 2>&1; then
+  ldd "$scratch/clean/numeric" >"$scratch/numeric.libs"
+  ldd "$scratch/clean/stdout" >"$scratch/stdout.libs"
+  if grep -Eq 'mlpl-repl|mlpl-parser|mlpl-eval' "$scratch/numeric.libs" "$scratch/stdout.libs"; then
+    echo "isolated artifact links an interpreter/parser component" >&2
+    exit 1
+  fi
+fi
+
+echo "PASS isolated numeric and partial-stdout artifact control (file application artifact unavailable)"

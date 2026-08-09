@@ -88,6 +88,9 @@ compilation is blocked before artifact production. See the
 [compiled byte-application report](compiled-byte-applications.md).
 The bounded WAV/Ogg artifact attempt reaches the same blocker; see the
 [compiled format-application report](compiled-format-applications.md).
+The [standalone artifact audit](standalone-artifact-audit.md) validates the
+audit method on narrow compiler controls, but remains blocked for a real file
+application because no such artifact is produced.
 
 1. CLI argument, stdin/stdout/stderr, exit-status, and error conformance.
 2. Compile hexdump/histogram and verify interpreter/compiler parity.
