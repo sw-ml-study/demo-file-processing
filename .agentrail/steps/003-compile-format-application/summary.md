@@ -1,0 +1,1 @@
+Attempted the actual bounded WAV copy/invert and Ogg page copy/rewrite applications. Both fail before artifact production on unresolved includes; exact dependency-concatenated equivalents then fail on unsupported user functions. Added default-gate blocker oracles and a format report; WAV/Ogg semantic and binary oracles plus the full 93-test/28-suite gate pass.
