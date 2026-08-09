@@ -21,6 +21,6 @@ if equal(decoded.data, [255, 128, 0]) {
   print("Native runtime work: seekable range reads and sandboxed append_bytes calls, each implicitly closed and flushed.");
   print("Interpretation: 0 becomes 255, 127 becomes 128, and 255 becomes 0; frame count, rate, and duration stay unchanged.");
   print("Allocation: payload state is O(chunk_size); the demo's tiny whole-file readback is an oracle only, not part of bounded_wav_output.");
-  print("Boundary: output is interpreter-only and file-path-only; binary stdout and compiled I/O lowering remain unavailable.");
+  print("Boundary: this recipe deliberately demonstrates the interpreter file-path sink; separate interpreter binary-stdout demos exist, while complete compiled I/O lowering remains unavailable.");
   ok({copy: copy, inverted: inverted})
 } else { err({kind: "invariant", message: "bounded WAV inversion differs from semantic oracle"}) }

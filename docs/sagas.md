@@ -86,6 +86,8 @@ Status: active; process conformance is measured, while byte-application
 compilation is blocked before artifact production. See the
 [compiled process conformance report](compiler-process-conformance.md) and
 [compiled byte-application report](compiled-byte-applications.md).
+The bounded WAV/Ogg artifact attempt reaches the same blocker; see the
+[compiled format-application report](compiled-format-applications.md).
 
 1. CLI argument, stdin/stdout/stderr, exit-status, and error conformance.
 2. Compile hexdump/histogram and verify interpreter/compiler parity.

@@ -11,6 +11,7 @@ repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 "$repo_root/scripts/check-stdout-demos"
 "$repo_root/scripts/check-compiler"
 "$repo_root/scripts/check-compiled-byte-apps"
+"$repo_root/scripts/check-compiled-format-apps"
 "$repo_root/scripts/check-byte-demos"
 "$repo_root/scripts/check-copy-demo"
 "$repo_root/scripts/check-binary-demos"

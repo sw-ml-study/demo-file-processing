@@ -1,6 +1,6 @@
 number = 3
 slug = "compile-format-application"
-status = "pending"
+status = "in-progress"
 description = "Compile a useful WAV or Ogg inspector/copy application with exact binary I/O ..."
 role = "production"
 context_files = []

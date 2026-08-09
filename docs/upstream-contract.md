@@ -85,6 +85,13 @@ directives; temporary already-resolved equivalents then fail on unsupported
 `FnDef`. Compiler source loading and user-function/control-flow lowering are
 therefore earlier gates than the already recorded byte I/O and process gaps.
 
+The [compiled format-application report](compiled-format-applications.md)
+repeats the experiment with the real bounded WAV copy/invert and Ogg page
+copy/rewrite programs. Both hit the same `include` then `FnDef` ladder before
+format-specific lowering, artifact byte parity, or bounded-memory auditing can
+begin. No new codec builtin is requested: the existing MLPL algorithms need the
+generic compiler surface first.
+
 ### Minimum acceptance
 
 Shared runtime operations, with interpreter and compiled implementations using

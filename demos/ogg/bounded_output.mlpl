@@ -19,6 +19,6 @@ if eq(copied.output_bytes, 283) * eq(verified.page.sequence, 42) * verified.vali
   print("Chunk evidence: seven-byte writes split the 18..25 sequence/checksum region across calls; final tail bytes", rewritten.last_chunk_bytes, ".");
   print("Interpretation: changing one header field necessarily changes CRC, but lacing and packet payload bytes remain untouched and the rewritten page verifies.");
   print("Allocation: fixed descriptors and CRC state plus O(chunk_size); bounded readback windows provide byte oracles in mlplunit.");
-  print("Boundary: this rewrites one standalone page, not a whole logical stream sequence; binary stdout and compiled I/O remain unavailable.");
+  print("Boundary: this rewrites one standalone page through the interpreter file-path sink, not a whole logical stream sequence; separate interpreter binary-stdout demos exist, while complete compiled I/O remains unavailable.");
   ok({copied: copied, rewritten: rewritten})
 } else { err({kind: "invariant", message: "bounded Ogg output demonstration changed"}) }
