@@ -45,7 +45,9 @@ The repository can now truthfully claim:
 - whole-file byte arrays and bounded offset/length reads;
 - interpreter-side bit manipulation over exact non-negative f64 integers;
 - script arguments, text stdin, separated output streams, and exit codes;
-- a native compiler path for a narrow numeric expression.
+- a native compiler path for the tested numeric and arithmetic expressions;
+- bounded seekable-file MPEG Layer III structural statistics and ID3v2.3/v2.4
+  metadata/audio descriptors without codec or output claims.
 
 It cannot yet claim:
 

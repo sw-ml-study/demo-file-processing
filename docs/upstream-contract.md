@@ -13,6 +13,11 @@ that no upstream source API is required for seekable-file histogram, WAV,
 MP3/ID3, or Ogg inspection. Repeated exact range reads plus MLPL state are the
 accepted downstream contract.
 
+The [MP3/ID3 acceptance report](mp3-id3-report.md) confirms that semantic MPEG
+scanning and budgeted ID3v2 inspection need no format-specific upstream API.
+Its audio descriptor is ready for future output work, but copying, stripping,
+and extraction remain gated on the generic incremental sink below.
+
 ## Delivered: bounded range reads
 
 The configured interpreter already supplies:

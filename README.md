@@ -14,8 +14,9 @@ when a runtime, codec extension, or validation oracle performs the work.
 
 ## Project status
 
-The file-processing foundation and bounded range analysis are accepted with 41
-native mlplunit tests across 13 suites. See
+The foundation, bounded range analysis, and read-only MP3/ID3 inspection are
+accepted with 56 native mlplunit tests across 17 suites. See
+[the MP3/ID3 acceptance report](docs/mp3-id3-report.md),
 [the bounded-read acceptance report](docs/bounded-read-report.md),
 [the foundation acceptance report](docs/foundation-report.md),
 [the development guide](docs/development.md),

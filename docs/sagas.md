@@ -37,7 +37,7 @@ Status: accepted; see [bounded-read evidence](bounded-read-report.md).
 
 ## Saga 3 — `mp3-id3-inspection`
 
-Status: unblocked by the accepted bounded-read contracts.
+Status: accepted; see the [MP3/ID3 read-only report](mp3-id3-report.md).
 
 1. Reusable MPEG audio frame-header model and golden semantic vectors.
 2. Bounded resynchronizing frame scanner and deterministic MP3 statistics.

@@ -52,11 +52,10 @@ Research notes and adjacent documentation are hypotheses until probed.
 The configured sw-MLPL has whole-file `read_bytes`/`write_bytes`, bounded
 `read_bytes(path, offset, length)`, `file_size`, f64-backed exact-integer byte
 values, fixed-width bit operations, and interpreter-side CLI facilities. Its
-native build path works for a narrow numeric expression, but a documented
-arithmetic case currently fails generated-Rust compilation and byte, bit, and
-argument builtins are not lowered. Packed `u8` arrays, incremental binary
-sources/sinks, broad application lowering, and extension linking remain absent
-or incomplete. See [the measured baseline](capabilities.md).
+native build path works for the tested numeric and arithmetic expressions, but
+byte, bit, and argument builtins are not lowered. Packed `u8` arrays,
+incremental binary sources/sinks, broad application lowering, and extension
+linking remain absent or incomplete. See [the measured baseline](capabilities.md).
 
 The repository must distinguish:
 
@@ -153,6 +152,8 @@ memory is bounded independently of total input and output size.
 
 ### Phase 3 — MP3 and ID3 inspection
 
+Status: accepted. See the [MP3/ID3 read-only report](mp3-id3-report.md).
+
 - Parse MPEG audio frame headers as data-described bit fields.
 - Scan frames and report version/layer, duration, sample rate, bitrate range and
   histogram, channel modes, and frame sizes without decoding audio.
@@ -225,9 +226,9 @@ Ogg/Vorbis; failures are deterministic; the native artifact meets Phase 5.
 
 ## Recommended order
 
-The foundation and bounded range-analysis sagas are accepted; see their
-[foundation](foundation-report.md) and [bounded-read](bounded-read-report.md)
-reports. Archive the range saga, then start `mp3-id3-inspection` from
-[sagas.md](sagas.md), followed by read-only Ogg inspection. Bounded copy,
-transformation, extraction, and rewriting remain in a separate gated saga
-until a generic incremental sink exists.
+The foundation, bounded range-analysis, and MP3/ID3 inspection sagas are
+accepted; see their [foundation](foundation-report.md),
+[bounded-read](bounded-read-report.md), and [MP3/ID3](mp3-id3-report.md)
+reports. Archive the MP3/ID3 saga, then start read-only Ogg inspection from
+[sagas.md](sagas.md). Bounded copy, transformation, extraction, and rewriting
+remain in a separate gated saga until a generic incremental sink exists.
