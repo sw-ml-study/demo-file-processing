@@ -1,8 +1,9 @@
 number = 3
 slug = "bounded-id3v2-inspection"
-status = "in-progress"
+status = "completed"
 description = "Parse budgeted ID3v2 metadata and emit audio range descriptors without output writes."
 role = "legacy"
 context_files = []
 created_at = "2026-08-08T14:41:05"
-commits = []
+completed_at = "2026-08-08T19:11:38"
+commits = ["dff0d56e384dddfc7bdcb283bfca9babab8f227d"]
