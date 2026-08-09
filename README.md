@@ -17,6 +17,7 @@ when a runtime, codec extension, or validation oracle performs the work.
 The foundation, bounded range analysis, MP3/ID3 and Ogg inspection, and
 sandboxed incremental file and binary stdout output are accepted with 93 native
 mlplunit tests across 28 suites. See [the stdout acceptance report](docs/stdout-report.md),
+[the compiled process conformance report](docs/compiler-process-conformance.md),
 [the bounded-output acceptance report](docs/bounded-output-report.md),
 [the Ogg acceptance report](docs/ogg-report.md),
 [the MP3/ID3 acceptance report](docs/mp3-id3-report.md),
@@ -35,8 +36,10 @@ Bounded range reads, incremental sandboxed file-path writes, and interpreter
 binary stdout are available, but packed byte storage, binary stdin/source
 handles, and compiled application APIs are not current claims. The
 native compiler handles the tested numeric and arithmetic cases plus partial
-`args`/`write_stdout` lowering; byte reads, append output, bit operations, and
-clean binary CLI termination remain tracked explicitly.
+`args`/`arg`/`write_stdout` lowering. That lowering silently coerces invalid
+bytes and discards write errors, while byte reads, append output, bit
+operations, stderr/exit support, and clean binary CLI termination remain
+tracked explicitly.
 
 The [binary stdout contract](docs/write-stdout.md) verifies exact bytes, counts,
 multi-call ordering, empty/scalar writes, validation errors, and stderr

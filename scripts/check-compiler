@@ -29,6 +29,27 @@ EOF
 printf 'alpha\nbeta10\n' >"$scratch/args.expected"
 cmp "$scratch/args.expected" "$scratch/args.actual"
 
+"$mlpl_build" "$repo_root/probes/compiler_arg.mlpl" -o "$scratch/compiler-arg" >/dev/null
+"$scratch/compiler-arg" alpha beta >"$scratch/arg.actual"
+printf 'beta4\n' >"$scratch/arg.expected"
+cmp "$scratch/arg.expected" "$scratch/arg.actual"
+
+"$mlpl_build" "$repo_root/probes/compiler_invalid_stdout.mlpl" -o "$scratch/compiler-invalid-stdout" >/dev/null
+"$scratch/compiler-invalid-stdout" >"$scratch/invalid-stdout.actual"
+printf '\377\000\0013\n' >"$scratch/invalid-stdout.expected"
+cmp "$scratch/invalid-stdout.expected" "$scratch/invalid-stdout.actual"
+
+for unsupported in read_stdin print eprint exit; do
+  if "$mlpl_build" "$repo_root/probes/compiler_${unsupported}.mlpl" -o "$scratch/compiler-${unsupported}" >"$scratch/${unsupported}.out" 2>"$scratch/${unsupported}.err"; then
+    echo "compiler unexpectedly lowered ${unsupported}" >&2
+    exit 1
+  fi
+done
+grep -Fq 'unsupported construct: fncall read_stdin/0' "$scratch/read_stdin.err"
+grep -Fq 'unsupported construct: fncall print/1' "$scratch/print.err"
+grep -Fq 'unsupported construct: fncall eprint/1' "$scratch/eprint.err"
+grep -Fq 'unsupported construct: fncall exit/1' "$scratch/exit.err"
+
 if "$mlpl_build" "$repo_root/probes/compiler_bits.mlpl" -o "$scratch/compiler-bits" >"$scratch/bits.out" 2>"$scratch/bits.err"; then
   echo "compiler unexpectedly lowered band" >&2
   exit 1
@@ -62,4 +83,4 @@ if command -v otool >/dev/null 2>&1; then
   fi
 fi
 
-echo "PASS compiler numeric/arithmetic parity, args/stdout partial lowering, and remaining application boundaries ($compiled, $arithmetic_compiled)"
+echo "PASS compiler numeric/arithmetic parity, exact partial args/arg/stdout behavior, and remaining process/application boundaries ($compiled, $arithmetic_compiled)"

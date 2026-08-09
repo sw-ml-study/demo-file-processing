@@ -72,6 +72,13 @@ status, whole/range byte reads, and bit operations. The adjacent development
 adds a textual result line after binary stdout. It still rejects `read_bytes/1`
 and `band/2` during lowering.
 
+The expanded [compiled process conformance report](compiler-process-conformance.md)
+also verifies `arg/1` lowering and records the remaining semantic defects:
+compiled invalid bytes are coerced rather than rejected, runtime write errors
+are discarded, and `read_stdin`, `print`, `eprint`, and `exit` are not lowered.
+Process parity therefore requires shared validation/error behavior as well as
+additional match arms; lowering a call name alone is not acceptance.
+
 ### Minimum acceptance
 
 Shared runtime operations, with interpreter and compiled implementations using

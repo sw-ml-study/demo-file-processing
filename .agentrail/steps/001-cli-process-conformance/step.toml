@@ -1,6 +1,6 @@
 number = 1
 slug = "cli-process-conformance"
-status = "pending"
+status = "in-progress"
 description = "Validate compiled CLI arguments, stdin/stdout/stderr, exit status, and error ..."
 role = "production"
 context_files = []

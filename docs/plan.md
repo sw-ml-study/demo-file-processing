@@ -53,9 +53,10 @@ The configured sw-MLPL has whole-file `read_bytes`/`write_bytes`, bounded
 `read_bytes(path, offset, length)`, `file_size`, f64-backed exact-integer byte
 values, fixed-width bit operations, and interpreter-side CLI facilities. Its
 native build path works for the tested numeric and arithmetic expressions and
-partially lowers `args`/`write_stdout`, but the generated wrapper contaminates
-binary stdout with a textual result line and byte reads/appends and bit
-operations are not lowered. Packed `u8` arrays,
+partially lowers `args`/`arg`/`write_stdout`, but the generated wrapper
+contaminates binary stdout with a textual result line, invalid bytes are
+coerced instead of rejected, write errors are discarded, and stdin/stderr/exit,
+byte reads/appends, and bit operations are not lowered. Packed `u8` arrays,
 incremental binary sources/sinks, broad application lowering, and extension
 linking remain absent or incomplete. See [the measured baseline](capabilities.md).
 
