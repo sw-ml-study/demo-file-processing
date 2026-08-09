@@ -1,0 +1,1 @@
+Accepted bounded binary stdout with exact 1 MiB/64 MiB captures, 3,358,720-byte RSS growth under fixed ceilings, reconciled partial compiler args/stdout lowering, and a green 93-test/28-suite full gate.
