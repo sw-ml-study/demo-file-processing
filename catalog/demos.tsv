@@ -19,4 +19,5 @@ ogg-packet-inspect	demos/ogg/packets.mlpl	ogg	cross-page-packet-boundaries	mlpl-
 ogg-crc-verify	demos/ogg/crc.mlpl	ogg	bounded-crc-verification	mlpl-native	chunk-bounded	yes	file_size,range-read,bit-ops	runnable
 wav-inspect-copy	demos/wav/inspect_copy.mlpl	wav	inspect-canonical-copy	mlpl-native	whole-file	yes	read_bytes,write_bytes,endian-codecs	runnable
 wav-range-inspect	demos/wav/range_inspect.mlpl	wav	bounded-metadata-inspection	mlpl-native	chunk-bounded	yes	file_size,range-read,endian-codecs	runnable
+wav-bounded-output	demos/wav/bounded_output.mlpl	wav	bounded-copy-transform	mlpl-native	chunk-bounded	yes	file_size,range-read,append_bytes,endian-codecs	runnable
 sparse-wav-range-inspect	demos/wav/sparse_range_inspect.mlpl	wav	sparse-bounded-metadata	mlpl-native	chunk-bounded	no	file_size,range-read,platform-time	runnable

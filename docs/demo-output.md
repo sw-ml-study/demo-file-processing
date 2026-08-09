@@ -32,6 +32,7 @@ presented as demonstrations.
 | `just ogg-crc` | checksum-valid page versus one changed body byte | why structural parsing and integrity verification are separate |
 | `just wav-inspect-copy` | three unsigned 8-bit samples plus odd padding | why canonical parse/encode is byte-identical |
 | `just wav-range-inspect` | odd padded JUNK chunk before one sample | how metadata inspection skips payloads and locates audio |
+| `just wav-bounded-output` | canonical copy plus `[0, 127, 255]` → `[255, 128, 0]` | how fixed headers and bounded sample chunks produce real WAV files |
 | `just sparse-memory-evidence` | 16× histogram and 64× WAV size contrasts | how to read RSS ceilings and distinguish MLPL work from the platform oracle |
 | `just mp3-oracle` | checksum/version-pinned decodable tone | why structural Xing frames differ from decoded packets and presentation duration |
 | `just ogg-oracle` | checksum/version-pinned Ogg/Opus tone | why Opus header packets differ from decoded audio packet counts |

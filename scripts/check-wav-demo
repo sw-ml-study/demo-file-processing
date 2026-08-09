@@ -2,7 +2,7 @@
 set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-trap 'rm -f "$repo_root/.wav-copy-output.wav"' EXIT HUP INT TERM
+trap 'rm -f "$repo_root/.wav-copy-output.wav" "$repo_root/.wav-bounded-copy.wav" "$repo_root/.wav-bounded-invert.wav"' EXIT HUP INT TERM
 output=$("$repo_root/scripts/run-wav-demo" inspect_copy)
 printf '%s\n' "$output" | grep -Fqx 'Whole-buffer PCM WAV inspect-and-copy demonstration'
 printf '%s\n' "$output" | grep -Fqx 'Round trip: canonical encoding is byte-identical, including the required pad after the odd three-byte data chunk.'
@@ -11,5 +11,14 @@ printf '%s\n' "$output" | grep -Fqx 'Round trip: canonical encoding is byte-iden
 range_output=$("$repo_root/scripts/run-wav-demo" range_inspect)
 printf '%s\n' "$range_output" | grep -Fqx 'Bounded PCM WAV metadata-inspection demonstration'
 printf '%s\n' "$range_output" | grep -Fqx 'Interpretation: the padded JUNK chunk moves audio to byte 56, while the result retains no sample-data field.'
+
+bounded_output=$("$repo_root/scripts/run-wav-demo" bounded_output)
+printf '%s\n' "$bounded_output" | grep -Fqx 'Bounded PCM WAV copy-and-transform demonstration'
+printf '%s\n' "$bounded_output" | grep -Fqx 'Interpretation: 0 becomes 255, 127 becomes 128, and 255 becomes 0; frame count, rate, and duration stay unchanged.'
+printf '%s\n' "$bounded_output" | grep -Fqx "Allocation: payload state is O(chunk_size); the demo's tiny whole-file readback is an oracle only, not part of bounded_wav_output."
+[ -f "$repo_root/.wav-bounded-copy.wav" ]
+[ -f "$repo_root/.wav-bounded-invert.wav" ]
+[ "$(wc -c < "$repo_root/.wav-bounded-copy.wav" | tr -d ' ')" = 46 ]
+[ "$(wc -c < "$repo_root/.wav-bounded-invert.wav" | tr -d ' ')" = 48 ]
 
 echo "PASS WAV demo"

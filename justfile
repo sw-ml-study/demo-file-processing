@@ -106,6 +106,10 @@ wav-inspect-copy:
 wav-range-inspect:
     ./scripts/run-wav-demo range_inspect
 
+# Canonically copy and visibly invert PCM samples through bounded append writes.
+wav-bounded-output:
+    ./scripts/run-wav-demo bounded_output
+
 # Opt-in: generate sparse inputs and enforce bounded-read peak-RSS ceilings.
 sparse-memory-evidence:
     ./scripts/run-sparse-memory-evidence

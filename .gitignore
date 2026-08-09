@@ -21,6 +21,8 @@ tmp/
 *.log
 .capability-*.bin
 .wav-copy-output.wav
+.wav-bounded-copy.wav
+.wav-bounded-invert.wav
 .bounded-copy-output.bin
 
 # Generated or downloaded media belongs outside version control.

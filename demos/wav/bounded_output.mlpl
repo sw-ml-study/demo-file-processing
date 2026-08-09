@@ -1,0 +1,26 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/slice.mlpl";
+include "../../src/binary/endian_decode.mlpl";
+include "../../src/binary/endian_encode.mlpl";
+include "../../src/wav/model.mlpl";
+include "../../src/wav/chunks.mlpl";
+include "../../src/wav/parse.mlpl";
+include "../../src/wav/range_inspect.mlpl";
+include "../../src/wav/bounded_output.mlpl";
+
+copy_path = ".wav-bounded-copy.wav"; invert_path = ".wav-bounded-invert.wav"; remove_path(copy_path); remove_path(invert_path);
+copy = u:bounded_wav_output("fixtures/wav/odd-unknown-mono8.wav", copy_path, "copy", 7, 46, 8, 1)?;
+inverted = u:bounded_wav_output("fixtures/wav/minimal-mono8.wav", invert_path, "invert_u8", 2, 48, 8, 1)?; decoded = u:parse_wav(read_bytes(invert_path)?, 48, 8)?;
+if equal(decoded.data, [255, 128, 0]) {
+  print("Bounded PCM WAV copy-and-transform demonstration");
+  print("Purpose: create real WAV outputs without retaining an entire sample payload in MLPL memory.");
+  print("Copy input: one unsigned 8-bit sample value 9 after an odd padded JUNK chunk; canonical output removes", copy.unknown_chunks_removed, "unknown chunk and occupies", copy.output_bytes, "bytes.");
+  print("Transform input: unsigned 8-bit samples [0, 127, 255]; output samples", decoded.data, "invert each value around 127.5.");
+  print("Chunk evidence: a two-byte budget writes the three transformed samples as", inverted.chunks, "chunks with a", inverted.last_chunk_bytes, "byte tail.");
+  print("MLPL work: validate range descriptors, encode a fixed 44-byte canonical header, transform each bounded sample chunk, verify append counts, and add RIFF padding.");
+  print("Native runtime work: seekable range reads and sandboxed append_bytes calls, each implicitly closed and flushed.");
+  print("Interpretation: 0 becomes 255, 127 becomes 128, and 255 becomes 0; frame count, rate, and duration stay unchanged.");
+  print("Allocation: payload state is O(chunk_size); the demo's tiny whole-file readback is an oracle only, not part of bounded_wav_output.");
+  print("Boundary: output is interpreter-only and file-path-only; binary stdout and compiled I/O lowering remain unavailable.");
+  ok({copy: copy, inverted: inverted})
+} else { err({kind: "invariant", message: "bounded WAV inversion differs from semantic oracle"}) }

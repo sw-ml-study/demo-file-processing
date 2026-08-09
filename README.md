@@ -93,7 +93,9 @@ semantic normalization of files containing unknown chunks.
 The [bounded WAV inspector](docs/wav-range-inspection.md) reads only RIFF,
 chunk, and PCM format headers through bounded ranges, skips sample payloads by
 validated offsets, and matches whole-buffer metadata across every relevant
-header split. It does not claim bounded copying or transformation.
+header split. The [bounded WAV output](docs/bounded-wav-output.md) then writes a
+canonical header and copies or visibly inverts unsigned 8-bit samples through
+bounded append chunks; its complete-file readbacks are tiny test oracles only.
 
 The opt-in [sparse-file memory evidence](docs/sparse-memory-evidence.md)
 measures fixed-budget histogram and WAV consumers as sparse artifacts grow to
@@ -115,6 +117,7 @@ just ogg-crc
 just ogg-oracle
 just wav-inspect-copy
 just wav-range-inspect
+just wav-bounded-output
 just sparse-memory-evidence
 just tests tests/bytes
 just tests tests/io

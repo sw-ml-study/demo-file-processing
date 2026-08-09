@@ -1,6 +1,6 @@
 number = 3
 slug = "bounded-wav-output"
-status = "pending"
+status = "in-progress"
 description = "Implement bounded WAV copy and one visible PCM transformation using accepted ..."
 role = "production"
 context_files = []
