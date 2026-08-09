@@ -1,6 +1,6 @@
 number = 1
 slug = "write-stdout-conformance"
-status = "pending"
+status = "in-progress"
 description = "Probe write_stdout(bytes) -> ok(count) on the selected sw-MLPL binary and sta..."
 role = "production"
 context_files = []

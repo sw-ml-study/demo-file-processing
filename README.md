@@ -30,11 +30,16 @@ recommended implementation order, and
 [the research transcript](docs/sw-mlpl-demo-file-processing-research.txt) for
 the original design discussion.
 
-Bounded range reads and incremental sandboxed file-path writes are available,
-but packed byte storage, binary stdin/stdout streams, and compiled application
-APIs are not current claims. The
+Bounded range reads, incremental sandboxed file-path writes, and interpreter
+binary stdout are available, but packed byte storage, binary stdin/source
+handles, and compiled application APIs are not current claims. The
 native compiler handles the tested numeric and arithmetic cases; unsupported
 byte/process/bit lowering remains tracked explicitly.
+
+The [binary stdout contract](docs/write-stdout.md) verifies exact bytes, counts,
+multi-call ordering, empty/scalar writes, validation errors, and stderr
+separation. Bounded stdout applications and growing-output evidence are the
+active follow-on saga; `write_stdout` is not yet compiler-lowered.
 
 ## What runs now
 

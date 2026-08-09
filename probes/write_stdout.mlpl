@@ -1,0 +1,8 @@
+first = write_stdout([0, 1, 10, 13, 255])?;
+scalar = write_stdout(65)?;
+empty = write_stdout([])?;
+last = write_stdout([66, 67])?;
+if eq(first, 5) * eq(scalar, 1) * eq(empty, 0) * eq(last, 2) {
+  eprint("write_stdout probe: 8 binary bytes, four ordered calls, exact counts");
+  exit(0)
+} else { eprint("write_stdout probe count mismatch"); exit(1) }

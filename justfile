@@ -33,6 +33,7 @@ mlpl-build-path:
 # Verify script process behavior and native numeric compiler parity.
 capabilities:
     ./scripts/check-process-io
+    ./scripts/check-write-stdout
     ./scripts/check-compiler
 
 # Regenerate and validate tiny deterministic byte fixtures.

@@ -103,7 +103,8 @@ There is no blocker to the next highest-value saga: bounded read-only Ogg page,
 lacing, packet-continuation, and CRC inspection can reuse the range contracts.
 Arbitrary 64-bit granule positions must use two exact 32-bit words.
 
-Sandboxed file-path output is now implemented through `append_bytes`; binary
-stdout/non-seekable sinks remain unavailable. Standalone applications remain blocked on compiler lowering/runtime
+Sandboxed file-path output is implemented through `append_bytes`; the later
+[`write_stdout`](write-stdout.md) effect now covers non-seekable process output.
+Standalone applications remain blocked on compiler lowering/runtime
 parity for byte I/O, bits, arguments, diagnostics, and exit status. Codec work
 remains later and must use explicit chunk-oriented extension boundaries.

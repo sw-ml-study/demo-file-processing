@@ -136,10 +136,11 @@ memory is bounded by documented state plus chunk size, not total file size.
 
 ### Phase 2b — incremental binary output
 
-Status: accepted for sandboxed file-path outputs. See the
+Status: accepted for sandboxed file-path outputs. Binary stdout is now active
+follow-on work through `write_stdout`. See the
 [bounded-output report](bounded-output-report.md) and
-[sink conformance contract](append-bytes.md). Binary stdout/non-seekable sinks
-and compiled parity remain separate gates.
+[sink conformance contract](append-bytes.md). Binary stdin/source handles and
+compiled parity remain separate gates.
 
 - Add sink conformance and chunked byte-copy tests.
 - Add bounded WAV copy and a simple PCM array transformation.
@@ -234,5 +235,6 @@ sagas are accepted; see their [foundation](foundation-report.md),
 [bounded-read](bounded-read-report.md), [MP3/ID3](mp3-id3-report.md), and
 [Ogg](ogg-report.md), and [bounded-output](bounded-output-report.md) reports.
 The next recommended saga is standalone file applications once generic
-compiler I/O parity is available. Binary stdout remains an independent gap;
-codec extensions remain the later gate for MP3-to-Ogg.
+compiler I/O parity is available. Binary stdout is now available in the
+interpreter; binary stdin/source handles remain separate. Codec extensions
+remain the later gate for MP3-to-Ogg.

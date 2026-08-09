@@ -58,7 +58,8 @@ Status: accepted; see the [Ogg read-only report](ogg-report.md).
 ## Saga 5 — `incremental-binary-output`
 
 Status: accepted; see the [bounded-output report](bounded-output-report.md).
-Binary stdout and compiled parity remain separate gates.
+Binary stdout is proceeding in the separate `binary-stdout-output` saga;
+compiled parity remains gated.
 
 1. `append_bytes` conformance including validation, counts, implicit per-call
    close/flush, path errors, initialization, and partial-output policy.
@@ -67,6 +68,14 @@ Binary stdout and compiled parity remain separate gates.
 4. ID3 tag strip/sanitize and raw MPEG-frame extraction with byte preservation.
 5. Ogg page copy/rewrite with recomputed CRC.
 6. Large-output peak RSS and bounded-output acceptance report.
+
+## Saga 5b — `binary-stdout-output`
+
+Status: active after upstream `write_stdout` delivery.
+
+1. `write_stdout` byte/count/validation/stderr/compiler-boundary conformance.
+2. Bounded seekable-file to clean binary-stdout loops and demonstrations.
+3. Growing-output RSS acceptance and documentation reconciliation.
 
 ## Saga 6 — `standalone-file-applications`
 

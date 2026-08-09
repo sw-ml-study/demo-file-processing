@@ -73,9 +73,9 @@ writes a 64 MiB temporary output.
 1. **Standalone compiled applications.** `mlpl-build` still rejects generic
    `read_bytes`, `append_bytes`, `args`, and bit-operation calls. Compiler I/O
    parity is the gate for a useful native file-processing CLI.
-2. **Binary stdout and non-seekable sinks.** There is no binary stdout writer,
-   persistent sink handle, pipe/backpressure lifecycle, or cross-call output
-   transaction. File-path output is accepted; Unix streaming is not.
+2. **Binary source and persistent handles.** `write_stdout` now supplies the
+   non-seekable output effect, but binary stdin, persistent source/sink handles,
+   explicit backpressure, and cross-call transactions remain absent.
 3. **Incremental source/codec state.** Range reads are seekable and stateless,
    not consumable stream handles. MP3 decoding and Vorbis encoding still need
    separately authorized chunk-oriented codec extensions.
@@ -85,5 +85,5 @@ writes a 64 MiB temporary output.
 
 The recommended next saga is standalone file applications after compiler I/O
 parity is available. Codec-extension and MP3-to-Ogg work remain gated on the
-explicit chunk-oriented extension surface; binary stdout is independently
-useful but not required for sandboxed file-to-file transcoding.
+explicit chunk-oriented extension surface; stdout is now available to
+interpreter-driven seekable-file pipelines.

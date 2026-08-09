@@ -95,12 +95,19 @@ the [downstream conformance contract](append-bytes.md). This clears bounded file
 copy/rewrite/extraction for interpreter-driven sandboxed paths without adding
 format-specific builtins.
 
-## Remaining gate: non-seekable binary source/sink
+## Delivered: non-seekable binary stdout sink
 
-Bounded range reads and `append_bytes` now cover seekable file-to-file work.
-They do not provide binary stdin/stdout, pipes, backpressure, or consumable
-source/sink handles. Transcoding to a file path can proceed once codec
-extensions exist; Unix pipeline output still needs these effects.
+`write_stdout(bytes) -> ok(count)` now supplies ordered, per-call-flushed binary
+process output. Downstream exact-byte/count/stderr-separation conformance is
+recorded in [the stdout contract](write-stdout.md). Bounded range reads,
+`append_bytes`, and `write_stdout` cover interpreter-side seekable input to file
+or stdout output.
+
+## Remaining gate: binary source and persistent handles
+
+The runtime still does not provide binary stdin, explicit backpressure, or
+consumable source/sink handles. Transcoding from seekable files can proceed once
+codec extensions exist; true stdin-driven streaming still needs these effects.
 
 The preferred missing surface is compositional rather than codec-specific. A
 sink must provide bounded writes, partial-write handling, flush/close cleanup,
@@ -118,8 +125,8 @@ also reproduce the already accepted range-reader results across split fields.
 The sandboxed file-path subset now satisfies those criteria downstream. The
 [bounded-output report](bounded-output-report.md) records a byte-identical
 64 MiB output above the RSS ceiling with only 114,688 bytes measured growth.
-This does not satisfy binary stdout, persistent-handle, pipe/backpressure, or
-compiler-lowering requirements; those remain the genuine upstream gaps.
+This does not satisfy binary stdin, persistent-handle, explicit backpressure,
+or compiler-lowering requirements; those remain the genuine upstream gaps.
 
 ## Deferred: packed bytes and exact 64-bit fields
 

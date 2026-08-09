@@ -95,8 +95,8 @@ visible independently from structural parsing.
 ## Blockers and next work
 
 All planned downstream-only read-only sagas are accepted. Sandboxed file-path
-output is now implemented through `append_bytes`; binary stdout/non-seekable
-sinks remain unavailable.
+output is implemented through `append_bytes`, and the later
+[`write_stdout`](write-stdout.md) effect now covers non-seekable process output.
 
 Standalone file applications remain blocked on compiler/runtime parity for
 byte I/O, bits, arguments, diagnostics, and exit status. Audio codec and

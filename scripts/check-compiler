@@ -39,6 +39,12 @@ if "$mlpl_build" "$repo_root/probes/compiler_append.mlpl" -o "$scratch/compiler-
 fi
 grep -Fq 'unsupported construct: fncall append_bytes/2' "$scratch/append.err"
 
+if "$mlpl_build" "$repo_root/probes/compiler_stdout.mlpl" -o "$scratch/compiler-stdout" >"$scratch/stdout.out" 2>"$scratch/stdout.err"; then
+  echo "compiler unexpectedly lowered write_stdout" >&2
+  exit 1
+fi
+grep -Fq 'unsupported construct: fncall write_stdout/1' "$scratch/stdout.err"
+
 arithmetic_interpreted=$("$mlpl" "$repo_root/probes/compiler_arithmetic.mlpl")
 "$mlpl_build" "$repo_root/probes/compiler_arithmetic.mlpl" -o "$scratch/compiler-arithmetic" >/dev/null
 arithmetic_compiled=$("$scratch/compiler-arithmetic")

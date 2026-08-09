@@ -26,4 +26,6 @@ contain playable compressed audio.
 
 Run `just mp3-bounded-output` for two narrated outputs: a 1,356-byte ID3-free
 VBR stream and a 1,668-byte four-frame stream with a damaged two-byte source gap
-removed. Binary stdout and standalone compiled I/O remain unavailable.
+removed. The artifacts currently target files; the later
+[`write_stdout`](write-stdout.md) sink enables interpreter binary stdout, while
+standalone compiled I/O remains unavailable.

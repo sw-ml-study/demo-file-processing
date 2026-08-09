@@ -25,7 +25,8 @@ the authority for downstream claims.
 | Bounded histogram | MLPL merges per-range 256-bin reductions with identical results at chunk sizes 1, 7, 64, and 65,536 | The code retains no prior chunks, but peak RSS remains unclaimed until sparse-file measurement. |
 | Incremental stream handles | No open/read-next/write-next/seek handle surface was found or exercised | Stateful single-pass transforms and codecs remain gated; repeated range reads are not a stream API. |
 | Writes | `write_bytes` validates integral byte values and failed validation preserves prior contents | Deterministic whole-buffer replacement remains useful for tiny outputs and destination initialization. |
-| Incremental file output | `append_bytes(path, bytes)` creates/appends a validated bounded chunk and returns its count; each call implicitly closes/flushes | File-path output can be bounded by chunk size; callers must initialize destinations and define partial-output cleanup. Binary stdout and compiler lowering remain absent. |
+| Incremental file output | `append_bytes(path, bytes)` creates/appends a validated bounded chunk and returns its count; each call implicitly closes/flushes | File-path output can be bounded by chunk size; callers must initialize destinations and define partial-output cleanup. Compiler lowering remains absent. |
+| Binary stdout sink | `write_stdout(bytes)` accepts scalar/rank-one bytes, returns exact counts, preserves multi-call ordering, flushes per call, and keeps `eprint` diagnostics separate | Interpreter pipes/stdout are unblocked; there is no rollback, persistent handle, binary stdin, or compiler lowering. Broken-pipe timing is not a deterministic default-gate claim. |
 | Bounded byte copy | MLPL copies exact whole-file or subrange bytes through caller-capped reads/appends, requires a new destination, verifies counts, and applies explicit keep/remove partial policy | Byte-identical output is executable at chunks 1, 7, 64, and 65,536; 64 MiB output peak RSS is measured separately below. |
 | Bit operations | `band`, `bor`, `bxor`, `bnot`, `popcount`, `shl`, `shr`, `bits`, and `from_bits` pass golden vectors | In-memory endian and field work is unblocked in the interpreter. |
 | Endian/layout library | MLPL codecs round-trip exact u8..u48 in both byte orders; width vectors extract MSB-first fields across byte boundaries | WAV-sized integers and MPEG headers need no format/runtime builtin; scalar u56/u64 remains intentionally rejected. |
@@ -45,7 +46,7 @@ the authority for downstream claims.
 | Script process surface | `args`, `read_stdin`, `print`, `eprint`, and `exit(7)` produced separated streams and the requested status | Interpreter-backed Unix-style tools are available now. `read_stdin` is whole-input text, not binary chunk streaming. |
 | Native numeric build | `reduce_add(iota(8))` produced `28` in both interpreter and compiled artifact | The native path is real for its supported numeric subset. The artifact runs directly; `otool -L` shows no named MLPL interpreter/parser/evaluator dynamic dependency. |
 | Arithmetic build | `(iota(8) + 1) * 2` compiles and its reduction prints `72`, matching the interpreter | The prior generated-trait import defect is resolved in the selected adjacent development build; the gate now requires positive parity. |
-| Application lowering | `read_bytes/1`, `append_bytes/2`, `args/0`, and `band/2` fail at lowering as unsupported function calls | A compiled file-processing CLI is gated on generic runtime/lowering parity; interpreter success does not imply compiler success. |
+| Application lowering | `read_bytes/1`, `append_bytes/2`, `write_stdout/1`, `args/0`, and `band/2` fail at lowering as unsupported function calls | A compiled file-processing CLI is gated on generic runtime/lowering parity; interpreter success does not imply compiler success. |
 
 ## Claim boundaries
 
@@ -63,13 +64,15 @@ The repository can now truthfully claim:
 - bounded interpreter-driven output to sandboxed file paths through validated
   append chunks, with measured resident growth independent of 64-fold output
   growth at the accepted chunk size.
+- exact interpreter-driven binary stdout bytes through ordered, counted,
+  per-call-flushed writes with diagnostics kept on stderr.
 
 It cannot yet claim:
 
 - packed `u8` storage or one byte of resident data per file byte;
 - incremental binary input, stream handles, backpressure, or codec state;
-- binary stdout/non-seekable sinks, persistent sink handles, or cross-call
-  output transactions;
+- persistent source/sink handles, binary stdin, backpressure control, or
+  cross-call output transactions;
 - exact scalar representation of arbitrary 64-bit file fields;
 - interpreter/compiler parity for byte I/O, process APIs, or bit operations;
 - compilation of a useful file-processing application;

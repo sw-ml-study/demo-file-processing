@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mlpl=$("$repo_root/scripts/select-mlpl")
+scratch=$(mktemp -d "${TMPDIR:-/tmp}/demo-file-write-stdout.XXXXXX")
+trap 'rm -rf "$scratch"' EXIT HUP INT TERM
+
+"$mlpl" --source-dir "$repo_root" "$repo_root/probes/write_stdout.mlpl" >"$scratch/stdout.bin" 2>"$scratch/stderr.txt"
+[ "$(wc -c < "$scratch/stdout.bin" | tr -d ' ')" = 8 ] || { echo "write_stdout byte count mismatch" >&2; exit 1; }
+actual=$(od -An -tu1 -v "$scratch/stdout.bin" | tr '\n' ' ' | tr -s ' ' | sed 's/^ //; s/ $//')
+[ "$actual" = "0 1 10 13 255 65 66 67" ] || { echo "write_stdout bytes/order mismatch: $actual" >&2; exit 1; }
+[ "$(cat "$scratch/stderr.txt")" = "write_stdout probe: 8 binary bytes, four ordered calls, exact counts" ] || { echo "write_stdout stderr separation mismatch" >&2; exit 1; }
+
+echo "PASS write_stdout exact binary output, counts, ordering, and stderr separation"

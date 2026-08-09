@@ -33,8 +33,10 @@ rollback semantics across or within calls. Exact all-or-old replacement remains
 the separate whole-value `write_atomic` operation and is not bounded for a
 large constructed output.
 
-The sink targets sandboxed file paths only. Binary stdout, pipes, sockets,
-non-seekable sinks, backpressure, and a long-lived handle remain absent. Byte
+This sink targets sandboxed file paths only. The separate
+[`write_stdout`](write-stdout.md) effect now covers binary process stdout;
+sockets, binary stdin, explicit backpressure, and long-lived handles remain
+absent. Byte
 arrays remain f64-backed, so memory density is not one resident byte per file
 byte, but a fixed chunk budget still bounds allocation independently of total
 output size.
@@ -44,8 +46,8 @@ until the queued compiler I/O parity work lands.
 
 The [bounded-output acceptance report](bounded-output-report.md) exercises the
 sink in 1,024 append calls producing an exact 64 MiB file and records bounded
-peak-RSS growth. Binary stdout and persistent/non-seekable handles remain
-separate capabilities.
+peak-RSS growth. Binary stdout is covered separately; persistent handles remain
+a separate capability.
 
 The downstream [bounded-copy contract](bounded-copy.md) now supplies the
 create-new, budget, count-verification, and partial-output policy around this

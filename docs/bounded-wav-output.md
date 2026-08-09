@@ -20,5 +20,6 @@ output vectors. Tests may read tiny complete outputs as independent byte and
 semantic oracles; that readback is not part of the production algorithm.
 
 Run `just wav-bounded-output` for the narrated result. Output remains limited to
-sandboxed file paths under the interpreter because binary stdout and standalone
-compiler I/O lowering are not available.
+sandboxed file paths. The later [`write_stdout`](write-stdout.md) sink enables a
+separate interpreter stdout path; standalone compiler I/O lowering is not
+available.

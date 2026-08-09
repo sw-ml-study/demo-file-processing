@@ -10,7 +10,8 @@ measurements stay within fixed peak-RSS and growth ceilings as artifacts grow.
 
 This accepted bounded analysis, not general streaming. Since this report was
 published, sw-MLPL `d3713461` added `append_bytes` for incremental sandboxed
-file-path output. Sequential stdin/stdout streams, backpressure, and compiled
+file-path output. The later `write_stdout` sink adds binary process output;
+binary stdin/source handles, explicit backpressure, and compiled
 application parity remain absent; output claims require their own new evidence.
 
 ## Executable evidence
@@ -74,7 +75,7 @@ or bounded-memory blocker.
 1. **Incremental binary output (subsequently unblocked for file paths):**
    `append_bytes` at `d3713461` now provides bounded append calls with implicit
    close/flush. Downstream copy/rewrite and cleanup evidence is in progress;
-   binary stdout remains absent.
+   binary stdout is now delivered separately through `write_stdout`.
 2. **Compiled application parity:** generated applications do not lower byte,
    bit, argument, diagnostic, and exit APIs. Arithmetic parity now passes, but
    the remaining runtime surface still blocks standalone file applications.
