@@ -20,3 +20,6 @@ Parsing is O(segments) time and allocation plus fixed header state; body bytes
 are never read. Native mlplunit vectors cover lacing values 0/255, empty pages,
 split-word values, the unset sentinel, malformed signatures/versions/flags and
 extents, all budgets, and identical results at chunks 1, 7, 64, and 65,536.
+
+The [packet reconstruction layer](ogg-packet-reconstruction.md) composes these
+descriptors across consecutive pages while keeping payload bytes out of memory.

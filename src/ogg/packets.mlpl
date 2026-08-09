@@ -1,0 +1,52 @@
+include "page.mlpl";
+
+def u:inspect_ogg_packets(path, chunk_size, start_offset, end_offset, max_stream_bytes, max_pages, max_page_bytes, max_segments, max_page_body_bytes, max_packets, max_packet_bytes) { "Inspect packet boundaries for one bounded logical Ogg stream without retaining payloads.";
+  invalid = (1 - u:range_exact_nonnegative(start_offset)) + (1 - u:range_exact_nonnegative(end_offset)) + (1 - u:range_exact_nonnegative(max_stream_bytes)) + (1 - u:range_exact_nonnegative(max_pages)) + (1 - u:range_exact_nonnegative(max_page_bytes)) + (1 - u:range_exact_nonnegative(max_segments)) + (1 - u:range_exact_nonnegative(max_page_body_bytes)) + (1 - u:range_exact_nonnegative(max_packets)) + (1 - u:range_exact_nonnegative(max_packet_bytes));
+  if invalid { err({kind: "budget", message: "Ogg stream offsets and budgets must be exact non-negative integers"}) } else {
+    if eq(max_stream_bytes, 0) + eq(max_pages, 0) + eq(max_packets, 0) + lt(max_page_bytes, 27) { err({kind: "budget", message: "Ogg stream/page/packet budgets must be positive and page budget at least 27"}) } else {
+      reader = u:range_reader(path, chunk_size)?;
+      if gt(start_offset, end_offset) + gt(end_offset, reader.size) { err({kind: "range", message: "Ogg stream range must be ordered and contained in the file snapshot"}) } else {
+        span = end_offset - start_offset;
+        if gt(span, max_stream_bytes) { err({kind: "budget", message: "Ogg stream range exceeds max_stream_bytes"}) } else {
+          cursor = start_offset; pages = 0; packets = 0; continued_pages = 0; spanning_packets = 0; zero_packets = 0; total_packet_bytes = 0; min_packet_bytes = 0; max_packet_bytes_seen = 0; current_packet_bytes = 0; current_spans_pages = 0; serial = 0; first_sequence = 0; last_sequence = 0; total_segments = 0; total_body_bytes = 0; saw_eos = 0;
+          while lt(cursor, end_offset) {
+            if saw_eos { return err({kind: "eos", message: "bytes or pages follow the Ogg end-of-stream page"}) } else { 0 };
+            if gt(pages + 1, max_pages) { return err({kind: "budget", message: "Ogg page count exceeds max_pages"}) } else { 0 };
+            page = u:read_ogg_page(reader, cursor, max_page_bytes, max_segments, max_page_body_bytes)?;
+            if gt(page.next_offset, end_offset) { return err({kind: "truncated", message: "Ogg page crosses the requested stream boundary"}) } else { 0 };
+            if eq(pages, 0) {
+              if (1 - page.bos) + page.continued { return err({kind: "bos", message: "bounded Ogg logical stream must begin with a non-continued BOS page"}) } else { 0 };
+              serial = page.serial; first_sequence = page.sequence
+            } else {
+              if page.bos { return err({kind: "bos", message: "Ogg BOS flag may appear only on the first page"}) } else { 0 };
+              if 1 - eq(page.serial, serial) { return err({kind: "serial", message: "bounded packet inspection supports one logical stream serial"}) } else { 0 };
+              expected_sequence = mod(last_sequence + 1, 4294967296); if 1 - eq(page.sequence, expected_sequence) { return err({kind: "sequence", message: "Ogg page sequence is not consecutive"}) } else { 0 };
+              needs_continuation = gt(current_packet_bytes, 0); if 1 - eq(page.continued, needs_continuation) { return err({kind: "continuation", message: "Ogg continued flag does not match prior packet state"}) } else { 0 }
+            };
+            if page.continued { continued_pages = continued_pages + 1 } else { 0 };
+            index = 0; while lt(index, page.segment_count) {
+              lace = take(page.lacing, 0, index); current_packet_bytes = current_packet_bytes + lace; total_packet_bytes = total_packet_bytes + lace;
+              if gt(current_packet_bytes, max_packet_bytes) { return err({kind: "budget", message: "Ogg packet exceeds max_packet_bytes"}) } else { 0 };
+              if lt(lace, 255) {
+                if gt(packets + 1, max_packets) { return err({kind: "budget", message: "Ogg packet count exceeds max_packets"}) } else { 0 };
+                if eq(packets, 0) { min_packet_bytes = current_packet_bytes; max_packet_bytes_seen = current_packet_bytes } else { if lt(current_packet_bytes, min_packet_bytes) { min_packet_bytes = current_packet_bytes } else { 0 }; if gt(current_packet_bytes, max_packet_bytes_seen) { max_packet_bytes_seen = current_packet_bytes } else { 0 } };
+                if eq(current_packet_bytes, 0) { zero_packets = zero_packets + 1 } else { 0 }; if current_spans_pages { spanning_packets = spanning_packets + 1 } else { 0 };
+                packets = packets + 1; current_packet_bytes = 0; current_spans_pages = 0
+              } else { 0 };
+              index = index + 1
+            };
+            if gt(current_packet_bytes, 0) { current_spans_pages = 1 } else { 0 };
+            pages = pages + 1; total_segments = total_segments + page.segment_count; total_body_bytes = total_body_bytes + page.body_bytes; last_sequence = page.sequence; saw_eos = page.eos; cursor = page.next_offset
+          };
+          if eq(pages, 0) { err({kind: "empty", message: "Ogg stream range contains no pages"}) } else {
+            if 1 - saw_eos { err({kind: "eos", message: "Ogg logical stream range has no final EOS page"}) } else {
+              if gt(current_packet_bytes, 0) { err({kind: "truncated", message: "Ogg EOS leaves an unfinished packet"}) } else {
+                ok({start_offset: start_offset, end_offset: end_offset, stream_bytes: span, serial: serial, first_sequence: first_sequence, last_sequence: last_sequence, pages: pages, packets: packets, continued_pages: continued_pages, spanning_packets: spanning_packets, zero_packets: zero_packets, total_segments: total_segments, total_body_bytes: total_body_bytes, total_packet_bytes: total_packet_bytes, min_packet_bytes: min_packet_bytes, max_packet_bytes: max_packet_bytes_seen, average_packet_bytes: if eq(packets, 0) { 0 } else { total_packet_bytes / packets }})
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
