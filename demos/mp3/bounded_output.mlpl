@@ -1,0 +1,25 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/slice.mlpl";
+include "../../src/binary/endian_decode.mlpl";
+include "../../src/binary/bit_fields.mlpl";
+include "../../src/id3/inspect.mlpl";
+include "../../src/mp3/header.mlpl";
+include "../../src/mp3/scanner.mlpl";
+include "../../src/mp3/bounded_output.mlpl";
+
+tagged = "fixtures/mp3/synthetic-vbr-id3.mp3"; stripped_path = ".mp3-stripped-output.mp3"; extracted_path = ".mp3-extracted-output.mp3"; remove_path(stripped_path); remove_path(extracted_path);
+tag = u:inspect_id3v2(tagged, 7, 4096, 16, 256)?; stripped = u:strip_id3v2(tagged, stripped_path, 7, tag.audio_bytes, 4096, 16, 256, 1)?;
+damaged = "fixtures/mp3/resync-gap.mp3"; damaged_size = file_size(damaged)?; extracted = u:extract_mpeg_frames(damaged, extracted_path, 64, 0, damaged_size, damaged_size, 8, 1668, 1)?; output_scan = u:scan_mpeg_layer3(extracted_path, 7, 0, extracted.output_bytes, extracted.output_bytes, 8)?;
+if eq(stripped.output_bytes, 1356) * eq(extracted.output_bytes, 1668) * eq(output_scan.skipped_bytes, 0) {
+  print("Bounded ID3-strip and MPEG-frame extraction demonstration");
+  print("Purpose: create playable-structure MP3 byte streams from accepted read descriptors without retaining the complete output.");
+  print("ID3 input: a", file_size(tagged)?, "byte file with", tag.tag_bytes, "tag bytes followed by", tag.audio_bytes, "audio bytes.");
+  print("ID3 output: removed", stripped.tag_bytes_removed, "bytes and preserved", stripped.output_bytes, "post-tag bytes exactly in", stripped.chunks, "bounded append chunks.");
+  print("MPEG input: four accepted 417-byte frames separated by a deliberate two-byte damaged gap.");
+  print("MPEG output: wrote", extracted.frames, "frames and", extracted.output_bytes, "bytes; excluded", extracted.skipped_source_bytes, "damaged bytes after", extracted.source_resyncs, "source resynchronization.");
+  print("Output interpretation: rescanning the extracted file finds", output_scan.frames, "contiguous frames,", output_scan.skipped_bytes, "skipped bytes, and", output_scan.resyncs, "resynchronizations.");
+  print("MLPL work: validate ID3/audio extents, validate the MPEG scan before creation, rescan synchronization candidates, and append accepted source ranges with exact counts.");
+  print("Allocation: output state is fixed scanner state plus O(chunk_size); mlplunit compares preservation in independent 64-byte readback windows.");
+  print("Boundary: extraction validates MPEG structure, not compressed audio payloads; output remains interpreter-only and sandboxed-file-only.");
+  ok({stripped: stripped, extracted: extracted})
+} else { err({kind: "invariant", message: "bounded MP3 output demonstration changed"}) }

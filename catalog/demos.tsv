@@ -14,6 +14,7 @@ sparse-byte-histogram	demos/bytes/sparse_histogram.mlpl	raw-bytes	sparse-bounded
 mpeg-header-fields	demos/binary/mpeg_header.mlpl	mpeg-audio	semantic-layer3-header	mlpl	not-applicable	yes	bit-ops,endian-codecs	runnable
 mpeg-frame-scan	demos/mp3/scan.mlpl	mpeg-audio	bounded-frame-scan	mlpl-native	chunk-bounded	yes	file_size,range-read,bit-ops	runnable
 id3v2-inspect	demos/mp3/id3.mlpl	id3v2	bounded-metadata-inspection	mlpl-native	chunk-bounded	yes	file_size,range-read,decode_bytes	runnable
+mp3-bounded-output	demos/mp3/bounded_output.mlpl	mpeg-audio	id3-strip-frame-extract	mlpl-native	chunk-bounded	yes	file_size,range-read,append_bytes,bit-ops	runnable
 ogg-page-inspect	demos/ogg/pages.mlpl	ogg	bounded-page-inspection	mlpl-native	chunk-bounded	yes	file_size,range-read,endian-codecs	runnable
 ogg-packet-inspect	demos/ogg/packets.mlpl	ogg	cross-page-packet-boundaries	mlpl-native	chunk-bounded	yes	file_size,range-read,lacing	runnable
 ogg-crc-verify	demos/ogg/crc.mlpl	ogg	bounded-crc-verification	mlpl-native	chunk-bounded	yes	file_size,range-read,bit-ops	runnable

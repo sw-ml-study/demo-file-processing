@@ -2,6 +2,7 @@
 set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+trap 'rm -f "$repo_root/.mp3-stripped-output.mp3" "$repo_root/.mp3-extracted-output.mp3"' EXIT HUP INT TERM
 scan=$("$repo_root/scripts/run-mp3-demo" scan)
 printf '%s\n' "$scan" | grep -Fqx 'Bounded MPEG frame-scanner demonstration'
 printf '%s\n' "$scan" | grep -Fqx 'Interpretation A: unequal bitrate bins prove VBR, the frame-size range follows those rates, and chunk budgets 7 and 65,536 produce the same complete result.'
@@ -10,4 +11,10 @@ id3=$("$repo_root/scripts/run-mp3-demo" id3)
 printf '%s\n' "$id3" | grep -Fqx 'Bounded ID3v2 metadata demonstration'
 printf '%s\n' "$id3" | grep -Fqx 'Interpretation: chunk budgets 1 and 65,536 agree, while the audio payload remains an offset/length descriptor rather than an allocated result.'
 printf '%s\n' "$id3" | grep -Fqx 'Malformed contrast: a 14-byte fixture declares 127 tag-body bytes; inspection returns Err because the declared extent exceeds the file snapshot.'
+bounded=$("$repo_root/scripts/run-mp3-demo" bounded_output)
+printf '%s\n' "$bounded" | grep -Fqx 'Bounded ID3-strip and MPEG-frame extraction demonstration'
+printf '%s\n' "$bounded" | grep -Fqx 'Output interpretation: rescanning the extracted file finds 4 contiguous frames, 0 skipped bytes, and 0 resynchronizations.'
+printf '%s\n' "$bounded" | grep -Fqx 'Allocation: output state is fixed scanner state plus O(chunk_size); mlplunit compares preservation in independent 64-byte readback windows.'
+[ "$(wc -c < "$repo_root/.mp3-stripped-output.mp3" | tr -d ' ')" = 1356 ]
+[ "$(wc -c < "$repo_root/.mp3-extracted-output.mp3" | tr -d ' ')" = 1668 ]
 echo "PASS MP3 demos"

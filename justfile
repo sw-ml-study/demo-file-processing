@@ -78,6 +78,10 @@ mp3-scan:
 id3-inspect:
     ./scripts/run-mp3-demo id3
 
+# Strip ID3 and extract only accepted MPEG frames through bounded append writes.
+mp3-bounded-output:
+    ./scripts/run-mp3-demo bounded_output
+
 # Opt-in pinned ffprobe comparison against the decodable tone fixture.
 mp3-oracle:
     ./scripts/run-mp3-oracle

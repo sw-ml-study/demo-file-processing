@@ -27,6 +27,7 @@ presented as demonstrations.
 | `just binary-fields` | contrasting MPEG-1 and de-facto MPEG-2.5 headers | how selectors become rates, samples, and byte lengths |
 | `just mp3-scan` | 128/160/128 kbit/s frames plus a separate damaged gap | why bitrate changes imply VBR and how synchronization is reacquired |
 | `just id3-inspect` | selected text, unknown payload, padding, audio range, and truncation | why metadata is materialized but audio remains a descriptor |
+| `just mp3-bounded-output` | stripped VBR stream plus four frames with a damaged gap removed | how accepted descriptors become byte-preserving output artifacts |
 | `just ogg-pages` | BOS page, 255-byte lace, continued page, and unset granule | how lacing becomes body/next-page descriptors |
 | `just ogg-packets` | spanning, ordinary, zero, and malformed-continuation packets | how packet state crosses pages without payload retention |
 | `just ogg-crc` | checksum-valid page versus one changed body byte | why structural parsing and integrity verification are separate |

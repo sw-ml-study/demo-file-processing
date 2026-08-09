@@ -59,9 +59,9 @@ a fixed four-bin channel-mode histogram.
 
 The ID3 result returns tag extent, selected text/counts, padding and extended-
 header/footer facts, plus `{audio_offset, audio_bytes}`. A no-tag file describes
-the entire file as audio. Future bounded rewriting can copy or omit that range
-once an incremental sink exists. Frame extraction can rescan it and emit
-accepted ranges incrementally; this API does not return an unbounded frame list.
+the entire file as audio. The later [bounded MP3 output](bounded-mp3-output.md)
+copies that range or rescans and appends accepted frames incrementally without
+returning an unbounded frame list.
 
 ## Complexity and allocation
 
@@ -103,8 +103,7 @@ There is no blocker to the next highest-value saga: bounded read-only Ogg page,
 lacing, packet-continuation, and CRC inspection can reuse the range contracts.
 Arbitrary 64-bit granule positions must use two exact 32-bit words.
 
-Incremental output remains blocked on a separately authorized generic binary
-sink with partial-write, flush, close, cleanup, sandbox, and bounded-memory
-semantics. Standalone applications remain blocked on compiler lowering/runtime
+Sandboxed file-path output is now implemented through `append_bytes`; binary
+stdout/non-seekable sinks remain unavailable. Standalone applications remain blocked on compiler lowering/runtime
 parity for byte I/O, bits, arguments, diagnostics, and exit status. Codec work
 remains later and must use explicit chunk-oriented extension boundaries.

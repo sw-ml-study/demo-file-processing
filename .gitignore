@@ -23,6 +23,8 @@ tmp/
 .wav-copy-output.wav
 .wav-bounded-copy.wav
 .wav-bounded-invert.wav
+.mp3-stripped-output.mp3
+.mp3-extracted-output.mp3
 .bounded-copy-output.bin
 
 # Generated or downloaded media belongs outside version control.

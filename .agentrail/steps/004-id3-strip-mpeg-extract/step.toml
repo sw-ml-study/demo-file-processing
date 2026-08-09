@@ -1,6 +1,6 @@
 number = 4
 slug = "id3-strip-mpeg-extract"
-status = "pending"
+status = "in-progress"
 description = "Implement bounded ID3 stripping and accepted MPEG-frame extraction to sandbox..."
 role = "production"
 context_files = []

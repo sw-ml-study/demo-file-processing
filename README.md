@@ -78,6 +78,12 @@ Their [tiny fixtures and pinned oracle](docs/mp3-fixtures-oracle.md) distinguish
 synthetic structural evidence from a decodable 440 Hz tone and opt-in ffprobe
 validation.
 
+The [bounded MP3 output](docs/bounded-mp3-output.md) turns accepted ID3 audio
+ranges and MPEG frame scans into real files: one output strips the tag while
+preserving every described audio byte, and another excludes a damaged gap while
+retaining four accepted frames. Both use bounded append chunks and fixed scanner
+state rather than accumulating an output or frame list.
+
 The bounded [Ogg page](docs/ogg-page-model.md),
 [cross-page packet](docs/ogg-packet-reconstruction.md), and
 [visible CRC](docs/ogg-crc.md) slices have narrated structural, continuation,
@@ -110,6 +116,7 @@ just bounded-copy
 just binary-fields
 just mp3-scan
 just id3-inspect
+just mp3-bounded-output
 just mp3-oracle
 just ogg-pages
 just ogg-packets

@@ -1,0 +1,52 @@
+include "../io/bounded_copy.mlpl";
+include "../id3/inspect.mlpl";
+include "scanner.mlpl";
+
+def u:append_source_range(source, destination, start_offset, length, chunk_size, cleanup_partial) { "Append one exact source range to an initialized destination with O(chunk_size) byte state.";
+  cursor = 0; chunks = 0; last_chunk_bytes = 0;
+  while lt(cursor, length) {
+    remaining = length - cursor; width = if lt(remaining, chunk_size) { remaining } else { chunk_size }; read_result = read_bytes(source, start_offset + cursor, width);
+    if is_err(read_result) { return u:bounded_copy_abort(destination, cleanup_partial, read_result) } else { 0 }; bytes = unwrap(read_result);
+    if 1 - eq(tally(bytes), width) { return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_read", message: "source changed during bounded append"})) } else { 0 };
+    write_result = append_bytes(destination, bytes); if is_err(write_result) { return u:bounded_copy_abort(destination, cleanup_partial, write_result) } else { 0 };
+    if 1 - eq(unwrap(write_result), width) { return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_write", message: "append count differs from source range"})) } else { 0 };
+    cursor = cursor + width; chunks = chunks + 1; last_chunk_bytes = width
+  };
+  ok({bytes: length, chunks: chunks, last_chunk_bytes: last_chunk_bytes})
+}
+
+def u:strip_id3v2(source, destination, chunk_size, max_output_bytes, max_tag_bytes, max_tag_frames, max_text_bytes, cleanup_partial) { "Write the accepted post-ID3 audio descriptor byte-for-byte to a new file.";
+  tag = u:inspect_id3v2(source, chunk_size, max_tag_bytes, max_tag_frames, max_text_bytes)?;
+  result = u:bounded_copy_range(source, destination, tag.audio_offset, tag.audio_bytes, chunk_size, max_output_bytes, cleanup_partial)?;
+  ok({id3_present: tag.id3_present, tag_bytes_removed: tag.tag_bytes, source_audio_offset: tag.audio_offset, audio_bytes: result.bytes_copied, chunks: result.chunks, chunk_size: result.chunk_size, last_chunk_bytes: result.last_chunk_bytes, output_bytes: result.destination_size})
+}
+
+def u:extract_mpeg_frames(source, destination, chunk_size, start_offset, end_offset, max_scan_bytes, max_frames, max_output_bytes, cleanup_partial) { "Rescan and append only structurally accepted MPEG Layer III frames without retaining a frame list.";
+  scan = u:scan_mpeg_layer3(source, chunk_size, start_offset, end_offset, max_scan_bytes, max_frames)?;
+  if (1 - u:range_exact_nonnegative(max_output_bytes)) + lt(max_output_bytes, scan.total_frame_bytes) { err({kind: "budget", message: "accepted MPEG frames exceed max_output_bytes"}) } else {
+    if is_ok(file_size(destination)) { err({kind: "destination", message: "MPEG extraction requires a new destination"}) } else {
+      opened = append_bytes(destination, []); if is_err(opened) { opened } else {
+        reader = u:range_reader(source, chunk_size)?; cursor = start_offset; frames = 0; output_bytes = 0; output_chunks = 0; synchronized = 0; version_id = 0; sample_rate_hz = 0;
+        while lt(cursor, end_offset) {
+          if gt(cursor + 4, end_offset) { cursor = end_offset; synchronized = 0 } else {
+            parsed = u:mpeg_header_at(reader, cursor);
+            if is_err(parsed) { cursor = cursor + 1; synchronized = 0 } else {
+              header = unwrap(parsed); ending = cursor + header.frame_length; compatible = if eq(frames, 0) { 1 } else { eq(version_id, header.version_id) * eq(sample_rate_hz, header.sample_rate_hz) };
+              if gt(ending, end_offset) { cursor = cursor + 1; synchronized = 0 } else {
+                confirmed = synchronized * compatible + (1 - synchronized) * compatible * u:mpeg_acquisition_confirmed(reader, cursor, ending, end_offset, header);
+                if confirmed {
+                  appended = u:append_source_range(source, destination, cursor, header.frame_length, chunk_size, cleanup_partial)?;
+                  if eq(frames, 0) { version_id = header.version_id; sample_rate_hz = header.sample_rate_hz } else { 0 };
+                  frames = frames + 1; output_bytes = output_bytes + appended.bytes; output_chunks = output_chunks + appended.chunks; cursor = ending; synchronized = 1
+                } else { cursor = cursor + 1; synchronized = 0 }
+              }
+            }
+          }
+        };
+        if (1 - eq(frames, scan.frames)) + (1 - eq(output_bytes, scan.total_frame_bytes)) { u:bounded_copy_abort(destination, cleanup_partial, err({kind: "invariant", message: "extraction rescan differs from validated MPEG summary"})) } else {
+          size = file_size(destination)?; if 1 - eq(size, output_bytes) { u:bounded_copy_abort(destination, cleanup_partial, err({kind: "size", message: "MPEG extraction output length differs"})) } else { ok({frames: frames, output_bytes: output_bytes, output_chunks: output_chunks, chunk_size: chunk_size, skipped_source_bytes: scan.skipped_bytes, source_resyncs: scan.resyncs, version_id: scan.version_id, sample_rate_hz: scan.sample_rate_hz}) }
+        }
+      }
+    }
+  }
+}

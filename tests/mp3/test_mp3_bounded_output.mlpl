@@ -1,0 +1,45 @@
+include "src/bytes/validate.mlpl";
+include "src/binary/slice.mlpl";
+include "src/binary/endian_decode.mlpl";
+include "src/binary/bit_fields.mlpl";
+include "src/id3/inspect.mlpl";
+include "src/mp3/header.mlpl";
+include "src/mp3/scanner.mlpl";
+include "src/mp3/bounded_output.mlpl";
+
+def u:mp3_output_fresh(path) { remove_path(path); 1 }
+
+def u:verify_mp3_ranges_equal(left, left_offset, right, right_offset, length) { "Compare exact file ranges through 64-byte mlplunit oracle windows.";
+  cursor = 0; while lt(cursor, length) { remaining = length - cursor; width = if lt(remaining, 64) { remaining } else { 64 }; u:assert_eq(read_bytes(left, left_offset + cursor, width), read_bytes(right, right_offset + cursor, width), "bounded byte oracle")?; cursor = cursor + width }; ok(1)
+}
+
+@test {name: "bounded ID3 stripping preserves the declared audio range", tags: ["mp3", "id3", "output", "bytes"]}
+def u:test_id3_strip_bytes() { "Compare stripped bytes against whole-file oracles, including a small one-byte-chunk case.";
+  tiny = ".mp3-strip-tiny.mp3"; u:mp3_output_fresh(tiny); tiny_result = u:strip_id3v2("fixtures/bytes/boundary-17.bin", tiny, 1, 17, 64, 4, 16, 1)?; u:assert_eq(read_bytes(tiny), read_bytes("fixtures/bytes/boundary-17.bin"), "one-byte no-tag copy")?; u:assert_eq(tiny_result.chunks, 17, "one-byte append count")?; remove_path(tiny);
+  source = "fixtures/mp3/synthetic-vbr-id3.mp3"; tag = u:inspect_id3v2(source, 7, 4096, 16, 256)?; chunks = [7, 64, 65536]; index = 0;
+  while lt(index, tally(chunks)) { chunk = take(chunks, 0, index); path = if eq(chunk, 7) { ".mp3-strip-7.mp3" } else { if eq(chunk, 64) { ".mp3-strip-64.mp3" } else { ".mp3-strip-large.mp3" } }; u:mp3_output_fresh(path); result = u:strip_id3v2(source, path, chunk, tag.audio_bytes, 4096, 16, 256, 1)?; u:verify_mp3_ranges_equal(path, 0, source, tag.audio_offset, tag.audio_bytes)?; u:assert_eq([result.tag_bytes_removed, result.output_bytes], [76, 1356], "strip extents")?; remove_path(path); index = index + 1 };
+  ok(1)
+}
+
+@test {name: "bounded MPEG extraction removes damaged gaps", tags: ["mp3", "mpeg", "output", "resync"]}
+def u:test_mpeg_extract_gap() { "Extract four accepted frames while excluding the two-byte damaged source gap.";
+  source = "fixtures/mp3/resync-gap.mp3"; size = file_size(source)?; path = ".mp3-extract-gap.mp3"; u:mp3_output_fresh(path); result = u:extract_mpeg_frames(source, path, 7, 0, size, size, 8, 1668, 1)?; output_scan = u:scan_mpeg_layer3(path, 7, 0, result.output_bytes, result.output_bytes, 8)?;
+  u:assert_eq([result.frames, result.output_bytes, result.skipped_source_bytes, result.source_resyncs], [4, 1668, 2, 1], "extraction source facts")?; u:assert_eq([output_scan.frames, output_scan.skipped_bytes, output_scan.resyncs], [4, 0, 0], "output is contiguous accepted frames")?; remove_path(path); ok(1)
+}
+
+@test {name: "bounded MPEG extraction preserves accepted frame bytes", tags: ["mp3", "mpeg", "output", "oracle"]}
+def u:test_mpeg_extract_bytes() { "Compare contiguous accepted output with the stripped ID3 audio oracle.";
+  source = "fixtures/mp3/synthetic-vbr-id3.mp3"; tag = u:inspect_id3v2(source, 7, 4096, 16, 256)?; path = ".mp3-extract-vbr.mp3"; u:mp3_output_fresh(path); result = u:extract_mpeg_frames(source, path, 64, tag.audio_offset, tag.audio_offset + tag.audio_bytes, tag.audio_bytes, 16, tag.audio_bytes, 1)?;
+  u:verify_mp3_ranges_equal(path, 0, source, tag.audio_offset, tag.audio_bytes)?; u:assert_eq([result.frames, result.output_bytes], [3, 1356], "VBR extraction facts")?; remove_path(path); ok(1)
+}
+
+@test {name: "bounded MP3 outputs reject malformed input and unsafe destinations", tags: ["mp3", "output", "invalid", "cleanup"]}
+def u:test_mp3_output_invalid() { "Reject malformed tags, insufficient budgets, missing frames, and existing destinations before output creation.";
+  destination = ".mp3-output-invalid.mp3"; u:mp3_output_fresh(destination);
+  u:assert_err(u:strip_id3v2("fixtures/mp3/malformed-truncated-id3.mp3", destination, 7, 64, 4096, 16, 256, 1), "malformed ID3")?; u:assert_err(file_size(destination), "malformed tag creates no output")?;
+  u:assert_err(u:strip_id3v2("fixtures/mp3/synthetic-vbr-id3.mp3", destination, 7, 1355, 4096, 16, 256, 1), "strip output budget")?; u:assert_err(file_size(destination), "strip budget creates no output")?;
+  u:assert_err(u:extract_mpeg_frames("fixtures/bytes/boundary-17.bin", destination, 7, 0, 17, 17, 8, 17, 1), "no MPEG frames")?; u:assert_err(file_size(destination), "invalid scan creates no output")?;
+  append_bytes(destination, [9])?; u:assert_err(u:extract_mpeg_frames("fixtures/mp3/resync-gap.mp3", destination, 7, 0, 1670, 1670, 8, 1668, 1), "existing destination")?; u:assert_eq(read_bytes(destination), ok([9]), "existing output preserved")?; remove_path(destination); ok(1)
+}
+
+u:run_registered_tests()
