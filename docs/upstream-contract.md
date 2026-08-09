@@ -115,6 +115,24 @@ upstream format builtin is required for higher-level interpreter applications:
 existing bounded file, endian, bit, Result, record, and process surfaces compose
 successfully. Its remaining upstream boundary is the already documented
 compiler parity needed to turn the same MLPL application into a native artifact.
+The [media doctor](media-doctor.md) further demonstrates that Result errors,
+records, control flow, and format-specific policy compose at the interpreter
+level; it introduces no new upstream format or codec request.
+
+## Upstream coordination status
+
+As of 2026-08-09, the adjacent sw-MLPL repository records this downstream
+contract in `docs/companion-demo-file-processing.md`. Its
+`docs/future-sagas-queue.md` expands the compiler track in the same measured
+gate order: `compiler-source-loading` (B0), `compiler-functions` (B1),
+`compiler-control-flow` (C), `compiler-read-bytes` (D),
+`compiler-process-semantics` (D2), and `compiler-bit-ops` (E).
+
+Saga A—the compiled `CVal` plus string/`args`/`arg`/`write_stdout` groundwork—is
+recorded upstream as shipped. B0 through E are queued, not delivered, so this
+repository intentionally retains its exact expected-failure probes. Each probe
+must become positive parity only when its corresponding upstream rung changes
+the selected development compiler behavior.
 
 ### Minimum acceptance
 

@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+output=$("$repo_root/scripts/run-media-doctor")
+printf '%s\n' "$output" | grep -Fqx 'Structural media-doctor application'
+printf '%s\n' "$output" | grep -Fqx 'Case 1 — healthy MP3: healthy ; ID3 bounds and synchronized Layer III frame geometry are structurally consistent. Next: Safe for bounded metadata inspection or confirmed-frame extraction; synthetic structure does not prove audio decodability.'
+printf '%s\n' "$output" | grep -Fqx 'Case 2 — valid WAV with ancillary data: warning ; issues 1 ; PCM structure is valid, but ancillary chunks would be removed by canonical output. Next: Use bounded WAV canonicalization only if dropping unknown chunks is intended; preserve the source.'
+printf '%s\n' "$output" | grep -Fqx 'Case 3 — damaged MP3 with recoverable frames: warning ; skipped bytes 2 ; recovered frames 4 ; resynchronizations 1 . Next: Preserve the source; bounded extraction may copy only confirmed frames and exclude damaged gaps.'
+printf '%s\n' "$output" | grep -Fqx 'Case 4 — checksum-valid but invalid Ogg continuation: rejected ; Ogg continued flag does not match prior packet state Next: Do not transform this file; inspect or repair the reported structural error first.'
+printf '%s\n' "$output" | grep -Fqx 'Case 5 — unknown bytes: unknown ; No supported RIFF, OggS, ID3, or MPEG Layer III signature was found. Next: Keep the file unchanged and identify it with an authoritative format-specific tool before processing.'
+printf '%s\n' "$output" | grep -Fqx 'Boundary: this is an interpreter structural-health application, not codec validation, automatic repair, or a standalone compiled executable.'
+echo "PASS structural media-doctor application"

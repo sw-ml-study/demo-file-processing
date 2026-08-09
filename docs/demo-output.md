@@ -40,6 +40,7 @@ presented as demonstrations.
 | `just wav-bounded-output` | canonical copy plus `[0, 127, 255]` → `[255, 128, 0]` | how fixed headers and bounded sample chunks produce real WAV files |
 | `just sparse-memory-evidence` | 16× histogram and 64× WAV size contrasts | how to read RSS ceilings and distinguish MLPL work from the platform oracle |
 | `just media-inspect [path]` | bounded WAV, Ogg, MP3/ID3, or unknown dispatch | how signature evidence selects a parser and how to read the stable common result plus format-specific facts |
+| `just media-doctor` | healthy, warning, recoverable damage, rejection, and unknown cases | why each structural status permits or forbids a specific next action without claiming codec validity |
 | `just bounded-output-memory-evidence` | 1 MiB versus 64 MiB exact file outputs | how 64× output growth compares with fixed chunk state and measured peak RSS |
 | `just stdout-memory-evidence` | 1 MiB versus 64 MiB redirected binary stdout | how exact non-seekable output growth compares with fixed chunk state and RSS |
 | `just mp3-oracle` | checksum/version-pinned decodable tone | why structural Xing frames differ from decoded packets and presentation duration |

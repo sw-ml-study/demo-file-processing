@@ -1,6 +1,6 @@
 number = 2
 slug = "media-doctor"
-status = "pending"
+status = "in-progress"
 description = "Build an interpreter media-doctor application that classifies structural heal..."
 role = "production"
 context_files = []

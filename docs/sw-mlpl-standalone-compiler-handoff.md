@@ -12,6 +12,15 @@ for this downstream repository. The downstream default gate contains exact
 change detectors and can resume positive parity work as soon as the first
 boundary moves.
 
+## Coordination status
+
+The sw-MLPL repository has acknowledged this contract in
+`docs/companion-demo-file-processing.md` and expanded
+`docs/future-sagas-queue.md` into the corresponding B0/B1/C/D/D2/E compiler
+rungs. Saga A is shipped; the remaining rungs are queued rather than delivered.
+Downstream expected-failure probes therefore remain authoritative until a
+rebuilt development compiler changes their observed behavior.
+
 ## What is already accepted downstream
 
 Through the selected `mlpl-repl` build, native mlplunit tests and exact shell
@@ -26,7 +35,7 @@ oracles accept:
 - bounded file copy/rewrite/extraction and raw/WAV/Ogg binary stdout; and
 - growing file-output and stdout RSS evidence under fixed chunk budgets.
 
-The full downstream gate currently passes 96 native mlplunit tests across 29
+The full downstream gate currently passes 100 native mlplunit tests across 30
 suites plus exact binary, CRC, narration, compiler-boundary, and artifact-audit
 oracles. The missing capability is compiler parity, not an absent downstream
 file-format algorithm.

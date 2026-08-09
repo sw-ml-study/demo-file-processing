@@ -1,0 +1,32 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/slice.mlpl";
+include "../../src/binary/endian_decode.mlpl";
+include "../../src/binary/bit_fields.mlpl";
+include "../../src/wav/model.mlpl";
+include "../../src/wav/parse.mlpl";
+include "../../src/wav/range_inspect.mlpl";
+include "../../src/id3/inspect.mlpl";
+include "../../src/mp3/scanner.mlpl";
+include "../../src/ogg/page.mlpl";
+include "../../src/ogg/crc.mlpl";
+include "../../src/ogg/packets.mlpl";
+include "../../src/apps/media_inspector.mlpl";
+include "../../src/apps/media_doctor.mlpl";
+
+healthy = u:doctor_media("fixtures/mp3/synthetic-vbr-id3.mp3", 7)?;
+wav_warning = u:doctor_media("fixtures/wav/odd-unknown-mono8.wav", 7)?;
+mp3_warning = u:doctor_media("fixtures/mp3/resync-gap.mp3", 7)?;
+rejected = u:doctor_media("fixtures/ogg/malformed-continuation.ogg", 7)?;
+unknown = u:doctor_media("fixtures/bytes/boundary-17.bin", 7)?;
+print("Structural media-doctor application");
+print("Purpose: distinguish structurally healthy input, safe-but-lossy normalization warnings, recoverable frame damage, hard rejection, and unknown formats.");
+print("MLPL work: reuse bounded format inspection, verify Ogg packet continuity, evaluate MP3 resynchronization evidence, and turn parser facts into conservative actions.");
+print("Native runtime work: file metadata and bounded range reads only; no decoder, encoder, repair library, ffmpeg, or ffprobe participates.");
+print("Case 1 — healthy MP3:", healthy.status, ";", healthy.reason, "Next:", healthy.next_action);
+print("Case 2 — valid WAV with ancillary data:", wav_warning.status, "; issues", wav_warning.issues, ";", wav_warning.reason, "Next:", wav_warning.next_action);
+print("Case 3 — damaged MP3 with recoverable frames:", mp3_warning.status, "; skipped bytes", mp3_warning.issues, "; recovered frames", mp3_warning.recovered_frames, "; resynchronizations", mp3_warning.resyncs, ". Next:", mp3_warning.next_action);
+print("Case 4 — checksum-valid but invalid Ogg continuation:", rejected.status, ";", rejected.reason, "Next:", rejected.next_action);
+print("Case 5 — unknown bytes:", unknown.status, ";", unknown.reason, "Next:", unknown.next_action);
+print("Interpretation: warning means the structure supports a specifically named bounded operation with caveats; rejected means no transformation is recommended; unknown means no parser was guessed from the extension.");
+print("Boundary: this is an interpreter structural-health application, not codec validation, automatic repair, or a standalone compiled executable.");
+ok({healthy: healthy.status, warnings: 2, rejected: rejected.status, unknown: unknown.status})

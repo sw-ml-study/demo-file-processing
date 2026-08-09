@@ -258,8 +258,8 @@ sagas are accepted; see their [foundation](foundation-report.md),
 [Ogg](ogg-report.md), and [bounded-output](bounded-output-report.md) reports.
 The standalone-file-application assessment is complete with a blocked verdict.
 The active unblocked downstream sequence builds higher-level interpreter media
-applications, beginning with the accepted unified bounded inspector, then a
-media doctor and a transforming tool. Separately, rerun standalone executable
+applications: the unified bounded inspector and structural media doctor are
+accepted, followed by a transforming tool. Separately, rerun standalone executable
 change detectors when
 upstream source loading, application lowering, byte I/O, and process parity
 change. Binary stdout remains accepted in the interpreter; binary stdin/source

@@ -105,6 +105,8 @@ The consolidated verdict and ordered unblock are in the
 Status: active. The [unified media inspector](media-inspector.md) composes the
 accepted bounded WAV, Ogg/CRC, and MP3/ID3 primitives into an argument-driven
 application while retaining an honest unknown branch and interpreter boundary.
+The [structural media doctor](media-doctor.md) adds healthy/warning/rejected/
+unknown policy and safe next actions over the same evidence.
 
 1. Unified bounded media inspector.
 2. Structural media doctor with warnings and safe next actions.

@@ -147,6 +147,10 @@ stdout-memory-evidence:
 media-inspect path="fixtures/mp3/synthetic-vbr-id3.mp3":
     ./scripts/run-media-inspector "{{path}}"
 
+# Explain healthy, warning, rejected, and unknown structural outcomes.
+media-doctor:
+    ./scripts/run-media-doctor
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check
