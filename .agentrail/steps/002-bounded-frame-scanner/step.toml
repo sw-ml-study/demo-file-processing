@@ -1,6 +1,6 @@
 number = 2
 slug = "bounded-frame-scanner"
-status = "pending"
+status = "in-progress"
 description = "Implement chunk-invariant bounded MPEG frame scanning, resynchronization, budgets, and statistics."
 role = "legacy"
 context_files = []

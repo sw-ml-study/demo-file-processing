@@ -75,3 +75,7 @@ description has 13 entries, and the returned record is fixed-sized. Current
 recursive field extraction allocates small intermediate arrays, tightly bounded
 by the 32-bit header. This is semantic header parsing, not frame scanning,
 payload validation, audio decoding, or an external-oracle claim.
+
+The reusable model now feeds the [bounded frame scanner](mpeg-frame-scanner.md),
+which documents false-synchronization rejection, resynchronization, work
+budgets, and aggregate bitrate/duration results.
