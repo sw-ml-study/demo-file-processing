@@ -1,6 +1,6 @@
 number = 3
 slug = "ogg-crc-verification"
-status = "pending"
+status = "in-progress"
 description = "Implement visible MLPL Ogg CRC-32 calculation and stored-checksum verificatio..."
 role = "production"
 context_files = []

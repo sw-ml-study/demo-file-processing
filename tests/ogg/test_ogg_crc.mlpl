@@ -1,0 +1,31 @@
+include "src/bytes/validate.mlpl";
+include "src/binary/endian_encode.mlpl";
+include "src/ogg/crc.mlpl";
+
+def u:ogg_crc_test_page(lacing, body) { "Build one version-zero BOS/EOS page with its MLPL-computed checksum encoded little-endian.";
+  zero = concat(concat(concat(concat(concat(concat(concat([79, 103, 103, 83, 0, 6], fill(8, 0)), u:encode_uint(42, 4, "le")?), fill(4, 0)), fill(4, 0)), [tally(lacing)]), lacing), body); checksum = u:ogg_crc_bytes(zero)?; encoded = u:encode_uint(checksum, 4, "le")?; page = zero; index = 0; while lt(index, 4) { page = scatter(page, 22 + index, take(encoded, 0, index)); index = index + 1 }; ok({bytes: page, checksum: checksum})
+}
+
+@test {name: "Ogg CRC polynomial matches independent golden vectors", tags: ["ogg", "crc", "golden"]}
+def u:test_ogg_crc_golden() { "Use externally calculated non-reflected polynomial vectors, including the standard digit string.";
+  u:assert_eq(u:ogg_crc_bytes([]), ok(0), "empty CRC")?;
+  u:assert_eq(u:ogg_crc_bytes([79, 103, 103, 83]), ok(1605413199), "OggS CRC")?;
+  u:assert_eq(u:ogg_crc_bytes([49, 50, 51, 52, 53, 54, 55, 56, 57]), ok(2309065087), "123456789 Ogg CRC")?;
+  u:assert_err(u:ogg_crc_bytes([0, 256]), "invalid byte input")
+}
+
+@test {name: "bounded Ogg page CRC verification is chunk invariant", tags: ["ogg", "crc", "page", "chunks"]}
+def u:test_ogg_crc_chunks() { "Verify the same page when checksum and native read windows cross every interesting boundary.";
+  built = u:ogg_crc_test_page([3, 255, 2], fill(260, 17))?; path = "tmp/ogg-crc.bin"; write_bytes(path, built.bytes)?;
+  one = u:verify_ogg_page_crc(path, 1, 0, 512, 8, 300, 512, 1)?; seven = u:verify_ogg_page_crc(path, 7, 0, 512, 8, 300, 512, 7)?; sixty_four = u:verify_ogg_page_crc(path, 64, 0, 512, 8, 300, 512, 64)?; large = u:verify_ogg_page_crc(path, 65536, 0, 512, 8, 300, 512, 65536)?;
+  u:assert_eq([one.stored, one.computed, one.valid], [built.checksum, built.checksum, 1], "stored and computed CRC")?; u:assert_eq(one, seven, "one and seven byte CRC agree")?; u:assert_eq(one, sixty_four, "one and 64 byte CRC agree")?; u:assert_eq(one, large, "one and oversized CRC agree")
+}
+
+@test {name: "Ogg page CRC rejects corruption and work-budget failures", tags: ["ogg", "crc", "invalid", "budget"]}
+def u:test_ogg_crc_invalid() { "Distinguish mismatch evidence from required verification and cap CRC traversal before reading a page body.";
+  built = u:ogg_crc_test_page([4], [1, 2, 3, 4])?; path = "tmp/ogg-crc-invalid.bin"; corrupt = scatter(built.bytes, tally(built.bytes) - 1, 5); write_bytes(path, corrupt)?;
+  evidence = u:inspect_ogg_page_crc(path, 7, 0, 64, 4, 8, 64, 3)?; u:assert_false(evidence.valid, "inspection exposes checksum mismatch")?; u:assert_eq(evidence.stored, built.checksum, "stored checksum remains visible")?; u:assert_err(u:verify_ogg_page_crc(path, 7, 0, 64, 4, 8, 64, 3), "required verification rejects corruption")?;
+  write_bytes(path, built.bytes)?; u:assert_err(u:verify_ogg_page_crc(path, 7, 0, 64, 4, 8, tally(built.bytes) - 1, 3), "CRC byte budget")?; u:assert_err(u:verify_ogg_page_crc(path, 7, 0, 64, 4, 8, 64, 0), "zero CRC chunk budget")
+}
+
+u:run_registered_tests()
