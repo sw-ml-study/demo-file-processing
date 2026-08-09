@@ -1,0 +1,1 @@
+Implement bounded file-range to write_stdout loops with explicit chunk and total-byte budgets; add exact binary output oracles and self-describing demonstrations whose narration goes to stderr so stdout remains clean, including interesting raw-byte and structured-format artifacts.

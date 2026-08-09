@@ -1,0 +1,1 @@
+Measure growing binary-stdout peak RSS through a controlled sink; run the full gate; stabilize stdout contracts; reconcile README, catalog, plan, sagas, capabilities, reports, and upstream boundaries; publish the remaining compiler, packed-byte, source-handle, and codec blockers.

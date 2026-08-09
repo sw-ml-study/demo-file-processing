@@ -1,0 +1,1 @@
+Probe write_stdout(bytes) -> ok(count) on the selected sw-MLPL binary and stabilize byte validation, scalar/rank-one/empty writes, exact counts, ordering/flush, binary preservation, stderr separation, broken-pipe behavior where deterministic, and compiler lowering boundaries through mlplunit and shell oracles.
