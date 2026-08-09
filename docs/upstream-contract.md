@@ -99,6 +99,14 @@ isolates the blocker to application coverage and semantics rather than an
 artifact-launch mechanism; the control is explicitly not accepted as a useful
 file-processing CLI.
 
+The consolidated [standalone application assessment](standalone-report.md)
+orders the remaining generic work: source loading; user functions/control
+flow/Results/records; shared byte validation and error propagation; bounded
+byte/bit/text lowering; clean process entry/status semantics; then positive
+byte and format artifact parity plus a repeated clean-environment audit. Codec
+extensions and binary source handles are tracked separately and do not explain
+the current compile failures.
+
 ### Minimum acceptance
 
 Shared runtime operations, with interpreter and compiled implementations using

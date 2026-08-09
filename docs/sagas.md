@@ -82,8 +82,8 @@ Status: accepted; see the [stdout acceptance report](stdout-report.md).
 Gate: separately authorized compiler/runtime work provides the generic CLI and
 I/O surface demonstrated necessary by Sagas 1–4.
 
-Status: active; process conformance is measured, while byte-application
-compilation is blocked before artifact production. See the
+Status: assessed; not accepted because byte and format applications are blocked
+before artifact production. See the
 [compiled process conformance report](compiler-process-conformance.md) and
 [compiled byte-application report](compiled-byte-applications.md).
 The bounded WAV/Ogg artifact attempt reaches the same blocker; see the
@@ -91,6 +91,8 @@ The bounded WAV/Ogg artifact attempt reaches the same blocker; see the
 The [standalone artifact audit](standalone-artifact-audit.md) validates the
 audit method on narrow compiler controls, but remains blocked for a real file
 application because no such artifact is produced.
+The consolidated verdict and ordered unblock are in the
+[standalone application assessment](standalone-report.md).
 
 1. CLI argument, stdin/stdout/stderr, exit-status, and error conformance.
 2. Compile hexdump/histogram and verify interpreter/compiler parity.

@@ -52,6 +52,7 @@ the authority for downstream claims.
 | Compiled byte applications | Actual hexdump and histogram demos fail first on unresolved `include`; mechanically flattened equivalents fail on unsupported `FnDef` | Neither application produces an artifact. Source loading, user functions/control flow, Results, byte I/O, and broader array/text lowering precede useful parity testing. |
 | Compiled format applications | Actual bounded WAV copy/invert and Ogg copy/rewrite demos fail on unresolved `include`; dependency-concatenated equivalents fail on unsupported `FnDef` | No native format artifact exists to compare or memory-audit. General application lowering blocks before RIFF/Ogg-specific parity is reached. |
 | Isolated artifact audit | Numeric and partial-stdout artifacts run in a fresh source-free directory under an empty environment; dependency inspection finds no named MLPL parser/REPL/evaluator dynamic library | The compiler produces genuinely executable artifacts for its narrow subset. This control does not satisfy useful file-application acceptance because no byte/WAV/Ogg program compiles. |
+| Standalone file application | Process, byte, format, and isolated-artifact gates are all executable; actual hexdump, histogram, WAV, and Ogg compilation is attempted | Not accepted. No useful file-processing artifact exists, and the ordered generic compiler/runtime unblock is recorded in the standalone report. |
 
 ## Claim boundaries
 

@@ -202,6 +202,11 @@ level without output claims.
 Gate: compiler/runtime support exists for the generic application surface
 proven necessary by earlier phases.
 
+Status: assessed and not accepted. The
+[standalone report](standalone-report.md) records partial process lowering,
+actual/flattened application failures, and the isolated artifact control. No
+useful file-processing artifact is currently produced.
+
 - Compile hexdump, histogram, and at least one inspector/copy tool.
 - Verify arguments, binary stdin/files/stdout, stderr, exit codes, errors, and
   interpreter/compiler output parity.
@@ -251,7 +256,10 @@ The foundation, bounded range-analysis, MP3/ID3 inspection, and Ogg inspection
 sagas are accepted; see their [foundation](foundation-report.md),
 [bounded-read](bounded-read-report.md), [MP3/ID3](mp3-id3-report.md), and
 [Ogg](ogg-report.md), and [bounded-output](bounded-output-report.md) reports.
-The next recommended saga is standalone file applications once the remaining
-compiler I/O and entry-point parity is available. Binary stdout is accepted in the interpreter;
-binary stdin/source handles remain separate. Codec extensions remain the later
-gate for MP3-to-Ogg.
+The standalone-file-application assessment is complete with a blocked verdict.
+The next downstream action is to rerun its executable change detectors when
+upstream source loading, application lowering, byte I/O, and process parity
+change. Binary stdout remains accepted in the interpreter; binary stdin/source
+handles remain separate. Codec-extension prototyping may proceed against
+seekable interpreter file paths when separately authorized, but standalone
+MP3-to-Ogg remains gated on compiler parity.

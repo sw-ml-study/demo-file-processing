@@ -21,6 +21,7 @@ mlplunit tests across 28 suites. See [the stdout acceptance report](docs/stdout-
 [the compiled byte-application report](docs/compiled-byte-applications.md),
 [the compiled format-application report](docs/compiled-format-applications.md),
 [the standalone artifact audit](docs/standalone-artifact-audit.md),
+[the standalone application assessment](docs/standalone-report.md),
 [the bounded-output acceptance report](docs/bounded-output-report.md),
 [the Ogg acceptance report](docs/ogg-report.md),
 [the MP3/ID3 acceptance report](docs/mp3-id3-report.md),
@@ -58,6 +59,11 @@ stdout artifacts run from a source-free directory with no named parser/REPL/
 evaluator dynamic dependency. That control is not a standalone file application;
 the intended artifact audit remains blocked until a real byte or format program
 compiles.
+
+The standalone assessment is complete with a **not accepted** verdict. The
+default gate preserves exact expected compiler failures so future upstream
+support triggers positive parity work; it does not disguise an interpreter
+script or numeric control as a standalone file application.
 
 The [binary stdout contract](docs/write-stdout.md) verifies exact bytes, counts,
 multi-call ordering, empty/scalar writes, validation errors, and stderr

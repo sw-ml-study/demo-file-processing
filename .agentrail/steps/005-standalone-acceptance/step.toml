@@ -1,6 +1,6 @@
 number = 5
 slug = "standalone-acceptance"
-status = "pending"
+status = "in-progress"
 description = "Publish the standalone application capability report, reconcile README, plans..."
 role = "meta"
 context_files = []
