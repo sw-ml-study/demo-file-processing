@@ -8,10 +8,10 @@ results are invariant across required chunk sizes; WAV metadata inspection
 survives every relevant header split without retaining payloads; and sparse
 measurements stay within fixed peak-RSS and growth ceilings as artifacts grow.
 
-This accepts bounded analysis, not general streaming. There is still no
-incremental binary sink, sequential stdin source, backpressure, or compiled
-application parity. Copy, transformation, tag stripping, frame extraction,
-container rewriting, and codec pipelines must not inherit read-side claims.
+This accepted bounded analysis, not general streaming. Since this report was
+published, sw-MLPL `d3713461` added `append_bytes` for incremental sandboxed
+file-path output. Sequential stdin/stdout streams, backpressure, and compiled
+application parity remain absent; output claims require their own new evidence.
 
 ## Executable evidence
 
@@ -71,9 +71,10 @@ or bounded-memory blocker.
 
 ## Blockers and deferred claims
 
-1. **Incremental binary output:** no bounded sink with partial-write, flush,
-   close, cleanup, sandbox, and deterministic error semantics. This blocks
-   bounded copies/transforms and all byte-preserving rewrites.
+1. **Incremental binary output (subsequently unblocked for file paths):**
+   `append_bytes` at `d3713461` now provides bounded append calls with implicit
+   close/flush. Downstream copy/rewrite and cleanup evidence is in progress;
+   binary stdout remains absent.
 2. **Compiled application parity:** generated applications do not lower byte,
    bit, argument, diagnostic, and exit APIs. Arithmetic parity now passes, but
    the remaining runtime surface still blocks standalone file applications.

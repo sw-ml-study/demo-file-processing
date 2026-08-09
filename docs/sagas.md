@@ -57,10 +57,11 @@ Status: accepted; see the [Ogg read-only report](ogg-report.md).
 
 ## Saga 5 — `incremental-binary-output`
 
-Gate: separately authorized upstream work provides a generic incremental binary
-sink with partial-write, flush, close, cleanup, sandbox, and error semantics.
+Status: active; unblocked for sandboxed file-path output by `append_bytes` in
+sw-MLPL `d3713461`. Binary stdout and compiled parity remain separate gates.
 
-1. Sink conformance including partial writes, errors, flush, close, and cleanup.
+1. `append_bytes` conformance including validation, counts, implicit per-call
+   close/flush, path errors, initialization, and partial-output policy.
 2. Chunked copy with byte-identical and hash oracles.
 3. Bounded WAV copy and a simple PCM array transform.
 4. ID3 tag strip/sanitize and raw MPEG-frame extraction with byte preservation.

@@ -87,13 +87,20 @@ byte values, and errors. A produced application must run without source, parser,
 REPL, or interpreter at runtime. This gate belongs before the standalone-
 application saga, not before the next in-memory demos.
 
-## Gate: incremental binary sink and non-seekable source
+## Delivered: incremental sandboxed file-path sink
 
-Bounded range reads now cap seekable-file input allocation and MLPL carries
-state across arbitrary boundaries. They do not provide bounded output,
-non-seekable binary stdin, backpressure, or a consumable stream handle. WAV
-transformation, byte-preserving rewrites, and transcoding still need those
-effects.
+sw-MLPL `d3713461` provides `append_bytes(path, bytes) -> ok(count)`, which
+validates and appends one bounded chunk with implicit per-call close/flush. See
+the [downstream conformance contract](append-bytes.md). This clears bounded file
+copy/rewrite/extraction for interpreter-driven sandboxed paths without adding
+format-specific builtins.
+
+## Remaining gate: non-seekable binary source/sink
+
+Bounded range reads and `append_bytes` now cover seekable file-to-file work.
+They do not provide binary stdin/stdout, pipes, backpressure, or consumable
+source/sink handles. Transcoding to a file path can proceed once codec
+extensions exist; Unix pipeline output still needs these effects.
 
 The preferred missing surface is compositional rather than codec-specific. A
 sink must provide bounded writes, partial-write handling, flush/close cleanup,

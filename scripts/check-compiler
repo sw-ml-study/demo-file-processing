@@ -33,6 +33,12 @@ if "$mlpl_build" "$repo_root/probes/compiler_bits.mlpl" -o "$scratch/compiler-bi
 fi
 grep -Fq 'unsupported construct: fncall band/2' "$scratch/bits.err"
 
+if "$mlpl_build" "$repo_root/probes/compiler_append.mlpl" -o "$scratch/compiler-append" >"$scratch/append.out" 2>"$scratch/append.err"; then
+  echo "compiler unexpectedly lowered append_bytes" >&2
+  exit 1
+fi
+grep -Fq 'unsupported construct: fncall append_bytes/2' "$scratch/append.err"
+
 arithmetic_interpreted=$("$mlpl" "$repo_root/probes/compiler_arithmetic.mlpl")
 "$mlpl_build" "$repo_root/probes/compiler_arithmetic.mlpl" -o "$scratch/compiler-arithmetic" >/dev/null
 arithmetic_compiled=$("$scratch/compiler-arithmetic")

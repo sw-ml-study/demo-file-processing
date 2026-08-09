@@ -5,6 +5,7 @@ compiler-arithmetic	probes/compiler_arithmetic.mlpl	native-executable	arithmetic
 compiler-file-io	probes/compiler_file_io.mlpl	native-executable	file-io-lowering	mlpl-native	whole-file	no	compiled-read_bytes	constrained
 compiler-args	probes/compiler_args.mlpl	native-executable	argument-lowering	mlpl-native	not-applicable	no	compiled-args	constrained
 compiler-bits	probes/compiler_bits.mlpl	native-executable	bit-operation-lowering	mlpl-native	not-applicable	no	compiled-bit-ops	constrained
+compiler-append	probes/compiler_append.mlpl	native-executable	incremental-output-lowering	mlpl-native	chunk-bounded	no	compiled-append_bytes	constrained
 hexdump	demos/bytes/hexdump.mlpl	raw-bytes	hexdump	mlpl-native	whole-file	yes	read_bytes,decode_bytes	runnable
 byte-histogram	demos/bytes/histogram.mlpl	raw-bytes	histogram	mlpl-native	whole-file	yes	read_bytes,table,reduce_add	runnable
 bounded-byte-histogram	demos/bytes/range_histogram.mlpl	raw-bytes	bounded-histogram	mlpl-native	chunk-bounded	yes	file_size,range-read,table,reduce_add	runnable

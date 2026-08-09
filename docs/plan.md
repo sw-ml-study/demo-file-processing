@@ -136,9 +136,9 @@ memory is bounded by documented state plus chunk size, not total file size.
 
 ### Phase 2b — incremental binary output
 
-Gate: separately authorized upstream work supplies a generic incremental binary
-sink with partial-write, flush, close, cleanup, sandbox, and deterministic error
-semantics.
+Status: unblocked for sandboxed file-path outputs by `append_bytes` in sw-MLPL
+`d3713461`. Binary stdout/non-seekable sinks and compiled parity remain separate
+gates. See the [sink conformance contract](append-bytes.md).
 
 - Add sink conformance and chunked byte-copy tests.
 - Add bounded WAV copy and a simple PCM array transformation.
@@ -231,6 +231,6 @@ Ogg/Vorbis; failures are deterministic; the native artifact meets Phase 5.
 The foundation, bounded range-analysis, MP3/ID3 inspection, and Ogg inspection
 sagas are accepted; see their [foundation](foundation-report.md),
 [bounded-read](bounded-read-report.md), [MP3/ID3](mp3-id3-report.md), and
-[Ogg](ogg-report.md) reports. Archive the Ogg saga next. Bounded copy,
-transformation, extraction, and rewriting are the next planned saga but remain
-gated until a generic incremental sink is explicitly authorized.
+[Ogg](ogg-report.md) reports. The incremental-output saga is now active for
+sandboxed file paths using `append_bytes`; binary stdout and compiled parity
+remain separate gates.
