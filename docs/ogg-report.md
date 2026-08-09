@@ -57,9 +57,9 @@ verify_ogg_page_crc(...)  -> Result<checksum_evidence, checksum_error>
 
 A page descriptor contains exact page/header/body/next offsets and lengths,
 lacing, packet-ending count, flags, serial, sequence, stored checksum, and exact
-`granule_low`/`granule_high` words. It is also the future rewrite descriptor:
-an incremental sink can copy `[offset, page_bytes]`, omit it, or rebuild the
-header/body and recompute CRC. No output is performed now.
+`granule_low`/`granule_high` words. The later [bounded Ogg output](bounded-ogg-output.md)
+uses it to copy a page or replace sequence/checksum bytes without rebuilding or
+retaining the page body.
 
 Packet inspection returns fixed-size aggregate statistics rather than an
 unbounded packet list. A future codec or writer can rescan validated page body
@@ -94,11 +94,9 @@ visible independently from structural parsing.
 
 ## Blockers and next work
 
-All planned downstream-only read-only sagas are accepted. The next planned saga
-is incremental binary output, but it is blocked pending explicit authorization
-for a generic upstream sink with partial-write, flush, close, cleanup, sandbox,
-and bounded-memory semantics. That is the smallest action needed to unlock Ogg
-page copy/rewrite, ID3 stripping, MPEG extraction, and bounded WAV output.
+All planned downstream-only read-only sagas are accepted. Sandboxed file-path
+output is now implemented through `append_bytes`; binary stdout/non-seekable
+sinks remain unavailable.
 
 Standalone file applications remain blocked on compiler/runtime parity for
 byte I/O, bits, arguments, diagnostics, and exit status. Audio codec and

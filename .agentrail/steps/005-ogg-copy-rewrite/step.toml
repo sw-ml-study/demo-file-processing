@@ -1,6 +1,6 @@
 number = 5
 slug = "ogg-copy-rewrite"
-status = "pending"
+status = "in-progress"
 description = "Implement bounded Ogg page copy and one descriptor-driven rewrite with recomp..."
 role = "production"
 context_files = []

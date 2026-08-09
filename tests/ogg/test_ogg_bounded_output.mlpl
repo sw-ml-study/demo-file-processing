@@ -1,0 +1,44 @@
+include "src/bytes/validate.mlpl";
+include "src/binary/slice.mlpl";
+include "src/binary/endian_decode.mlpl";
+include "src/binary/endian_encode.mlpl";
+include "src/binary/bit_fields.mlpl";
+include "src/ogg/page.mlpl";
+include "src/ogg/crc.mlpl";
+include "src/ogg/bounded_output.mlpl";
+
+def u:ogg_output_fresh(path) { remove_path(path); 1 }
+
+def u:verify_ogg_ranges_equal(left, left_offset, right, right_offset, length) { "Compare exact page ranges through bounded oracle windows.";
+  cursor = 0; while lt(cursor, length) { remaining = length - cursor; width = if lt(remaining, 64) { remaining } else { 64 }; u:assert_eq(read_bytes(left, left_offset + cursor, width), read_bytes(right, right_offset + cursor, width), "bounded Ogg byte oracle")?; cursor = cursor + width }; ok(1)
+}
+
+@test {name: "bounded Ogg page copy is byte-identical and chunk invariant", tags: ["ogg", "output", "copy", "chunks"]}
+def u:test_ogg_page_copy() { "Verify then copy the first page through every required append chunk budget.";
+  source = "fixtures/ogg/structural-cross-page.ogg"; page = u:open_ogg_page(source, 7, 0, 512, 8, 300)?; chunks = [1, 7, 64, 65536]; index = 0;
+  while lt(index, tally(chunks)) { chunk = take(chunks, 0, index); path = if eq(chunk, 1) { ".ogg-copy-1.ogg" } else { if eq(chunk, 7) { ".ogg-copy-7.ogg" } else { if eq(chunk, 64) { ".ogg-copy-64.ogg" } else { ".ogg-copy-large.ogg" } } }; u:ogg_output_fresh(path); result = u:copy_ogg_page(source, path, chunk, 0, 512, 8, 300, 512, chunk, 283, 1)?; u:verify_ogg_ranges_equal(path, 0, source, 0, page.page_bytes)?; verified = u:verify_ogg_page_crc(path, 7, 0, 512, 8, 300, 512, 7)?; u:assert_eq([result.page_bytes, verified.page.sequence], [283, 10], "copied page facts")?; remove_path(path); index = index + 1 };
+  ok(1)
+}
+
+@test {name: "bounded Ogg rewrite changes sequence and recomputes CRC", tags: ["ogg", "output", "rewrite", "crc"]}
+def u:test_ogg_page_rewrite() { "Change sequence 10 to 42 while preserving lacing/body and proving new checksum integrity.";
+  source = "fixtures/ogg/structural-cross-page.ogg"; path = ".ogg-rewrite-sequence.ogg"; u:ogg_output_fresh(path); original = u:open_ogg_page(source, 7, 0, 512, 8, 300)?; result = u:rewrite_ogg_page_sequence(source, path, 7, 0, 42, 512, 8, 300, 512, 7, 283, 1)?; verified = u:verify_ogg_page_crc(path, 7, 0, 512, 8, 300, 512, 7)?;
+  u:assert_eq([result.old_sequence, result.new_sequence, verified.page.sequence, verified.valid], [10, 42, 42, 1], "sequence and integrity")?; u:assert_ne(result.old_checksum, result.new_checksum, "CRC changes with sequence")?; u:assert_eq(verified.stored, result.new_checksum, "stored rewritten CRC")?; u:verify_ogg_ranges_equal(path, verified.page.body_offset, source, original.body_offset, original.body_bytes)?; remove_path(path); ok(1)
+}
+
+@test {name: "bounded Ogg rewrite survives header split boundaries", tags: ["ogg", "output", "rewrite", "boundary"]}
+def u:test_ogg_rewrite_chunks() { "Rewrite when chunks split within sequence and checksum fields.";
+  source = "fixtures/ogg/structural-cross-page.ogg"; chunks = [1, 7, 19, 23, 64, 65536]; index = 0;
+  while lt(index, tally(chunks)) { chunk = take(chunks, 0, index); path = if eq(chunk, 1) { ".ogg-rewrite-1.ogg" } else { if eq(chunk, 7) { ".ogg-rewrite-7.ogg" } else { if eq(chunk, 19) { ".ogg-rewrite-19.ogg" } else { if eq(chunk, 23) { ".ogg-rewrite-23.ogg" } else { if eq(chunk, 64) { ".ogg-rewrite-64.ogg" } else { ".ogg-rewrite-large.ogg" } } } } }; u:ogg_output_fresh(path); result = u:rewrite_ogg_page_sequence(source, path, chunk, 0, 4294967295, 512, 8, 300, 512, chunk, 283, 1)?; verified = u:verify_ogg_page_crc(path, 7, 0, 512, 8, 300, 512, 7)?; u:assert_eq([result.new_sequence, verified.page.sequence, verified.valid], [4294967295, 4294967295, 1], "split rewrite result")?; remove_path(path); index = index + 1 };
+  ok(1)
+}
+
+@test {name: "bounded Ogg outputs reject corruption budgets and unsafe destinations", tags: ["ogg", "output", "invalid", "cleanup"]}
+def u:test_ogg_output_invalid() { "Reject CRC-damaged sources, invalid sequence/budgets, and existing outputs before creation.";
+  destination = ".ogg-output-invalid.ogg"; u:ogg_output_fresh(destination);
+  u:assert_err(u:copy_ogg_page("fixtures/ogg/malformed-crc.ogg", destination, 7, 0, 512, 8, 300, 512, 7, 512, 1), "corrupt source")?; u:assert_err(file_size(destination), "corrupt copy creates no output")?;
+  u:assert_err(u:rewrite_ogg_page_sequence("fixtures/ogg/structural-cross-page.ogg", destination, 7, 0, 4294967296, 512, 8, 300, 512, 7, 283, 1), "sequence range")?; u:assert_err(u:rewrite_ogg_page_sequence("fixtures/ogg/structural-cross-page.ogg", destination, 7, 0, 42, 512, 8, 300, 512, 7, 282, 1), "output budget")?; u:assert_err(file_size(destination), "invalid rewrite creates no output")?;
+  append_bytes(destination, [9])?; u:assert_err(u:rewrite_ogg_page_sequence("fixtures/ogg/structural-cross-page.ogg", destination, 7, 0, 42, 512, 8, 300, 512, 7, 283, 1), "existing destination")?; u:assert_eq(read_bytes(destination), ok([9]), "existing output preserved")?; remove_path(destination); ok(1)
+}
+
+u:run_registered_tests()

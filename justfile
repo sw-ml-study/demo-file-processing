@@ -98,6 +98,10 @@ ogg-packets:
 ogg-crc:
     ./scripts/run-ogg-demo crc
 
+# Copy one Ogg page and visibly rewrite its sequence with a recomputed CRC.
+ogg-bounded-output:
+    ./scripts/run-ogg-demo bounded_output
+
 # Opt-in pinned ffprobe comparison against the decodable Ogg/Opus tone.
 ogg-oracle:
     ./scripts/run-ogg-oracle

@@ -1,0 +1,24 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/slice.mlpl";
+include "../../src/binary/endian_decode.mlpl";
+include "../../src/binary/endian_encode.mlpl";
+include "../../src/binary/bit_fields.mlpl";
+include "../../src/ogg/page.mlpl";
+include "../../src/ogg/crc.mlpl";
+include "../../src/ogg/bounded_output.mlpl";
+
+source = "fixtures/ogg/structural-cross-page.ogg"; copy_path = ".ogg-page-copy-output.ogg"; rewrite_path = ".ogg-page-rewrite-output.ogg"; remove_path(copy_path); remove_path(rewrite_path);
+copied = u:copy_ogg_page(source, copy_path, 7, 0, 512, 8, 300, 512, 7, 283, 1)?; rewritten = u:rewrite_ogg_page_sequence(source, rewrite_path, 7, 0, 42, 512, 8, 300, 512, 7, 283, 1)?; verified = u:verify_ogg_page_crc(rewrite_path, 7, 0, 512, 8, 300, 512, 7)?;
+if eq(copied.output_bytes, 283) * eq(verified.page.sequence, 42) * verified.valid {
+  print("Bounded Ogg page copy-and-rewrite demonstration");
+  print("Purpose: create real Ogg page artifacts from accepted descriptors without retaining a whole page or output.");
+  print("Copy output: preserved the checksum-valid first page byte-for-byte in", copied.chunks, "append chunks totaling", copied.output_bytes, "bytes.");
+  print("Rewrite output: changed page sequence", rewritten.old_sequence, "to", rewritten.new_sequence, "while retaining", rewritten.body_bytes, "payload bytes.");
+  print("CRC output: stored and independently recomputed checksum", verified.stored, "; match", verified.valid, "; prior checksum", rewritten.old_checksum, ".");
+  print("MLPL work: validate the original CRC, virtually substitute sequence bytes while streaming a new CRC, then append source chunks with sequence/checksum replacements.");
+  print("Chunk evidence: seven-byte writes split the 18..25 sequence/checksum region across calls; final tail bytes", rewritten.last_chunk_bytes, ".");
+  print("Interpretation: changing one header field necessarily changes CRC, but lacing and packet payload bytes remain untouched and the rewritten page verifies.");
+  print("Allocation: fixed descriptors and CRC state plus O(chunk_size); bounded readback windows provide byte oracles in mlplunit.");
+  print("Boundary: this rewrites one standalone page, not a whole logical stream sequence; binary stdout and compiled I/O remain unavailable.");
+  ok({copied: copied, rewritten: rewritten})
+} else { err({kind: "invariant", message: "bounded Ogg output demonstration changed"}) }

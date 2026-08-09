@@ -91,6 +91,11 @@ and corruption contrasts. Their [fixtures and pinned Ogg/Opus
 oracle](docs/ogg-fixtures-oracle.md) separate container packet counts from
 codec-decoded audio packets.
 
+The [bounded Ogg output](docs/bounded-ogg-output.md) produces a byte-identical
+page copy and a visible sequence-number rewrite with a newly computed checksum.
+It preserves lacing and payload bytes through bounded chunks and verifies the
+rewritten page independently.
+
 The [PCM WAV slice](docs/wav.md) inspects RIFF chunks and canonically copies
 empty/minimal mono files. It validates padding, lengths, derived rates, formats,
 and budgets while distinguishing byte-identical canonical round trips from
@@ -121,6 +126,7 @@ just mp3-oracle
 just ogg-pages
 just ogg-packets
 just ogg-crc
+just ogg-bounded-output
 just ogg-oracle
 just wav-inspect-copy
 just wav-range-inspect

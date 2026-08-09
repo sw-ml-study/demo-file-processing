@@ -18,6 +18,7 @@ mp3-bounded-output	demos/mp3/bounded_output.mlpl	mpeg-audio	id3-strip-frame-extr
 ogg-page-inspect	demos/ogg/pages.mlpl	ogg	bounded-page-inspection	mlpl-native	chunk-bounded	yes	file_size,range-read,endian-codecs	runnable
 ogg-packet-inspect	demos/ogg/packets.mlpl	ogg	cross-page-packet-boundaries	mlpl-native	chunk-bounded	yes	file_size,range-read,lacing	runnable
 ogg-crc-verify	demos/ogg/crc.mlpl	ogg	bounded-crc-verification	mlpl-native	chunk-bounded	yes	file_size,range-read,bit-ops	runnable
+ogg-bounded-output	demos/ogg/bounded_output.mlpl	ogg	bounded-page-copy-rewrite	mlpl-native	chunk-bounded	yes	file_size,range-read,append_bytes,bit-ops	runnable
 wav-inspect-copy	demos/wav/inspect_copy.mlpl	wav	inspect-canonical-copy	mlpl-native	whole-file	yes	read_bytes,write_bytes,endian-codecs	runnable
 wav-range-inspect	demos/wav/range_inspect.mlpl	wav	bounded-metadata-inspection	mlpl-native	chunk-bounded	yes	file_size,range-read,endian-codecs	runnable
 wav-bounded-output	demos/wav/bounded_output.mlpl	wav	bounded-copy-transform	mlpl-native	chunk-bounded	yes	file_size,range-read,append_bytes,endian-codecs	runnable

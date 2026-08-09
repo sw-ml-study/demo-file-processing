@@ -31,6 +31,7 @@ presented as demonstrations.
 | `just ogg-pages` | BOS page, 255-byte lace, continued page, and unset granule | how lacing becomes body/next-page descriptors |
 | `just ogg-packets` | spanning, ordinary, zero, and malformed-continuation packets | how packet state crosses pages without payload retention |
 | `just ogg-crc` | checksum-valid page versus one changed body byte | why structural parsing and integrity verification are separate |
+| `just ogg-bounded-output` | exact page copy versus sequence 10 → 42 with a new CRC | how a bounded header rewrite preserves payload while restoring integrity |
 | `just wav-inspect-copy` | three unsigned 8-bit samples plus odd padding | why canonical parse/encode is byte-identical |
 | `just wav-range-inspect` | odd padded JUNK chunk before one sample | how metadata inspection skips payloads and locates audio |
 | `just wav-bounded-output` | canonical copy plus `[0, 127, 255]` → `[255, 128, 0]` | how fixed headers and bounded sample chunks produce real WAV files |
