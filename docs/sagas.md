@@ -47,6 +47,8 @@ Status: accepted; see the [MP3/ID3 read-only report](mp3-id3-report.md).
 
 ## Saga 4 — `ogg-container-inspection`
 
+Status: accepted; see the [Ogg read-only report](ogg-report.md).
+
 1. Bounded Ogg page/lacing parser using split exact words for 64-bit fields.
 2. Cross-page packet reconstruction and continuation tests.
 3. MLPL-visible Ogg CRC golden vectors and verifier.

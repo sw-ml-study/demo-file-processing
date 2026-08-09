@@ -1,6 +1,6 @@
 number = 5
 slug = "ogg-acceptance-report"
-status = "pending"
+status = "in-progress"
 description = "Run the full gate and publish stabilized read-only Ogg contracts, rewrite des..."
 role = "meta"
 context_files = []

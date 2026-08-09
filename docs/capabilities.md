@@ -51,6 +51,8 @@ The repository can now truthfully claim:
 - a native compiler path for the tested numeric and arithmetic expressions;
 - bounded seekable-file MPEG Layer III structural statistics and ID3v2.3/v2.4
   metadata/audio descriptors without codec or output claims.
+- bounded seekable-file Ogg page, single-stream packet-boundary, split-granule,
+  and CRC integrity descriptors without codec or output claims.
 
 It cannot yet claim:
 

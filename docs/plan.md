@@ -166,6 +166,8 @@ data; statistics and descriptors match explicit oracles without output claims.
 
 ### Phase 4 — Ogg container inspection
 
+Status: accepted. See the [Ogg read-only report](ogg-report.md).
+
 - Parse Ogg pages, lacing values, packet continuation, granule positions,
   serial/sequence fields, and 64-bit values.
 - Implement Ogg CRC calculation visibly in MLPL where practical.
@@ -226,9 +228,9 @@ Ogg/Vorbis; failures are deterministic; the native artifact meets Phase 5.
 
 ## Recommended order
 
-The foundation, bounded range-analysis, and MP3/ID3 inspection sagas are
-accepted; see their [foundation](foundation-report.md),
-[bounded-read](bounded-read-report.md), and [MP3/ID3](mp3-id3-report.md)
-reports. Archive the MP3/ID3 saga, then start read-only Ogg inspection from
-[sagas.md](sagas.md). Bounded copy, transformation, extraction, and rewriting
-remain in a separate gated saga until a generic incremental sink exists.
+The foundation, bounded range-analysis, MP3/ID3 inspection, and Ogg inspection
+sagas are accepted; see their [foundation](foundation-report.md),
+[bounded-read](bounded-read-report.md), [MP3/ID3](mp3-id3-report.md), and
+[Ogg](ogg-report.md) reports. Archive the Ogg saga next. Bounded copy,
+transformation, extraction, and rewriting are the next planned saga but remain
+gated until a generic incremental sink is explicitly authorized.

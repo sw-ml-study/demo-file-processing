@@ -14,8 +14,9 @@ when a runtime, codec extension, or validation oracle performs the work.
 
 ## Project status
 
-The foundation, bounded range analysis, and read-only MP3/ID3 inspection are
-accepted with 56 native mlplunit tests across 17 suites. See
+The foundation, bounded range analysis, MP3/ID3 inspection, and read-only Ogg
+inspection are accepted with 68 native mlplunit tests across 21 suites. See
+[the Ogg acceptance report](docs/ogg-report.md),
 [the MP3/ID3 acceptance report](docs/mp3-id3-report.md),
 [the bounded-read acceptance report](docs/bounded-read-report.md),
 [the foundation acceptance report](docs/foundation-report.md),

@@ -18,6 +18,11 @@ scanning and budgeted ID3v2 inspection need no format-specific upstream API.
 Its audio descriptor is ready for future output work, but copying, stripping,
 and extraction remain gated on the generic incremental sink below.
 
+The [Ogg acceptance report](ogg-report.md) likewise confirms that page/lacing,
+packet continuation, split-word granules, and CRC verification need no Ogg-
+specific upstream API. Its page descriptors are ready for future copy/rewrite;
+the generic sink remains the blocker.
+
 ## Delivered: bounded range reads
 
 The configured interpreter already supplies:
