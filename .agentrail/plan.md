@@ -1,21 +1,25 @@
-# Ogg container inspection
+# Incremental binary output
 
-## 1. Bounded Ogg page model
+## 1. append_bytes sink conformance
 
-Parse Ogg capture patterns, version, header flags, split-word granule position, serial/sequence/checksum fields, lacing values, body extents, and strict page/segment/body budgets through bounded range reads.
+Probe and stabilize sandboxed file-path append semantics, byte validation, empty writes, counts, missing parents, path errors, existing-file behavior, failure preservation, and current interpreter/compiler boundaries.
 
-## 2. Cross-page packet reconstruction
+## 2. bounded byte copy
 
-Model packet boundaries and continuation semantics across pages and arbitrary read chunks with bounded packet budgets and deterministic malformed-stream errors.
+Implement read-range to append loops with explicit chunk and total-byte budgets, byte-identical/hash evidence, malformed paths, cleanup policy, chunk invariance, and bounded-memory structure.
 
-## 3. Ogg CRC verification
+## 3. bounded WAV copy and transform
 
-Implement the Ogg CRC-32 polynomial visibly in MLPL, add golden vectors, verify stored page checksums without format-specific native parsing, and document complexity and current allocation behavior.
+Use accepted WAV range descriptors to copy canonically and perform one visible PCM transformation through bounded reads and append writes, with semantic/byte oracles and narrated output.
 
-## 4. Fixtures, oracle, and narrated demos
+## 4. ID3 stripping and MPEG extraction
 
-Add tiny generated valid/malformed Ogg fixtures, chunk-invariant mlplunit evidence, a pinned opt-in oracle, and self-describing page, packet, and CRC demonstrations that explain inputs, ownership, outputs, and interpretation.
+Use accepted ID3 audio descriptors and MPEG scanning to write bounded stripped MP3 and raw accepted-frame outputs with byte preservation and malformed-input behavior.
 
-## 5. Read-only Ogg acceptance report
+## 5. Ogg page copy and rewrite
 
-Run the full gate; stabilize page, packet, CRC, and rewrite-descriptor APIs; reconcile README, catalog, plans, sagas, capabilities, and upstream contracts; publish limitations, blockers, and next work.
+Use accepted Ogg page descriptors to copy pages and perform one bounded header/page rewrite with recomputed CRC, sequence/integrity verification, and oracle comparison.
+
+## 6. bounded-output acceptance report
+
+Measure growing-output peak RSS, run the full gate, stabilize file-path sink/copy/rewrite APIs, reconcile documentation and capability contracts, and publish remaining stdout/compiler/codec blockers.

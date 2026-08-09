@@ -1,0 +1,8 @@
+number = 5
+slug = "ogg-copy-rewrite"
+status = "pending"
+description = "Implement bounded Ogg page copy and one descriptor-driven rewrite with recomp..."
+role = "production"
+context_files = []
+created_at = "2026-08-09T08:57:10"
+commits = []

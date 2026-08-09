@@ -1,0 +1,1 @@
+Probe append_bytes(path, bytes) -> ok(count) from sw-MLPL d3713461 and stabilize sandboxed file-path sink semantics with native mlplunit coverage, capability documentation, and full-gate evidence; retain explicit stdout and compiler boundaries.

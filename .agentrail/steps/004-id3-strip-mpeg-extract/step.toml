@@ -1,0 +1,8 @@
+number = 4
+slug = "id3-strip-mpeg-extract"
+status = "pending"
+description = "Implement bounded ID3 stripping and accepted MPEG-frame extraction to sandbox..."
+role = "production"
+context_files = []
+created_at = "2026-08-09T08:57:10"
+commits = []

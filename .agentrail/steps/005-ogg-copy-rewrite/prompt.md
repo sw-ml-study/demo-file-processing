@@ -1,0 +1,1 @@
+Implement bounded Ogg page copy and one descriptor-driven rewrite with recomputed CRC using append_bytes, with byte/integrity oracles, malformed cases, and narrated demos.

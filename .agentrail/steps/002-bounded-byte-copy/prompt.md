@@ -1,0 +1,1 @@
+Implement bounded read-range to append_bytes copy loops with explicit chunk/total budgets, byte-identical and checksum evidence, path/error/cleanup policy, arbitrary chunk invariance, narrated demo output, and full-gate coverage.

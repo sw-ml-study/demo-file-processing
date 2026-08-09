@@ -1,0 +1,8 @@
+number = 6
+slug = "bounded-output-acceptance"
+status = "pending"
+description = "Measure growing-output peak RSS; run the full gate; stabilize file-path sink/..."
+role = "meta"
+context_files = []
+created_at = "2026-08-09T08:57:10"
+commits = []

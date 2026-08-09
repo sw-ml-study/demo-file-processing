@@ -1,0 +1,1 @@
+Measure growing-output peak RSS; run the full gate; stabilize file-path sink/copy/rewrite contracts; reconcile README, catalog, plans, sagas, capabilities, and upstream contracts; publish remaining binary-stdout, packed-byte density, compiler, and codec blockers.

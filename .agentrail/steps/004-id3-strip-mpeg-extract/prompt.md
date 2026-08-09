@@ -1,0 +1,1 @@
+Implement bounded ID3 stripping and accepted MPEG-frame extraction to sandboxed file paths using read descriptors and append_bytes, with preservation oracles, malformed cases, demos, and output cleanup policy.

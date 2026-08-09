@@ -1,0 +1,1 @@
+Implement bounded WAV copy and one visible PCM transformation using accepted descriptors, range reads, and append_bytes; add semantic/byte oracles, error cases, narrated demos, and honest allocation behavior.
