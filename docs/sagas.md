@@ -102,7 +102,9 @@ The consolidated verdict and ordered unblock are in the
 
 ## Saga 6b — `interpreter-media-apps`
 
-Status: active. The [unified media inspector](media-inspector.md) composes the
+Status: accepted; see the
+[interpreter media-apps report](interpreter-media-apps-report.md). The
+[unified media inspector](media-inspector.md) composes the
 accepted bounded WAV, Ogg/CRC, and MP3/ID3 primitives into an argument-driven
 application while retaining an honest unknown branch and interpreter boundary.
 The [structural media doctor](media-doctor.md) adds healthy/warning/rejected/

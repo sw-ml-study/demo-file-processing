@@ -123,6 +123,11 @@ existing interpreter range reads, append output, Results, and record/control
 flow. Its only upstream gap is the same queued compiler parity; no WAV-specific
 runtime or codec builtin is requested.
 
+The complete [interpreter media-apps acceptance](interpreter-media-apps-report.md)
+confirms the higher-level application objective is unblocked in the interpreter.
+It does not alter the upstream request: compiling the same MLPL application
+sources still waits on queued B0/B1/C/D/D2/E parity.
+
 ## Upstream coordination status
 
 As of 2026-08-09, the adjacent sw-MLPL repository records this downstream

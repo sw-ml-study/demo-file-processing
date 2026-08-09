@@ -1,6 +1,6 @@
 number = 4
 slug = "interpreter-media-apps-acceptance"
-status = "pending"
+status = "in-progress"
 description = "Run the full gate, reconcile README, catalog, capabilities, plans, sagas, ups..."
 role = "meta"
 context_files = []

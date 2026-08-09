@@ -19,6 +19,7 @@ sandboxed incremental file and binary stdout output are accepted with 104 native
 mlplunit tests across 31 suites. See [the bounded WAV transformation app](docs/wav-transform-app.md),
 [the structural media doctor](docs/media-doctor.md),
 [the unified media inspector](docs/media-inspector.md),
+[the interpreter media-apps acceptance report](docs/interpreter-media-apps-report.md),
 [the stdout acceptance report](docs/stdout-report.md),
 [the compiled process conformance report](docs/compiler-process-conformance.md),
 [the compiled byte-application report](docs/compiled-byte-applications.md),
