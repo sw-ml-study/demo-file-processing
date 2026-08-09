@@ -28,3 +28,4 @@ wav-range-inspect	demos/wav/range_inspect.mlpl	wav	bounded-metadata-inspection	m
 wav-bounded-output	demos/wav/bounded_output.mlpl	wav	bounded-copy-transform	mlpl-native	chunk-bounded	yes	file_size,range-read,append_bytes,endian-codecs	runnable
 sparse-wav-range-inspect	demos/wav/sparse_range_inspect.mlpl	wav	sparse-bounded-metadata	mlpl-native	chunk-bounded	no	file_size,range-read,platform-time	runnable
 sparse-bounded-copy	demos/bytes/sparse_copy.mlpl	raw-bytes	sparse-bounded-output	mlpl-native	chunk-bounded	no	file_size,range-read,append_bytes,platform-time	runnable
+sparse-bounded-stdout	demos/stdout/sparse.mlpl	raw-bytes	sparse-binary-stdout	mlpl-native	chunk-bounded	no	file_size,range-read,write_stdout,platform-time	runnable

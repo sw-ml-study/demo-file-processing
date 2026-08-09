@@ -32,7 +32,10 @@ does not add binary stdin, backpressure control, seeking, or explicit close.
 The process owns stdout, so repository path sandbox rules do not apply to it.
 
 The selected release executable reports `mlpl-repl 0.20.0`, build commit
-`91d5216a`; the adjacent source checkout is `c3452aa1`, whose final change is
-documentation-only relative to the shipped sink. `mlpl-build` still rejects
-`write_stdout/1`, so standalone binary-output CLIs remain gated on compiler I/O
-parity.
+`91d5216a`. That embedded build identity—not the independently moving adjacent
+source checkout—is the downstream interpreter authority. The adjacent
+development `mlpl-build` lowers `write_stdout/1`, but its generated `main`
+appends a textual result line after the requested bytes. Standalone pristine
+binary-output CLIs therefore remain gated on compiler entry-point/I/O parity.
+Growing-output evidence is recorded in the
+[stdout acceptance report](stdout-report.md).

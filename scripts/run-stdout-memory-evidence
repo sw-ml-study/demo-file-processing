@@ -1,0 +1,77 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mlpl=$("$repo_root/scripts/select-mlpl")
+mkdir -p "$repo_root/tmp"
+work_dir=$(mktemp -d "$repo_root/tmp/file-processing-stdout.XXXXXX")
+trap 'rm -rf "$work_dir"' EXIT HUP INT TERM
+
+small_bytes=1048576
+large_bytes=67108864
+chunk_bytes=65536
+max_rss_bytes=50331648
+max_growth_bytes=8388608
+
+echo "Binary-stdout peak-memory acceptance"
+echo "Purpose: measure the actual non-seekable stdout sink while redirected binary output grows 64-fold."
+echo "Inputs and captured outputs: $small_bytes and $large_bytes bytes; fixed range/stdout chunk: $chunk_bytes bytes."
+echo "Acceptance: exact cmp output, clean binary stdout, every run below $max_rss_bytes RSS bytes, and growth no more than $max_growth_bytes bytes."
+
+small_source="$work_dir/source-small.bin"
+large_source="$work_dir/source-large.bin"
+small_output="$work_dir/stdout-small.bin"
+large_output="$work_dir/stdout-large.bin"
+truncate -s "$small_bytes" "$small_source"
+truncate -s "$large_bytes" "$large_source"
+
+measure() {
+  label=$1
+  source=$2
+  output=$3
+  expected_bytes=$4
+  metrics_file="$work_dir/$label.time"
+  case $(uname -s) in
+    Darwin)
+      /usr/bin/time -l "$mlpl" --source-dir "$repo_root" "$repo_root/demos/stdout/sparse.mlpl" -- "$source" >"$output" 2>"$metrics_file" || {
+        cat "$metrics_file" >&2; exit 1;
+      }
+      rss=$(awk '/maximum resident set size/ { print $1; exit }' "$metrics_file")
+      ;;
+    Linux)
+      /usr/bin/time -v "$mlpl" --source-dir "$repo_root" "$repo_root/demos/stdout/sparse.mlpl" -- "$source" >"$output" 2>"$metrics_file" || {
+        cat "$metrics_file" >&2; exit 1;
+      }
+      rss_kib=$(awk -F: '/Maximum resident set size/ { gsub(/^[ \t]+/, "", $2); print $2; exit }' "$metrics_file")
+      rss=$((rss_kib * 1024))
+      ;;
+    *)
+      echo "SKIP stdout memory evidence: /usr/bin/time parser supports Darwin and Linux only" >&2
+      exit 77
+      ;;
+  esac
+  grep -Fqx 'Sparse bounded-stdout memory demonstration' "$metrics_file"
+  grep -Fqx 'Interpretation: output size grows from repeated writes while retained MLPL payload state remains O(chunk_size).' "$metrics_file"
+  grep -E '^(Sparse|Purpose|Input|MLPL|Native|Output|Interpretation|Boundary)' "$metrics_file"
+  [ "$(wc -c < "$output" | tr -d ' ')" = "$expected_bytes" ] || { echo "$label stdout size mismatch" >&2; exit 1; }
+  cmp "$source" "$output"
+  [ -n "$rss" ] || { echo "peak RSS was not reported; run outside a restricted metrics sandbox" >&2; cat "$metrics_file" >&2; exit 1; }
+  echo "$rss" > "$work_dir/$label.rss"
+  echo "MEASURE $label stdout_bytes=$expected_bytes peak_rss_bytes=$rss"
+}
+
+measure stdout-small "$small_source" "$small_output" "$small_bytes"
+measure stdout-large "$large_source" "$large_output" "$large_bytes"
+
+small_rss=$(cat "$work_dir/stdout-small.rss")
+large_rss=$(cat "$work_dir/stdout-large.rss")
+growth=$((large_rss - small_rss))
+[ "$growth" -ge 0 ] || growth=0
+[ "$small_rss" -le "$max_rss_bytes" ] || { echo "small-stdout RSS $small_rss exceeded $max_rss_bytes bytes" >&2; exit 1; }
+[ "$large_rss" -le "$max_rss_bytes" ] || { echo "large-stdout RSS $large_rss exceeded $max_rss_bytes bytes" >&2; exit 1; }
+[ "$growth" -le "$max_growth_bytes" ] || { echo "stdout RSS growth $growth exceeded $max_growth_bytes bytes" >&2; exit 1; }
+[ "$large_bytes" -gt "$max_rss_bytes" ] || { echo "large stdout output must exceed the RSS ceiling" >&2; exit 1; }
+
+echo "Measured result: small-stdout RSS=$small_rss bytes; large-stdout RSS=$large_rss bytes; non-negative growth=$growth bytes."
+echo "Interpretation: a 64-fold binary-stdout increase stayed within fixed absolute and growth ceilings; captured output size did not drive resident growth."
+echo "ACCEPT binary stdout memory chunk_bytes=$chunk_bytes ceiling_bytes=$max_rss_bytes growth_ceiling_bytes=$max_growth_bytes"

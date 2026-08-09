@@ -139,6 +139,10 @@ sparse-memory-evidence:
 bounded-output-memory-evidence:
     ./scripts/run-bounded-output-memory-evidence
 
+# Opt-in: redirect 1 MiB and 64 MiB binary stdout and enforce peak-RSS ceilings.
+stdout-memory-evidence:
+    ./scripts/run-stdout-memory-evidence
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

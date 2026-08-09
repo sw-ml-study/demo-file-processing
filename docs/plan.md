@@ -52,8 +52,10 @@ Research notes and adjacent documentation are hypotheses until probed.
 The configured sw-MLPL has whole-file `read_bytes`/`write_bytes`, bounded
 `read_bytes(path, offset, length)`, `file_size`, f64-backed exact-integer byte
 values, fixed-width bit operations, and interpreter-side CLI facilities. Its
-native build path works for the tested numeric and arithmetic expressions, but
-byte, bit, and argument builtins are not lowered. Packed `u8` arrays,
+native build path works for the tested numeric and arithmetic expressions and
+partially lowers `args`/`write_stdout`, but the generated wrapper contaminates
+binary stdout with a textual result line and byte reads/appends and bit
+operations are not lowered. Packed `u8` arrays,
 incremental binary sources/sinks, broad application lowering, and extension
 linking remain absent or incomplete. See [the measured baseline](capabilities.md).
 
@@ -136,8 +138,8 @@ memory is bounded by documented state plus chunk size, not total file size.
 
 ### Phase 2b — incremental binary output
 
-Status: accepted for sandboxed file-path outputs. Binary stdout is now active
-follow-on work through `write_stdout`. See the
+Status: accepted for sandboxed file-path outputs. Binary stdout is accepted
+separately in Phase 2c through `write_stdout`. See the
 [bounded-output report](bounded-output-report.md) and
 [sink conformance contract](append-bytes.md). Binary stdin/source handles and
 compiled parity remain separate gates.
@@ -151,6 +153,20 @@ compiled parity remain separate gates.
 
 Acceptance: copy/transformation output matches the reference path and peak
 memory is bounded independently of total input and output size.
+
+### Phase 2c — binary stdout output
+
+Status: accepted for interpreter-driven seekable-file pipelines. See the
+[stdout acceptance report](stdout-report.md) and
+[stdout conformance contract](write-stdout.md).
+
+- Validate exact byte/count/order/error behavior and stderr separation.
+- Add bounded raw, PCM WAV, and CRC-preflighted Ogg stdout applications.
+- Measure exact 1 MiB and 64 MiB captured output under fixed RSS ceilings.
+
+Acceptance: stdout is pristine binary, narration is separate, captured
+artifacts match independent oracles, and retained memory remains bounded as
+output grows. Binary stdin/source handles and compiler parity remain separate.
 
 ### Phase 3 — MP3 and ID3 inspection
 
@@ -234,7 +250,7 @@ The foundation, bounded range-analysis, MP3/ID3 inspection, and Ogg inspection
 sagas are accepted; see their [foundation](foundation-report.md),
 [bounded-read](bounded-read-report.md), [MP3/ID3](mp3-id3-report.md), and
 [Ogg](ogg-report.md), and [bounded-output](bounded-output-report.md) reports.
-The next recommended saga is standalone file applications once generic
-compiler I/O parity is available. Binary stdout is now available in the
-interpreter; binary stdin/source handles remain separate. Codec extensions
-remain the later gate for MP3-to-Ogg.
+The next recommended saga is standalone file applications once the remaining
+compiler I/O and entry-point parity is available. Binary stdout is accepted in the interpreter;
+binary stdin/source handles remain separate. Codec extensions remain the later
+gate for MP3-to-Ogg.

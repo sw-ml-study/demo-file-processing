@@ -2,13 +2,13 @@
 
 ## Probe environment
 
-Measured on 2026-08-08 on arm64 macOS 26.5 with:
+Measured on 2026-08-09 on arm64 macOS 26.5 with:
 
-- `mlpl-repl 0.20.0`, embedded build commit `23afb11a`, selected from the
+- `mlpl-repl 0.20.0`, embedded build commit `91d5216a`, selected from the
   adjacent release build;
-- adjacent sw-MLPL checkout and selected release build `d37134618a0806a9a0603390e4b02c887f0e142e`;
 - `mlplunit 0.1.0` at `a06191f800f40a23ebc1890eada3f505b1adab60`;
-- adjacent debug `mlpl-build` (the tool exposes no version flag).
+- adjacent development `mlpl-build`, rebuilt from its current source (the tool
+  exposes no version flag and that checkout moves independently).
 
 `just capabilities` and the native suites beneath `tests/capabilities/` are the
 executable record. The configured binary, not the checkout documentation, is
@@ -26,7 +26,7 @@ the authority for downstream claims.
 | Incremental stream handles | No open/read-next/write-next/seek handle surface was found or exercised | Stateful single-pass transforms and codecs remain gated; repeated range reads are not a stream API. |
 | Writes | `write_bytes` validates integral byte values and failed validation preserves prior contents | Deterministic whole-buffer replacement remains useful for tiny outputs and destination initialization. |
 | Incremental file output | `append_bytes(path, bytes)` creates/appends a validated bounded chunk and returns its count; each call implicitly closes/flushes | File-path output can be bounded by chunk size; callers must initialize destinations and define partial-output cleanup. Compiler lowering remains absent. |
-| Binary stdout sink | `write_stdout(bytes)` accepts scalar/rank-one bytes, returns exact counts, preserves multi-call ordering, flushes per call, and keeps `eprint` diagnostics separate | Interpreter pipes/stdout are unblocked; there is no rollback, persistent handle, binary stdin, or compiler lowering. Broken-pipe timing is not a deterministic default-gate claim. |
+| Binary stdout sink | `write_stdout(bytes)` accepts scalar/rank-one bytes, returns exact counts, preserves multi-call ordering, flushes per call, and keeps `eprint` diagnostics separate | Interpreter pipes/stdout are unblocked; there is no rollback, persistent handle, or binary stdin. Development compiler lowering exists but its wrapper adds textual output. Broken-pipe timing is not a deterministic default-gate claim. |
 | Bounded stdout copy | MLPL writes exact whole-file or subrange bytes through caller-capped reads/stdout calls with explicit total budgets and verified counts | Raw, canonical WAV, and checksum-verified Ogg page artifacts have clean binary stdout plus separate stderr narration; irreversible output has no cleanup transaction. |
 | Bounded byte copy | MLPL copies exact whole-file or subrange bytes through caller-capped reads/appends, requires a new destination, verifies counts, and applies explicit keep/remove partial policy | Byte-identical output is executable at chunks 1, 7, 64, and 65,536; 64 MiB output peak RSS is measured separately below. |
 | Bit operations | `band`, `bor`, `bxor`, `bnot`, `popcount`, `shl`, `shr`, `bits`, and `from_bits` pass golden vectors | In-memory endian and field work is unblocked in the interpreter. |
@@ -43,11 +43,12 @@ the authority for downstream claims.
 | Bounded WAV output | MLPL writes a fixed 44-byte canonical PCM header, then copies or inverts unsigned 8-bit samples through range-read/append chunks with exact output budgets | Payload state is O(chunk size); arbitrary RIFF ancillary chunks are intentionally normalized away, and file-path/interpreter boundaries remain. |
 | Sparse-file peak RSS | Fixed-budget histogram and WAV consumers stayed below a 32 MiB ceiling as artifacts grew to 1 MiB and 64 MiB; repeat growth stayed at or below 1,081,344 bytes | The measured read-side high-water mark depends on chunk plus state, not total file size, on the recorded platform. |
 | Growing-output peak RSS | A 1 MiB/64 MiB byte-copy pair at 65,536-byte chunks measured 15,859,712/15,974,400-byte peak RSS; `cmp` verified exact outputs | A 64-fold logical-output increase added 114,688 RSS bytes and stayed below a 48 MiB ceiling, supporting chunk-plus-state rather than output-sized retention. |
+| Growing-stdout peak RSS | Redirected 1 MiB/64 MiB stdout at 65,536-byte chunks measured 12,533,760/15,892,480-byte peak RSS; `cmp` verified clean exact streams | A 64-fold output increase added 3,358,720 RSS bytes and stayed below a 48 MiB ceiling; stdout size did not drive resident retention. |
 | Exact integer domain | Numeric arrays are f64-backed; `2^53` and mathematical `2^53+1` compare equal; bit operations reject operands at the upper domain boundary upstream | Byte and ordinary 32-bit field work is exact; 64-bit file fields require a split-word representation or a new type. |
 | Script process surface | `args`, `read_stdin`, `print`, `eprint`, and `exit(7)` produced separated streams and the requested status | Interpreter-backed Unix-style tools are available now. `read_stdin` is whole-input text, not binary chunk streaming. |
 | Native numeric build | `reduce_add(iota(8))` produced `28` in both interpreter and compiled artifact | The native path is real for its supported numeric subset. The artifact runs directly; `otool -L` shows no named MLPL interpreter/parser/evaluator dynamic dependency. |
 | Arithmetic build | `(iota(8) + 1) * 2` compiles and its reduction prints `72`, matching the interpreter | The prior generated-trait import defect is resolved in the selected adjacent development build; the gate now requires positive parity. |
-| Application lowering | `read_bytes/1`, `append_bytes/2`, `write_stdout/1`, `args/0`, and `band/2` fail at lowering as unsupported function calls | A compiled file-processing CLI is gated on generic runtime/lowering parity; interpreter success does not imply compiler success. |
+| Application lowering | `args/0` and `write_stdout/1` lower in the adjacent development compiler; exact probes show the requested bytes followed by the generated wrapper's textual count. `read_bytes/1`, `append_bytes/2`, and `band/2` remain unsupported. | Clean compiled binary stdout and a useful file-processing CLI remain gated on entry-point behavior plus generic byte/bit runtime parity; interpreter success does not imply compiler success. |
 
 ## Claim boundaries
 
@@ -75,9 +76,9 @@ It cannot yet claim:
 - persistent source/sink handles, binary stdin, backpressure control, or
   cross-call output transactions;
 - exact scalar representation of arbitrary 64-bit file fields;
-- interpreter/compiler parity for byte I/O, process APIs, or bit operations;
+- complete interpreter/compiler parity for byte I/O, process APIs, or bit operations;
 - compilation of a useful file-processing application;
-- compiler lowering of byte I/O, process APIs, or bit operations needed by a
+- compiler lowering/entry-point behavior for byte I/O, remaining process APIs, or bit operations needed by a
   useful standalone file-processing application.
 
 ## Reproduction

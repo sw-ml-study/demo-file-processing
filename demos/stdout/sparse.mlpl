@@ -1,0 +1,13 @@
+include "../../src/io/bounded_stdout.mlpl";
+
+source = list_get(args(), 0)?; source_bytes = file_size(source)?;
+eprint("Sparse bounded-stdout memory demonstration");
+eprint("Purpose: stream an output larger than the working budget through non-seekable binary stdout without retaining the whole artifact.");
+eprint("Input: sparse zero source bytes", source_bytes, "; fixed range/write chunk bytes 65536.");
+eprint("MLPL work: validate exact range and total budgets, read one bounded chunk, verify each stdout count, and discard prior chunks.");
+eprint("Native runtime work: seekable file reads plus ordered, per-call-flushed binary stdout; the shell redirects stdout to a controlled file sink.");
+result = u:bounded_stdout_file(source, 65536, source_bytes)?;
+eprint("Output: bytes", result.bytes_written, "; chunks", result.chunks, "; tail bytes", result.last_chunk_bytes, ".");
+eprint("Interpretation: output size grows from repeated writes while retained MLPL payload state remains O(chunk_size).");
+eprint("Boundary: the shell owns peak-RSS measurement and cmp verification; stdout bytes cannot be rolled back after delivery.");
+exit(0)

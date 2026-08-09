@@ -21,11 +21,13 @@ if "$mlpl_build" "$repo_root/probes/compiler_file_io.mlpl" -o "$scratch/compiler
 fi
 grep -Fq 'unsupported construct: fncall read_bytes/1' "$scratch/unsupported.err"
 
-if "$mlpl_build" "$repo_root/probes/compiler_args.mlpl" -o "$scratch/compiler-args" >"$scratch/args.out" 2>"$scratch/args.err"; then
-  echo "compiler unexpectedly lowered args" >&2
-  exit 1
-fi
-grep -Fq 'unsupported construct: fncall args/0' "$scratch/args.err"
+cat >"$scratch/args.mlpl" <<'EOF'
+write_stdout(args())
+EOF
+"$mlpl_build" "$scratch/args.mlpl" -o "$scratch/compiler-args" >/dev/null
+"$scratch/compiler-args" alpha beta >"$scratch/args.actual"
+printf 'alpha\nbeta10\n' >"$scratch/args.expected"
+cmp "$scratch/args.expected" "$scratch/args.actual"
 
 if "$mlpl_build" "$repo_root/probes/compiler_bits.mlpl" -o "$scratch/compiler-bits" >"$scratch/bits.out" 2>"$scratch/bits.err"; then
   echo "compiler unexpectedly lowered band" >&2
@@ -39,11 +41,10 @@ if "$mlpl_build" "$repo_root/probes/compiler_append.mlpl" -o "$scratch/compiler-
 fi
 grep -Fq 'unsupported construct: fncall append_bytes/2' "$scratch/append.err"
 
-if "$mlpl_build" "$repo_root/probes/compiler_stdout.mlpl" -o "$scratch/compiler-stdout" >"$scratch/stdout.out" 2>"$scratch/stdout.err"; then
-  echo "compiler unexpectedly lowered write_stdout" >&2
-  exit 1
-fi
-grep -Fq 'unsupported construct: fncall write_stdout/1' "$scratch/stdout.err"
+"$mlpl_build" "$repo_root/probes/compiler_stdout.mlpl" -o "$scratch/compiler-stdout" >/dev/null
+"$scratch/compiler-stdout" >"$scratch/stdout.actual"
+printf '\000\3772\n' >"$scratch/stdout.expected"
+cmp "$scratch/stdout.expected" "$scratch/stdout.actual"
 
 arithmetic_interpreted=$("$mlpl" "$repo_root/probes/compiler_arithmetic.mlpl")
 "$mlpl_build" "$repo_root/probes/compiler_arithmetic.mlpl" -o "$scratch/compiler-arithmetic" >/dev/null
@@ -61,4 +62,4 @@ if command -v otool >/dev/null 2>&1; then
   fi
 fi
 
-echo "PASS compiler numeric/arithmetic parity and application-lowering boundaries ($compiled, $arithmetic_compiled)"
+echo "PASS compiler numeric/arithmetic parity, args/stdout partial lowering, and remaining application boundaries ($compiled, $arithmetic_compiled)"

@@ -25,5 +25,6 @@ Run `just ogg-bounded-output` for a byte-identical 283-byte copy and a second
 283-byte page whose sequence changes from 10 to 42 with a recomputed checksum.
 The rewrite is intentionally page-local: callers rewriting a logical stream
 must choose consistent consecutive sequences themselves. The later
-[`write_stdout`](write-stdout.md) sink enables interpreter binary stdout;
-standalone compiled I/O remains unavailable.
+[`write_stdout`](write-stdout.md) sink enables interpreter binary stdout. Its
+development compiler lowering still has a textual wrapper trailer, and file
+I/O lowering remains unavailable, so pristine standalone output is blocked.

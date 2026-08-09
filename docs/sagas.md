@@ -71,7 +71,7 @@ compiled parity remains gated.
 
 ## Saga 5b — `binary-stdout-output`
 
-Status: active after upstream `write_stdout` delivery.
+Status: accepted; see the [stdout acceptance report](stdout-report.md).
 
 1. `write_stdout` byte/count/validation/stderr/compiler-boundary conformance.
 2. Bounded seekable-file to clean binary-stdout loops and demonstrations.

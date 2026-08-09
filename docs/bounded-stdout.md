@@ -32,6 +32,10 @@ just stdout-wav > output.wav
 just stdout-ogg > first-page.ogg
 ```
 
-`write_stdout`, range reads, arguments, and format bit operations remain
-interpreter-only, so these are pipeline-capable scripts rather than standalone
-compiled CLIs. Binary stdin/source handles and codec state remain separate.
+The adjacent development compiler lowers `args` and `write_stdout`, but its
+generated wrapper appends a textual result line; range reads and format bit
+operations also remain unsupported. These are therefore pipeline-capable
+interpreter scripts rather than clean standalone binary CLIs. Binary
+stdin/source handles and codec state remain separate. The
+[stdout acceptance report](stdout-report.md) measures exact captured output at
+1 MiB and 64 MiB under fixed RSS ceilings.

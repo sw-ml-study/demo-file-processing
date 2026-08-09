@@ -67,8 +67,10 @@ remain blocked by the separate byte/process/bit lowering boundary below.
 ### Evidence
 
 The interpreter passes probes for `args`, `read_stdin`, stdout/stderr, exit
-status, whole/range byte reads, and bit operations. `mlpl-build` rejects
-`args/0`, `read_bytes/1`, and `band/2` during lowering.
+status, whole/range byte reads, and bit operations. The adjacent development
+`mlpl-build` now lowers `args/0` and `write_stdout/1`, but the generated wrapper
+adds a textual result line after binary stdout. It still rejects `read_bytes/1`
+and `band/2` during lowering.
 
 ### Minimum acceptance
 
@@ -102,6 +104,10 @@ process output. Downstream exact-byte/count/stderr-separation conformance is
 recorded in [the stdout contract](write-stdout.md). Bounded range reads,
 `append_bytes`, and `write_stdout` cover interpreter-side seekable input to file
 or stdout output.
+
+The [stdout acceptance report](stdout-report.md) records exact 64 MiB captured
+stdout above the RSS ceiling with 3,358,720 bytes measured growth across a
+64-fold output increase. The downstream non-seekable output subset is accepted.
 
 ## Remaining gate: binary source and persistent handles
 

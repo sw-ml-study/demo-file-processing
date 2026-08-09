@@ -21,5 +21,5 @@ semantic oracles; that readback is not part of the production algorithm.
 
 Run `just wav-bounded-output` for the narrated result. Output remains limited to
 sandboxed file paths. The later [`write_stdout`](write-stdout.md) sink enables a
-separate interpreter stdout path; standalone compiler I/O lowering is not
-available.
+separate interpreter stdout path; complete standalone compiler I/O and clean
+entry-point behavior are not available.

@@ -15,8 +15,9 @@ when a runtime, codec extension, or validation oracle performs the work.
 ## Project status
 
 The foundation, bounded range analysis, MP3/ID3 and Ogg inspection, and
-sandboxed incremental file output are accepted with 88 native mlplunit tests
-across 26 suites. See [the bounded-output acceptance report](docs/bounded-output-report.md),
+sandboxed incremental file and binary stdout output are accepted with 93 native
+mlplunit tests across 28 suites. See [the stdout acceptance report](docs/stdout-report.md),
+[the bounded-output acceptance report](docs/bounded-output-report.md),
 [the Ogg acceptance report](docs/ogg-report.md),
 [the MP3/ID3 acceptance report](docs/mp3-id3-report.md),
 [the bounded-read acceptance report](docs/bounded-read-report.md),
@@ -33,18 +34,26 @@ the original design discussion.
 Bounded range reads, incremental sandboxed file-path writes, and interpreter
 binary stdout are available, but packed byte storage, binary stdin/source
 handles, and compiled application APIs are not current claims. The
-native compiler handles the tested numeric and arithmetic cases; unsupported
-byte/process/bit lowering remains tracked explicitly.
+native compiler handles the tested numeric and arithmetic cases plus partial
+`args`/`write_stdout` lowering; byte reads, append output, bit operations, and
+clean binary CLI termination remain tracked explicitly.
 
 The [binary stdout contract](docs/write-stdout.md) verifies exact bytes, counts,
 multi-call ordering, empty/scalar writes, validation errors, and stderr
-separation. Bounded stdout applications are implemented; growing-output RSS
-evidence is the active acceptance step. `write_stdout` is not compiler-lowered.
+separation. Bounded stdout applications and growing-output RSS evidence are
+accepted. `write_stdout` now lowers in the adjacent development compiler, but
+its generated wrapper appends a textual result line, so it cannot yet produce
+a pristine standalone binary stream.
 
 The [bounded stdout applications](docs/bounded-stdout.md) emit exact raw bytes,
 a complete canonical WAV, or one checksum-verified Ogg page while keeping their
 self-description exclusively on stderr. Shell oracles compare every captured
 artifact, and the Ogg capture is independently reparsed and CRC-verified.
+
+The opt-in `just stdout-memory-evidence` redirects exact 1 MiB and 64 MiB
+streams. Recorded peak RSS changed from 12,533,760 to 15,892,480 bytes while
+`cmp` verified both artifacts, keeping the process below 48 MiB even when its
+binary stdout exceeded that ceiling.
 
 ## What runs now
 
@@ -153,6 +162,7 @@ just wav-range-inspect
 just wav-bounded-output
 just sparse-memory-evidence
 just bounded-output-memory-evidence
+just stdout-memory-evidence
 just tests tests/bytes
 just tests tests/io
 just tests tests/binary

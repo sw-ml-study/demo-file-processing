@@ -70,9 +70,11 @@ writes a 64 MiB temporary output.
 
 ## Remaining blockers and next work
 
-1. **Standalone compiled applications.** `mlpl-build` still rejects generic
-   `read_bytes`, `append_bytes`, `args`, and bit-operation calls. Compiler I/O
-   parity is the gate for a useful native file-processing CLI.
+1. **Standalone compiled applications.** The adjacent development `mlpl-build`
+   lowers `args` and `write_stdout`, but its generated wrapper adds a textual
+   result line; it still rejects generic `read_bytes`, `append_bytes`, and bit
+   operations. Remaining compiler I/O/entry-point parity gates a useful native
+   file-processing CLI.
 2. **Binary source and persistent handles.** `write_stdout` now supplies the
    non-seekable output effect, but binary stdin, persistent source/sink handles,
    explicit backpressure, and cross-call transactions remain absent.
@@ -87,3 +89,7 @@ The recommended next saga is standalone file applications after compiler I/O
 parity is available. Codec-extension and MP3-to-Ogg work remain gated on the
 explicit chunk-oriented extension surface; stdout is now available to
 interpreter-driven seekable-file pipelines.
+
+Subsequent binary-stdout work is accepted separately in the
+[stdout report](stdout-report.md); the test/suite counts above remain the
+historical close-of-saga totals for this file-path report.

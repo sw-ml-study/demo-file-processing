@@ -1,6 +1,6 @@
 number = 3
 slug = "stdout-acceptance"
-status = "pending"
+status = "in-progress"
 description = "Measure growing binary-stdout peak RSS through a controlled sink; run the ful..."
 role = "meta"
 context_files = []
