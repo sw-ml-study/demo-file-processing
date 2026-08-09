@@ -1,8 +1,9 @@
 number = 4
 slug = "mp3-fixtures-oracle-demos"
-status = "in-progress"
+status = "completed"
 description = "Add tiny fixtures, malformed cases, explicit oracle comparison, chunk-invariance evidence, and narrated demos."
 role = "legacy"
 context_files = []
 created_at = "2026-08-08T14:41:05"
-commits = []
+completed_at = "2026-08-08T19:27:50"
+commits = ["a1fa891a3b5172024eff376c94f5d974f2d7f7c7"]
