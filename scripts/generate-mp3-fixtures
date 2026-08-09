@@ -30,7 +30,7 @@ done
 if command -v shasum >/dev/null 2>&1; then hash_command='shasum -a 256'; else hash_command=sha256sum; fi
 expected_hashes='9e64e3fae7a74a979c9e218049af7c8251a24125da9ff16652f20b6a5a0813ed  malformed-truncated-id3.mp3
 c8c87c2bc87282a134d1318ce134b164b917a8fc8363efb292f942ff0db502fd  resync-gap.mp3
-e076db181969688f6f0eee2b78f25c101b726a0a5443ecb76ee3aa0f8c8c2528  synthetic-vbr-id3.mp3
+d3e3ffcfb9c58667e6a51ea9e102ee5a256227f5d2a3467984b282bf138f845c  synthetic-vbr-id3.mp3
 8edfa02de35922fbec07a51d6db07ddfe61b88ea9d0d54611b510ac32492a3d3  tone-vbr-id3.mp3'
 actual_hashes=
 for path in malformed-truncated-id3.mp3 resync-gap.mp3 synthetic-vbr-id3.mp3 tone-vbr-id3.mp3; do

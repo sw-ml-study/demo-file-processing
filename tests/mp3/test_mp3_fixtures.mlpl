@@ -8,7 +8,10 @@ include "src/mp3/scanner.mlpl";
 def u:test_mp3_fixture_invariance() { "Inspect the generated structural VBR fixture at all required chunk budgets.";
   path = "fixtures/mp3/synthetic-vbr-id3.mp3"; size = file_size(path)?; chunks = [1, 7, 64, 65536]; index = 0; baseline_tag = u:inspect_id3v2(path, 1, 4096, 16, 256)?; baseline_scan = u:scan_mpeg_layer3(path, 1, baseline_tag.audio_offset, size, baseline_tag.audio_bytes, 16)?;
   while lt(index, tally(chunks)) { chunk = take(chunks, 0, index); tag = u:inspect_id3v2(path, chunk, 4096, 16, 256)?; scan = u:scan_mpeg_layer3(path, chunk, tag.audio_offset, size, tag.audio_bytes, 16)?; u:assert_eq(tag, baseline_tag, "ID3 descriptor chunk invariance")?; u:assert_eq(scan, baseline_scan, "MPEG statistics chunk invariance")?; index = index + 1 };
-  u:assert_eq([baseline_tag.tag_bytes, baseline_tag.audio_bytes, baseline_scan.frames, baseline_scan.min_bitrate_kbps, baseline_scan.max_bitrate_kbps], [76, 1356, 3, 128, 160], "fixture golden facts")
+  u:assert_eq([baseline_tag.tag_bytes, baseline_tag.audio_bytes, baseline_scan.frames, baseline_scan.min_bitrate_kbps, baseline_scan.max_bitrate_kbps], [76, 1356, 3, 128, 160], "fixture golden facts")?;
+  u:assert_eq(baseline_scan.bitrate_histogram, [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0], "fixture bitrate distribution")?;
+  u:assert_eq(baseline_scan.channel_mode_histogram, [0, 2, 0, 1], "fixture channel-mode distribution")?;
+  u:assert_eq([baseline_scan.min_frame_length, baseline_scan.max_frame_length], [417, 522], "fixture frame-size range")
 }
 
 @test {name: "decodable oracle fixture agrees with bounded structural inspection", tags: ["mp3", "id3", "fixture", "oracle"]}

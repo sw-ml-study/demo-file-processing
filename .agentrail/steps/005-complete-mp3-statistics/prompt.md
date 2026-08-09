@@ -1,0 +1,1 @@
+Close the Phase 3 statistics gap before acceptance: extend the bounded MPEG scanner with fixed-size bitrate-distribution, channel-mode, and frame-size statistics; preserve chunk invariance and bounded state; update narrated demos, tests, and contracts; run the full gate.

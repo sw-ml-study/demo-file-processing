@@ -28,6 +28,9 @@ def u:test_mpeg_scanner_chunks() { "Run the same adversarial range through one-b
   u:assert_eq([one.first_offset, one.audio_end, one.skipped_bytes, one.resyncs], [fixture.stream_offset, fixture.stream_end, fixture.stream_offset, 1], "false candidate and prefix are skipped")?;
   u:assert_eq([one.total_frame_bytes, one.total_samples], [1356, 3456], "payload-free aggregate geometry")?;
   u:assert_eq([one.min_bitrate_kbps, one.max_bitrate_kbps, one.average_bitrate_kbps, one.bitrate_changes, one.constant_bitrate], [128, 160, 416 / 3, 2, 0], "variable-bitrate statistics")?;
+  u:assert_eq([one.min_frame_length, one.max_frame_length, one.average_frame_length], [417, 522, 452], "frame-length statistics")?;
+  u:assert_eq(one.bitrate_histogram, [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0], "bitrate-index distribution")?;
+  u:assert_eq(one.channel_mode_histogram, [0, 3, 0, 0], "channel-mode distribution")?;
   u:assert_eq(one, seven, "one and seven byte scans agree")?; u:assert_eq(one, sixty_four, "one and 64 byte scans agree")?; u:assert_eq(one, large, "one and oversized scans agree")
 }
 
@@ -37,6 +40,8 @@ def u:test_mpeg_scanner_cbr() { "Scan two contiguous MPEG-1 frames and derive st
   scan = u:scan_mpeg_layer3(path, 7, 0, tally(bytes), tally(bytes), 2)?;
   u:assert_eq([scan.frames, scan.first_offset, scan.audio_end, scan.skipped_bytes, scan.resyncs], [2, 0, 834, 0, 0], "contiguous frame range")?;
   u:assert_eq([scan.min_bitrate_kbps, scan.max_bitrate_kbps, scan.average_bitrate_kbps, scan.bitrate_changes, scan.constant_bitrate], [128, 128, 128, 0, 1], "constant-bitrate statistics")?;
+  u:assert_eq(scan.bitrate_histogram, [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0], "constant bitrate distribution")?;
+  u:assert_eq(scan.channel_mode_histogram, [0, 2, 0, 0], "constant channel-mode distribution")?;
   u:assert_eq(scan.duration_seconds, 2304 / 44100, "duration comes from decoded samples")
 }
 

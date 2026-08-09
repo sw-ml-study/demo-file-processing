@@ -1,6 +1,6 @@
-number = 5
+number = 6
 slug = "mp3-id3-acceptance-report"
-status = "pending"
+status = "in-progress"
 description = "Run the full gate and publish stabilized read-only contracts, limitations, blockers, and next work."
 role = "legacy"
 context_files = []

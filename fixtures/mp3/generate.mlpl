@@ -13,7 +13,8 @@ tag_body = concat(concat(concat(title, artist), unknown), fill(8, 0));
 tag = concat([73, 68, 51, 3, 0, 0, 0, 0, 0, tally(tag_body)], tag_body);
 frame128 = u:mp3_fixture_frame([255, 251, 144, 100], 417, 23);
 frame160 = u:mp3_fixture_frame([255, 251, 160, 100], 522, 29);
-write_bytes("fixtures/mp3/synthetic-vbr-id3.mp3", concat(concat(concat(tag, frame128), frame160), frame128))?;
+frame128mono = u:mp3_fixture_frame([255, 251, 144, 196], 417, 31);
+write_bytes("fixtures/mp3/synthetic-vbr-id3.mp3", concat(concat(concat(tag, frame128), frame160), frame128mono))?;
 
 frame = u:mp3_fixture_frame([255, 251, 144, 100], 417, 41);
 write_bytes("fixtures/mp3/resync-gap.mp3", concat(concat(concat(concat(frame, frame), [1, 2]), frame), frame))?;

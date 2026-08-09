@@ -26,8 +26,9 @@ applies acquisition again. A valid synchronized header whose frame extends
 beyond the range is reported as truncation.
 
 Results include frame count, audio offsets, skipped bytes, resynchronizations,
-total frame bytes and samples, duration, and constant/variable bitrate
-statistics. mlplunit covers isolated false synchronization, reacquisition after
+total frame bytes and samples, duration, a fixed fifteen-bin bitrate-index
+distribution, a fixed four-bin channel-mode distribution, min/max/average frame
+length, and constant/variable bitrate statistics. mlplunit covers isolated false synchronization, reacquisition after
 damage, synchronized truncation, both budgets, and identical results with chunk
 sizes 1, 7, 64, and 65,536.
 

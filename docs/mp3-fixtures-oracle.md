@@ -5,7 +5,7 @@ evidence separate:
 
 | Fixture | Bytes | Purpose |
 | --- | ---: | --- |
-| `synthetic-vbr-id3.mp3` | 1,432 | ID3v2.3 title/artist/unknown/padding followed by 128/160/128 kbit/s structural frames |
+| `synthetic-vbr-id3.mp3` | 1,432 | ID3v2.3 metadata followed by joint-stereo 128/160 and mono 128 kbit/s structural frames |
 | `resync-gap.mp3` | 1,670 | four structural 128 kbit/s frames separated by a deliberate two-byte damaged gap |
 | `malformed-truncated-id3.mp3` | 14 | tag declares 127 body bytes that do not exist |
 | `tone-vbr-id3.mp3` | 1,976 | decodable mono 440 Hz quarter-second tone with a v2.4 title for the opt-in oracle |
