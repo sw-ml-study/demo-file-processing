@@ -1,0 +1,15 @@
+include "../../src/io/bounded_copy.mlpl";
+
+source = "fixtures/bytes/boundary-17.bin"; destination = ".bounded-copy-output.bin"; remove_path(destination); result = u:bounded_copy_file(source, destination, 7, 17, 1)?; identical = equal(read_bytes(source)?, read_bytes(destination)?);
+if identical {
+  print("Bounded incremental byte-copy demonstration");
+  print("Purpose: produce one byte-identical file while retaining only a caller-sized input/output chunk rather than the whole output.");
+  print("Input: the 17-byte sequence 0 through 16, chosen so a seven-byte budget requires two full writes and one three-byte tail.");
+  print("MLPL work: validate budgets and ranges, initialize a new destination, loop over exact bounded reads, verify append counts, and apply cleanup policy on failure.");
+  print("Native runtime work: seekable range reads plus sandboxed append_bytes calls with implicit per-call close/flush.");
+  print("Output: copied bytes", result.bytes_copied, "; append chunks", result.chunks, "; configured chunk", result.chunk_size, "; final chunk", result.last_chunk_bytes, "; destination bytes", result.destination_size, ".");
+  print("Interpretation: 7 + 7 + 3 reconstructs the exact 17-byte file; the shell wrapper independently prints matching SHA-256 values.");
+  print("Safety: destination must not exist, source aliases are therefore protected, and cleanup_partial removes an incomplete newly created output after later failure.");
+  print("Boundary: output is a sandboxed file path; binary stdout and standalone compiled lowering remain unavailable.");
+  ok(result)
+} else { err({kind: "invariant", message: "bounded copy output differs from source"}) }
