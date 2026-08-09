@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+name=${1:?usage: run-mp3-demo scan|id3|oracle}
+case "$name" in scan|id3|oracle) : ;; *) echo "unknown MP3 demo: $name" >&2; exit 2 ;; esac
+mlpl=$("$repo_root/scripts/select-mlpl")
+exec "$mlpl" --source-dir "$repo_root" "$repo_root/demos/mp3/$name.mlpl"

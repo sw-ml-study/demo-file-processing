@@ -41,5 +41,6 @@ ordinary flags are counted and skipped without reading their payloads.
 
 Native mlplunit vectors cover v2.3/v2.4, both extended-header layouts, a v2.4
 footer, padding, absent tags, malformed sizes/flags/text, truncation, all three
-budgets, and identical results at chunk sizes 1, 7, and 65,536. Tiny committed
-fixtures and external-oracle comparison remain assigned to the next saga step.
+budgets, and identical results at chunk sizes 1, 7, and 65,536. The committed
+[MP3/ID3 fixtures and opt-in oracle](mp3-fixtures-oracle.md) add selected-text,
+malformed-length, decodable-tone, and independent ffprobe evidence.

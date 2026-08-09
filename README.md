@@ -29,8 +29,8 @@ the original design discussion.
 
 Bounded range reads are available, but packed byte storage, incremental binary
 streams/writes, and compiled application APIs are not current claims. The
-native compiler handles a narrow numeric case; a minimized arithmetic codegen
-defect and unsupported byte/process/bit lowering are tracked explicitly.
+native compiler handles the tested numeric and arithmetic cases; unsupported
+byte/process/bit lowering remains tracked explicitly.
 
 ## What runs now
 
@@ -63,6 +63,13 @@ including fields that cross byte boundaries, entirely in MLPL. The
 de-facto MPEG-2.5 extension, derives rates/samples/frame lengths, and rejects
 reserved or indeterminate free-bitrate headers.
 
+The bounded [MPEG scanner](docs/mpeg-frame-scanner.md) and
+[ID3v2 inspector](docs/id3v2-inspection.md) have narrated VBR,
+resynchronization, metadata, audio-range, and malformed-tag demonstrations.
+Their [tiny fixtures and pinned oracle](docs/mp3-fixtures-oracle.md) distinguish
+synthetic structural evidence from a decodable 440 Hz tone and opt-in ffprobe
+validation.
+
 The [PCM WAV slice](docs/wav.md) inspects RIFF chunks and canonically copies
 empty/minimal mono files. It validates padding, lengths, derived rates, formats,
 and budgets while distinguishing byte-identical canonical round trips from
@@ -83,6 +90,9 @@ just hexdump
 just histogram
 just bounded-histogram
 just binary-fields
+just mp3-scan
+just id3-inspect
+just mp3-oracle
 just wav-inspect-copy
 just wav-range-inspect
 just sparse-memory-evidence

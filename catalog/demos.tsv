@@ -1,7 +1,7 @@
 id	path	format	operation	implementation_layer	memory_bound	default_gate	required_features	status
 process-io	probes/process_io.mlpl	process	args-stdio-exit	mlpl-native	not-applicable	yes	args,read_stdin,print,eprint,exit	runnable
 compiler-numeric	probes/compiler_numeric.mlpl	native-executable	numeric-parity	mlpl-native	not-applicable	yes	mlpl-build	runnable
-compiler-arithmetic	probes/compiler_arithmetic.mlpl	native-executable	arithmetic-lowering	mlpl-native	not-applicable	no	mlpl-build-binop-trait	constrained
+compiler-arithmetic	probes/compiler_arithmetic.mlpl	native-executable	arithmetic-lowering	mlpl-native	not-applicable	yes	mlpl-build	runnable
 compiler-file-io	probes/compiler_file_io.mlpl	native-executable	file-io-lowering	mlpl-native	whole-file	no	compiled-read_bytes	constrained
 compiler-args	probes/compiler_args.mlpl	native-executable	argument-lowering	mlpl-native	not-applicable	no	compiled-args	constrained
 compiler-bits	probes/compiler_bits.mlpl	native-executable	bit-operation-lowering	mlpl-native	not-applicable	no	compiled-bit-ops	constrained
@@ -10,6 +10,8 @@ byte-histogram	demos/bytes/histogram.mlpl	raw-bytes	histogram	mlpl-native	whole-
 bounded-byte-histogram	demos/bytes/range_histogram.mlpl	raw-bytes	bounded-histogram	mlpl-native	chunk-bounded	yes	file_size,range-read,table,reduce_add	runnable
 sparse-byte-histogram	demos/bytes/sparse_histogram.mlpl	raw-bytes	sparse-bounded-histogram	mlpl-native	chunk-bounded	no	file_size,range-read,platform-time	runnable
 mpeg-header-fields	demos/binary/mpeg_header.mlpl	mpeg-audio	semantic-layer3-header	mlpl	not-applicable	yes	bit-ops,endian-codecs	runnable
+mpeg-frame-scan	demos/mp3/scan.mlpl	mpeg-audio	bounded-frame-scan	mlpl-native	chunk-bounded	yes	file_size,range-read,bit-ops	runnable
+id3v2-inspect	demos/mp3/id3.mlpl	id3v2	bounded-metadata-inspection	mlpl-native	chunk-bounded	yes	file_size,range-read,decode_bytes	runnable
 wav-inspect-copy	demos/wav/inspect_copy.mlpl	wav	inspect-canonical-copy	mlpl-native	whole-file	yes	read_bytes,write_bytes,endian-codecs	runnable
 wav-range-inspect	demos/wav/range_inspect.mlpl	wav	bounded-metadata-inspection	mlpl-native	chunk-bounded	yes	file_size,range-read,endian-codecs	runnable
 sparse-wav-range-inspect	demos/wav/sparse_range_inspect.mlpl	wav	sparse-bounded-metadata	mlpl-native	chunk-bounded	no	file_size,range-read,platform-time	runnable

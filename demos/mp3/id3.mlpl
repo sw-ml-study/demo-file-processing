@@ -1,0 +1,17 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/id3/inspect.mlpl";
+
+path = "fixtures/mp3/synthetic-vbr-id3.mp3"; small = u:inspect_id3v2(path, 1, 4096, 16, 256)?; large = u:inspect_id3v2(path, 65536, 4096, 16, 256)?; malformed = u:inspect_id3v2("fixtures/mp3/malformed-truncated-id3.mp3", 7, 4096, 16, 256);
+if equal(small, large) * is_err(malformed) {
+  print("Bounded ID3v2 metadata demonstration");
+  print("Purpose: locate selected metadata and the following audio byte range without copying, rewriting, or reading the audio payload.");
+  print("Input: generated ID3v2.3 with TIT2 title, TPE1 artist, one unknown APIC payload, eight padding bytes, and three structural MPEG frames.");
+  print("MLPL work: decode the synchsafe tag size, walk frame headers, materialize only budgeted recognized text, validate padding, and derive audio offsets.");
+  print("Native runtime work: metadata and bounded byte reads only; there is no native ID3 parser and no external oracle in this default demo.");
+  print("Metadata output: title =", small.title, "; artist =", small.artist, "; recognized text frames", small.text_frames, "; skipped unknown frames", small.unknown_frames, ".");
+  print("Range output: tag bytes", small.tag_bytes, "; audio offset", small.audio_offset, "; audio bytes", small.audio_bytes, "; padding bytes", small.padding_bytes, ".");
+  print("Interpretation: chunk budgets 1 and 65,536 agree, while the audio payload remains an offset/length descriptor rather than an allocated result.");
+  print("Malformed contrast: a 14-byte fixture declares 127 tag-body bytes; inspection returns Err because the declared extent exceeds the file snapshot.");
+  print("Text policy: UTF-8 and ASCII-compatible Latin-1 are supported; UTF-16 and transformation flags are explicit unsupported errors.");
+  ok({version: small.version, frames: small.frames, tag_bytes: small.tag_bytes, audio_bytes: small.audio_bytes})
+} else { err({kind: "invariant", message: "bounded ID3 demonstration changed"}) }

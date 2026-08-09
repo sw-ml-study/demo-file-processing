@@ -1,0 +1,21 @@
+def u:mp3_fixture_frame(header, length, payload_byte) { "Build structural MPEG frame evidence with a non-sync payload.";
+  concat(header, fill(length - 4, payload_byte))
+}
+
+def u:id3v23_fixture_frame(id, payload) { "Build one small ID3v2.3 frame.";
+  concat(concat(concat(id, [0, 0, 0, tally(payload)]), [0, 0]), payload)
+}
+
+title = u:id3v23_fixture_frame([84, 73, 84, 50], [3, 66, 111, 117, 110, 100, 101, 100, 32, 86, 66, 82, 32, 100, 101, 109, 111]);
+artist = u:id3v23_fixture_frame([84, 80, 69, 49], [3, 115, 119, 45, 77, 76, 80, 76]);
+unknown = u:id3v23_fixture_frame([65, 80, 73, 67], [1, 2, 3]);
+tag_body = concat(concat(concat(title, artist), unknown), fill(8, 0));
+tag = concat([73, 68, 51, 3, 0, 0, 0, 0, 0, tally(tag_body)], tag_body);
+frame128 = u:mp3_fixture_frame([255, 251, 144, 100], 417, 23);
+frame160 = u:mp3_fixture_frame([255, 251, 160, 100], 522, 29);
+write_bytes("fixtures/mp3/synthetic-vbr-id3.mp3", concat(concat(concat(tag, frame128), frame160), frame128))?;
+
+frame = u:mp3_fixture_frame([255, 251, 144, 100], 417, 41);
+write_bytes("fixtures/mp3/resync-gap.mp3", concat(concat(concat(concat(frame, frame), [1, 2]), frame), frame))?;
+write_bytes("fixtures/mp3/malformed-truncated-id3.mp3", [73, 68, 51, 3, 0, 0, 0, 0, 0, 127, 84, 73, 84, 50])?;
+ok(3)

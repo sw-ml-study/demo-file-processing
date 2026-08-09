@@ -1,0 +1,34 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+fixture="$repo_root/fixtures/mp3/tone-vbr-id3.mp3"
+pinned=8.1.2
+
+command -v ffprobe >/dev/null 2>&1 || { echo "BLOCKED: ffprobe $pinned is required for this opt-in oracle" >&2; exit 2; }
+version=$(ffprobe -version | awk 'NR == 1 { print $3 }')
+[ "$version" = "$pinned" ] || { echo "BLOCKED: pinned ffprobe $pinned required; found $version" >&2; exit 2; }
+if command -v shasum >/dev/null 2>&1; then checksum=$(shasum -a 256 "$fixture" | awk '{print $1}'); else checksum=$(sha256sum "$fixture" | awk '{print $1}'); fi
+expected_checksum=8edfa02de35922fbec07a51d6db07ddfe61b88ea9d0d54611b510ac32492a3d3
+[ "$checksum" = "$expected_checksum" ] || { echo "oracle fixture checksum mismatch" >&2; exit 1; }
+
+codec=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "$fixture")
+rate=$(ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of default=noprint_wrappers=1:nokey=1 "$fixture")
+channels=$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=noprint_wrappers=1:nokey=1 "$fixture")
+packets=$(ffprobe -v error -count_packets -select_streams a:0 -show_entries stream=nb_read_packets -of default=noprint_wrappers=1:nokey=1 "$fixture")
+duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$fixture")
+title=$(ffprobe -v error -show_entries format_tags=title -of default=noprint_wrappers=1:nokey=1 "$fixture")
+[ "$codec,$rate,$channels,$packets,$duration,$title" = "mp3,44100,1,11,0.250000,Bounded 440 Hz tone" ] || { echo "ffprobe oracle result changed" >&2; exit 1; }
+
+mlpl_output=$("$repo_root/scripts/run-mp3-demo" oracle)
+printf '%s\n' "$mlpl_output" | grep -Fqx 'MLPL title: Bounded 440 Hz tone'
+printf '%s\n' "$mlpl_output" | grep -Fqx 'MLPL sample rate: 44100'
+printf '%s\n' "$mlpl_output" | grep -Fqx 'MLPL frame count: 12'
+
+echo "Pinned MP3 oracle comparison"
+echo "Purpose: compare independent MLPL container inspection with a named decoder/analyzer on one checksum-pinned, decodable fixture."
+echo "Fixture: generated 440 Hz quarter-second tone; SHA-256 $checksum."
+echo "MLPL result: title '$title', sample rate $rate Hz, and 12 structural MPEG frames, using bounded reads and no codec."
+echo "ffprobe $version result: codec $codec, $channels channel, $rate Hz, $packets packets, presentation duration $duration seconds."
+echo "Interpretation: metadata and rate agree; MLPL counts the leading Xing/LAME information frame structurally, while ffprobe reports 11 decoded audio packets and applies gapless timing to duration."
+echo "Boundary: ffprobe is opt-in validation only and performs none of the default MLPL demo's parsing or statistics."

@@ -1,0 +1,43 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mode=${1:---write}
+
+case "$mode" in
+  --write)
+    mlpl=$("$repo_root/scripts/select-mlpl")
+    "$mlpl" --source-dir "$repo_root" "$repo_root/fixtures/mp3/generate.mlpl" >/dev/null
+    ;;
+  --check) : ;;
+  *) echo "usage: generate-mp3-fixtures [--write|--check]" >&2; exit 2 ;;
+esac
+
+expected='malformed-truncated-id3.mp3 14
+resync-gap.mp3 1670
+synthetic-vbr-id3.mp3 1432
+tone-vbr-id3.mp3 1976'
+actual=
+for path in malformed-truncated-id3.mp3 resync-gap.mp3 synthetic-vbr-id3.mp3 tone-vbr-id3.mp3; do
+  file="$repo_root/fixtures/mp3/$path"
+  [ -f "$file" ] || { echo "missing MP3 fixture: $path" >&2; exit 1; }
+  count=$(wc -c < "$file" | tr -d ' ')
+  actual="${actual}${actual:+
+}$path $count"
+done
+[ "$actual" = "$expected" ] || { echo "MP3 fixture manifest mismatch" >&2; printf '%s\n' "$actual" >&2; exit 1; }
+
+if command -v shasum >/dev/null 2>&1; then hash_command='shasum -a 256'; else hash_command=sha256sum; fi
+expected_hashes='9e64e3fae7a74a979c9e218049af7c8251a24125da9ff16652f20b6a5a0813ed  malformed-truncated-id3.mp3
+c8c87c2bc87282a134d1318ce134b164b917a8fc8363efb292f942ff0db502fd  resync-gap.mp3
+e076db181969688f6f0eee2b78f25c101b726a0a5443ecb76ee3aa0f8c8c2528  synthetic-vbr-id3.mp3
+8edfa02de35922fbec07a51d6db07ddfe61b88ea9d0d54611b510ac32492a3d3  tone-vbr-id3.mp3'
+actual_hashes=
+for path in malformed-truncated-id3.mp3 resync-gap.mp3 synthetic-vbr-id3.mp3 tone-vbr-id3.mp3; do
+  hash=$(cd "$repo_root/fixtures/mp3" && $hash_command "$path" | awk '{print $1}')
+  actual_hashes="${actual_hashes}${actual_hashes:+
+}$hash  $path"
+done
+[ "$actual_hashes" = "$expected_hashes" ] || { echo "MP3 fixture checksum mismatch" >&2; printf '%s\n' "$actual_hashes" >&2; exit 1; }
+
+echo "PASS MP3 fixtures ($mode)"

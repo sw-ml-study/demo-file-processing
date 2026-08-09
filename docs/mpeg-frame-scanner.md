@@ -38,4 +38,6 @@ aggregate state has fixed size independent of file length. This step does not
 claim measured peak-memory evidence. Free-bitrate Layer III remains unsupported
 because one header cannot determine frame length. The separate
 [ID3v2 inspector](id3v2-inspection.md) now supplies a validated audio offset and
-length suitable for this scanner.
+length suitable for this scanner. Committed [fixtures and pinned oracle
+evidence](mp3-fixtures-oracle.md) demonstrate VBR, damaged-gap recovery, and the
+difference between a structural Xing frame and decoded audio packets.

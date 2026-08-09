@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+scan=$("$repo_root/scripts/run-mp3-demo" scan)
+printf '%s\n' "$scan" | grep -Fqx 'Bounded MPEG frame-scanner demonstration'
+printf '%s\n' "$scan" | grep -Fqx 'Interpretation A: the unequal bitrate bounds make this demonstrably variable bitrate; chunk budgets 7 and 65,536 produce the same complete result.'
+printf '%s\n' "$scan" | grep -Fqx 'Interpretation B: the scanner loses synchronization at the gap, searches byte-by-byte, and requires a compatible next frame before accepting the recovered stream.'
+id3=$("$repo_root/scripts/run-mp3-demo" id3)
+printf '%s\n' "$id3" | grep -Fqx 'Bounded ID3v2 metadata demonstration'
+printf '%s\n' "$id3" | grep -Fqx 'Interpretation: chunk budgets 1 and 65,536 agree, while the audio payload remains an offset/length descriptor rather than an allocated result.'
+printf '%s\n' "$id3" | grep -Fqx 'Malformed contrast: a 14-byte fixture declares 127 tag-body bytes; inspection returns Err because the declared extent exceeds the file snapshot.'
+echo "PASS MP3 demos"

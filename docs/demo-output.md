@@ -24,11 +24,15 @@ presented as demonstrations.
 | `just histogram` | uniform, concentrated, ramp, and empty distributions | how the same 256-bin shape represents different data |
 | `just bounded-histogram` | every byte value across 37 seven-byte ranges | why chunk boundaries do not change counts |
 | `just binary-fields` | contrasting MPEG-1 and de-facto MPEG-2.5 headers | how selectors become rates, samples, and byte lengths |
+| `just mp3-scan` | 128/160/128 kbit/s frames plus a separate damaged gap | why bitrate changes imply VBR and how synchronization is reacquired |
+| `just id3-inspect` | selected text, unknown payload, padding, audio range, and truncation | why metadata is materialized but audio remains a descriptor |
 | `just wav-inspect-copy` | three unsigned 8-bit samples plus odd padding | why canonical parse/encode is byte-identical |
 | `just wav-range-inspect` | odd padded JUNK chunk before one sample | how metadata inspection skips payloads and locates audio |
 | `just sparse-memory-evidence` | 16× histogram and 64× WAV size contrasts | how to read RSS ceilings and distinguish MLPL work from the platform oracle |
+| `just mp3-oracle` | checksum/version-pinned decodable tone | why structural Xing frames differ from decoded packets and presentation duration |
 
 The sparse recipe is opt-in because the O(256n) teaching histogram is slow and
 the platform must expose peak-RSS metrics. Its MLPL applications narrate their
 own algorithms; the shell additionally explains the cross-process measurement
-method and acceptance thresholds.
+method and acceptance thresholds. The MP3 oracle is opt-in because it requires
+exactly ffprobe 8.1.2; default MLPL behavior remains independent of that tool.

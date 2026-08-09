@@ -42,6 +42,9 @@ generate-byte-fixtures:
 generate-wav-fixtures:
     ./scripts/generate-wav-fixtures --write
 
+generate-mp3-fixtures:
+    ./scripts/generate-mp3-fixtures --write
+
 # Run the readable byte-processing applications.
 hexdump:
     ./scripts/run-byte-demo hexdump
@@ -59,6 +62,18 @@ byte-demos:
 # Decode a golden MPEG audio header through a data-described field layout.
 binary-fields:
     ./scripts/run-binary-demo mpeg_header
+
+# Scan structural MPEG frames with VBR and damaged-gap contrasts.
+mp3-scan:
+    ./scripts/run-mp3-demo scan
+
+# Inspect bounded ID3 metadata, audio bounds, and malformed-tag behavior.
+id3-inspect:
+    ./scripts/run-mp3-demo id3
+
+# Opt-in pinned ffprobe comparison against the decodable tone fixture.
+mp3-oracle:
+    ./scripts/run-mp3-oracle
 
 # Inspect and canonically copy a tiny PCM WAV file.
 wav-inspect-copy:

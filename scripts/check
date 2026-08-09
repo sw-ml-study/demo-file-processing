@@ -10,6 +10,7 @@ repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 "$repo_root/scripts/check-compiler"
 "$repo_root/scripts/check-byte-demos"
 "$repo_root/scripts/check-binary-demos"
+"$repo_root/scripts/check-mp3-demos"
 "$repo_root/scripts/check-wav-demo"
 git -C "$repo_root" diff --check
 
