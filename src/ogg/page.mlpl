@@ -1,0 +1,44 @@
+include "../io/range_reader.mlpl";
+include "../io/range_window.mlpl";
+include "../binary/endian_decode.mlpl";
+include "../binary/slice.mlpl";
+
+def u:ogg_lacing_summary(lacing) { "Derive body length and packet-ending count from one bounded segment table.";
+  index = 0; body_bytes = 0; packet_endings = 0; while lt(index, tally(lacing)) { value = take(lacing, 0, index); body_bytes = body_bytes + value; if lt(value, 255) { packet_endings = packet_endings + 1 } else { 0 }; index = index + 1 }; {body_bytes: body_bytes, packet_endings: packet_endings}
+}
+
+def u:read_ogg_page(reader, offset, max_page_bytes, max_segments, max_body_bytes) { "Parse one budgeted Ogg page descriptor without reading or retaining its body.";
+  if (1 - u:range_exact_nonnegative(offset)) + (1 - u:range_exact_nonnegative(max_page_bytes)) + (1 - u:range_exact_nonnegative(max_segments)) + (1 - u:range_exact_nonnegative(max_body_bytes)) { err({kind: "budget", message: "Ogg offset and budgets must be exact non-negative integers"}) } else {
+    if lt(max_page_bytes, 27) { err({kind: "budget", message: "max_page_bytes must permit the 27-byte fixed header"}) } else {
+      if gt(offset, reader.size) { err({kind: "range", message: "Ogg page offset exceeds the file snapshot"}) } else {
+        if gt(offset + 27, reader.size) { err({kind: "truncated", message: "Ogg fixed page header is truncated"}) } else {
+          header = u:range_window(reader, offset, 27, 27)?; capture = u:byte_slice(header, 0, 4)?; version = take(header, 0, 4); flags = take(header, 0, 5); segment_count = take(header, 0, 26);
+          if 1 - equal(capture, [79, 103, 103, 83]) { err({kind: "capture", message: "Ogg page must begin with OggS"}) } else {
+            if 1 - eq(version, 0) { err({kind: "version", message: "only Ogg bitstream version zero is supported"}) } else {
+              if 1 - eq(band(flags, 248), 0) { err({kind: "flags", message: "Ogg page contains reserved header-type bits"}) } else {
+                if gt(segment_count, max_segments) { err({kind: "budget", message: "Ogg lacing table exceeds max_segments"}) } else {
+                  header_bytes = 27 + segment_count;
+                  if gt(header_bytes, max_page_bytes) { err({kind: "budget", message: "Ogg header and lacing table exceed max_page_bytes"}) } else {
+                    if gt(offset + header_bytes, reader.size) { err({kind: "truncated", message: "Ogg lacing table is truncated"}) } else {
+                      lacing = u:range_window(reader, offset + 27, segment_count, max_segments)?; summary = u:ogg_lacing_summary(lacing); page_bytes = header_bytes + summary.body_bytes;
+                      if gt(summary.body_bytes, max_body_bytes) + gt(page_bytes, max_page_bytes) { err({kind: "budget", message: "Ogg page body or total extent exceeds its budget"}) } else {
+                        if gt(offset + page_bytes, reader.size) { err({kind: "truncated", message: "Ogg page body is truncated"}) } else {
+                          granule_low = u:decode_uint(header, 6, 4, "le")?; granule_high = u:decode_uint(header, 10, 4, "le")?; serial = u:decode_uint(header, 14, 4, "le")?; sequence = u:decode_uint(header, 18, 4, "le")?; checksum = u:decode_uint(header, 22, 4, "le")?;
+                          ok({offset: offset, header_bytes: header_bytes, body_offset: offset + header_bytes, body_bytes: summary.body_bytes, page_bytes: page_bytes, next_offset: offset + page_bytes, version: version, flags: flags, continued: gt(band(flags, 1), 0), bos: gt(band(flags, 2), 0), eos: gt(band(flags, 4), 0), granule_low: granule_low, granule_high: granule_high, granule_unset: eq(granule_low, 4294967295) * eq(granule_high, 4294967295), serial: serial, sequence: sequence, checksum: checksum, segment_count: segment_count, lacing: lacing, packet_endings: summary.packet_endings})
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+def u:open_ogg_page(path, chunk_size, offset, max_page_bytes, max_segments, max_body_bytes) { "Open a bounded reader and parse one Ogg page descriptor at an exact offset.";
+  reader = u:range_reader(path, chunk_size)?; u:read_ogg_page(reader, offset, max_page_bytes, max_segments, max_body_bytes)
+}

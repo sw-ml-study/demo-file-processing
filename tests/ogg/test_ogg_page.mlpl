@@ -1,0 +1,40 @@
+include "src/bytes/validate.mlpl";
+include "src/binary/endian_encode.mlpl";
+include "src/ogg/page.mlpl";
+
+def u:ogg_test_page(flags, granule_low, granule_high, serial, sequence, checksum, lacing, body) { "Build one deterministic Ogg page without calculating its stored checksum.";
+  if 1 - eq(tally(body), u:ogg_lacing_summary(lacing).body_bytes) { err({kind: "fixture", message: "body must match lacing sum"}) } else {
+    ok(concat(concat(concat(concat(concat(concat(concat(concat([79, 103, 103, 83, 0, flags], u:encode_uint(granule_low, 4, "le")?), u:encode_uint(granule_high, 4, "le")?), u:encode_uint(serial, 4, "le")?), u:encode_uint(sequence, 4, "le")?), u:encode_uint(checksum, 4, "le")?), [tally(lacing)]), lacing), body))
+  }
+}
+
+@test {name: "bounded Ogg page parsing is chunk invariant", tags: ["ogg", "page", "chunks", "lacing"]}
+def u:test_ogg_page_chunks() { "Parse a multi-segment page with exact split-word fields at all required read budgets.";
+  first = u:ogg_test_page(2, 2309737967, 305419896, 287454020, 7, 2712847316, [3, 255, 2], fill(260, 9))?; second = u:ogg_test_page(4, 0, 0, 287454020, 8, 0, [], [])?; bytes = concat(first, second); path = "tmp/ogg-pages.bin"; write_bytes(path, bytes)?;
+  one = u:open_ogg_page(path, 1, 0, 512, 8, 300)?; seven = u:open_ogg_page(path, 7, 0, 512, 8, 300)?; sixty_four = u:open_ogg_page(path, 64, 0, 512, 8, 300)?; large = u:open_ogg_page(path, 65536, 0, 512, 8, 300)?;
+  u:assert_eq(one, seven, "one and seven byte page reads agree")?; u:assert_eq(one, sixty_four, "one and 64 byte page reads agree")?; u:assert_eq(one, large, "one and oversized page reads agree")?;
+  u:assert_eq([one.header_bytes, one.body_offset, one.body_bytes, one.page_bytes, one.next_offset], [30, 30, 260, 290, 290], "page extents")?;
+  u:assert_eq([one.continued, one.bos, one.eos, one.segment_count, one.packet_endings], [0, 1, 0, 3, 2], "page flags and lacing facts")?;
+  u:assert_eq([one.granule_low, one.granule_high, one.granule_unset, one.serial, one.sequence, one.checksum], [2309737967, 305419896, 0, 287454020, 7, 2712847316], "exact split and u32 fields")?;
+  empty = u:open_ogg_page(path, 7, one.next_offset, 27, 0, 0)?; u:assert_eq([empty.eos, empty.body_bytes, empty.segment_count, empty.next_offset], [1, 0, 0, tally(bytes)], "empty EOS page")
+}
+
+@test {name: "bounded Ogg page parser preserves unset granule position", tags: ["ogg", "page", "granule", "u64"]}
+def u:test_ogg_unset_granule() { "Keep the all-ones sentinel exact without coercing it into one f64 scalar.";
+  bytes = u:ogg_test_page(1, 4294967295, 4294967295, 1, 0, 0, [1], [5])?; path = "tmp/ogg-unset.bin"; write_bytes(path, bytes)?; page = u:open_ogg_page(path, 1, 0, 64, 1, 1)?;
+  u:assert_eq([page.granule_low, page.granule_high, page.granule_unset, page.continued], [4294967295, 4294967295, 1, 1], "unset split granule sentinel")
+}
+
+@test {name: "bounded Ogg page parser rejects malformed extents and budgets", tags: ["ogg", "page", "invalid", "budget"]}
+def u:test_ogg_page_invalid() { "Reject truncated headers/tables/bodies, signatures, versions, flags, offsets, and each work budget.";
+  path = "tmp/ogg-invalid.bin"; valid = u:ogg_test_page(0, 0, 0, 1, 0, 0, [3], [1, 2, 3])?;
+  write_bytes(path, u:byte_slice(valid, 0, 20)?)?; u:assert_err(u:open_ogg_page(path, 7, 0, 64, 4, 8), "truncated fixed header")?;
+  write_bytes(path, scatter(valid, 0, 0))?; u:assert_err(u:open_ogg_page(path, 7, 0, 64, 4, 8), "bad capture")?;
+  write_bytes(path, scatter(valid, 4, 1))?; u:assert_err(u:open_ogg_page(path, 7, 0, 64, 4, 8), "unsupported version")?;
+  write_bytes(path, scatter(valid, 5, 8))?; u:assert_err(u:open_ogg_page(path, 7, 0, 64, 4, 8), "reserved flags")?;
+  write_bytes(path, u:byte_slice(valid, 0, 27)?)?; u:assert_err(u:open_ogg_page(path, 7, 0, 64, 4, 8), "truncated lacing table")?;
+  write_bytes(path, u:byte_slice(valid, 0, 30)?)?; u:assert_err(u:open_ogg_page(path, 7, 0, 64, 4, 8), "truncated body")?;
+  write_bytes(path, valid)?; u:assert_err(u:open_ogg_page(path, 7, 0, 29, 4, 8), "page byte budget")?; u:assert_err(u:open_ogg_page(path, 7, 0, 64, 0, 8), "segment budget")?; u:assert_err(u:open_ogg_page(path, 7, 0, 64, 4, 2), "body budget")?; u:assert_err(u:open_ogg_page(path, 7, 99, 64, 4, 8), "offset beyond snapshot")
+}
+
+u:run_registered_tests()
