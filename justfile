@@ -122,6 +122,10 @@ wav-bounded-output:
 sparse-memory-evidence:
     ./scripts/run-sparse-memory-evidence
 
+# Opt-in: copy 1 MiB and 64 MiB outputs and enforce peak-RSS ceilings.
+bounded-output-memory-evidence:
+    ./scripts/run-bounded-output-memory-evidence
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

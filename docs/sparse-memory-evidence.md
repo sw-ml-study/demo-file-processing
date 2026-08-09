@@ -59,3 +59,7 @@ Platform `time` is an external measurement oracle. MLPL owns traversal,
 histogram reduction, RIFF parsing, and invariants; the generic runtime owns
 bounded reads and metadata; the shell owns sparse fixture construction and RSS
 ceiling enforcement.
+
+This report covers read-side reduction and payload-skipping inspection. The
+separate [bounded-output report](bounded-output-report.md) measures the actual
+incremental sink while an exact destination grows to 64 MiB.

@@ -42,6 +42,11 @@ output size.
 `mlpl-build` still rejects `append_bytes/2`; this contract is interpreter-only
 until the queued compiler I/O parity work lands.
 
+The [bounded-output acceptance report](bounded-output-report.md) exercises the
+sink in 1,024 append calls producing an exact 64 MiB file and records bounded
+peak-RSS growth. Binary stdout and persistent/non-seekable handles remain
+separate capabilities.
+
 The downstream [bounded-copy contract](bounded-copy.md) now supplies the
 create-new, budget, count-verification, and partial-output policy around this
 primitive.

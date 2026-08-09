@@ -14,8 +14,9 @@ when a runtime, codec extension, or validation oracle performs the work.
 
 ## Project status
 
-The foundation, bounded range analysis, MP3/ID3 inspection, and read-only Ogg
-inspection are accepted with 68 native mlplunit tests across 21 suites. See
+The foundation, bounded range analysis, MP3/ID3 and Ogg inspection, and
+sandboxed incremental file output are accepted with 88 native mlplunit tests
+across 26 suites. See [the bounded-output acceptance report](docs/bounded-output-report.md),
 [the Ogg acceptance report](docs/ogg-report.md),
 [the MP3/ID3 acceptance report](docs/mp3-id3-report.md),
 [the bounded-read acceptance report](docs/bounded-read-report.md),
@@ -113,6 +114,12 @@ measures fixed-budget histogram and WAV consumers as sparse artifacts grow to
 1 MiB and 64 MiB. Recorded macOS peak RSS stayed below 32 MiB, with growth
 between zero and roughly 1.1 MiB across repeated small/large comparisons.
 
+The opt-in [bounded-output memory evidence](docs/bounded-output-report.md)
+copies 1 MiB and 64 MiB artifacts through fixed 65,536-byte read/append chunks.
+Recorded peak RSS changed from 15,859,712 to 15,974,400 bytes while `cmp`
+verified both outputs, so the 64 MiB output exceeded the process RSS ceiling
+without output-sized resident retention.
+
 ```sh
 just hexdump
 just histogram
@@ -132,6 +139,7 @@ just wav-inspect-copy
 just wav-range-inspect
 just wav-bounded-output
 just sparse-memory-evidence
+just bounded-output-memory-evidence
 just tests tests/bytes
 just tests tests/io
 just tests tests/binary

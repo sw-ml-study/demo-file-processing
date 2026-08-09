@@ -1,0 +1,14 @@
+include "../../src/io/bounded_copy.mlpl";
+
+source = list_get(args(), 0)?; destination = list_get(args(), 1)?; remove_path(destination); source_bytes = file_size(source)?;
+result = u:bounded_copy_file(source, destination, 65536, source_bytes, 1)?;
+if eq(result.bytes_copied, source_bytes) * eq(result.destination_size, source_bytes) {
+  print("Sparse bounded-output memory demonstration");
+  print("Purpose: create an output larger than the working budget while retaining only one caller-sized payload chunk.");
+  print("Input/output bytes:", source_bytes, "; configured chunk bytes:", result.chunk_size, "; append chunks:", result.chunks, "; tail bytes:", result.last_chunk_bytes, ".");
+  print("MLPL work: validate exact file and output budgets, traverse source ranges, verify every append count, and report the final destination size.");
+  print("Native runtime work: serve bounded range reads and append each sandboxed file-path chunk with implicit close/flush.");
+  print("Interpretation: logical output size grows from the number of chunks; no complete source or destination byte vector is retained.");
+  print("Measurement boundary: the shell owns platform peak-RSS measurement and independent cmp verification after this process exits.");
+  ok(result)
+} else { err({kind: "invariant", message: "sparse bounded copy size changed"}) }

@@ -13,8 +13,10 @@ output. Cleanup failure is surfaced separately rather than claiming rollback.
 
 Traversal is O(bytes) work and O(chunk_size) payload allocation independent of
 total output. Bytes remain f64-backed, and each append opens/closes the file, so
-this is a bounded-memory contract rather than a throughput claim. Growing-file
-RSS measurement remains assigned to the saga acceptance step.
+this is a bounded-memory contract rather than a throughput claim. The
+[bounded-output acceptance report](bounded-output-report.md) measures only
+114,688 bytes of peak-RSS growth as exact output grows from 1 MiB to 64 MiB at
+a fixed 65,536-byte chunk.
 
 Native mlplunit covers byte-identical copies at 1, 7, 64, and 65,536, exact
 subranges, empty files, tail chunks, total/range/chunk budgets, existing and

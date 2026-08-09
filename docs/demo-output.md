@@ -36,6 +36,7 @@ presented as demonstrations.
 | `just wav-range-inspect` | odd padded JUNK chunk before one sample | how metadata inspection skips payloads and locates audio |
 | `just wav-bounded-output` | canonical copy plus `[0, 127, 255]` → `[255, 128, 0]` | how fixed headers and bounded sample chunks produce real WAV files |
 | `just sparse-memory-evidence` | 16× histogram and 64× WAV size contrasts | how to read RSS ceilings and distinguish MLPL work from the platform oracle |
+| `just bounded-output-memory-evidence` | 1 MiB versus 64 MiB exact file outputs | how 64× output growth compares with fixed chunk state and measured peak RSS |
 | `just mp3-oracle` | checksum/version-pinned decodable tone | why structural Xing frames differ from decoded packets and presentation duration |
 | `just ogg-oracle` | checksum/version-pinned Ogg/Opus tone | why Opus header packets differ from decoded audio packet counts |
 

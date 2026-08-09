@@ -26,7 +26,7 @@ the authority for downstream claims.
 | Incremental stream handles | No open/read-next/write-next/seek handle surface was found or exercised | Stateful single-pass transforms and codecs remain gated; repeated range reads are not a stream API. |
 | Writes | `write_bytes` validates integral byte values and failed validation preserves prior contents | Deterministic whole-buffer replacement remains useful for tiny outputs and destination initialization. |
 | Incremental file output | `append_bytes(path, bytes)` creates/appends a validated bounded chunk and returns its count; each call implicitly closes/flushes | File-path output can be bounded by chunk size; callers must initialize destinations and define partial-output cleanup. Binary stdout and compiler lowering remain absent. |
-| Bounded byte copy | MLPL copies exact whole-file or subrange bytes through caller-capped reads/appends, requires a new destination, verifies counts, and applies explicit keep/remove partial policy | Byte-identical file output is executable at chunks 1, 7, 64, and 65,536; growing-output RSS remains to be measured. |
+| Bounded byte copy | MLPL copies exact whole-file or subrange bytes through caller-capped reads/appends, requires a new destination, verifies counts, and applies explicit keep/remove partial policy | Byte-identical output is executable at chunks 1, 7, 64, and 65,536; 64 MiB output peak RSS is measured separately below. |
 | Bit operations | `band`, `bor`, `bxor`, `bnot`, `popcount`, `shl`, `shr`, `bits`, and `from_bits` pass golden vectors | In-memory endian and field work is unblocked in the interpreter. |
 | Endian/layout library | MLPL codecs round-trip exact u8..u48 in both byte orders; width vectors extract MSB-first fields across byte boundaries | WAV-sized integers and MPEG headers need no format/runtime builtin; scalar u56/u64 remains intentionally rejected. |
 | MPEG frame scanner | MLPL acquires synchronization with two compatible semantic headers, skips payloads by decoded frame length, reacquires after damage, and reports fixed bitrate/channel histograms plus frame-size statistics | Read-only MP3 ranges can be inspected under explicit byte and frame budgets; free bitrate and measured memory evidence remain out of scope. |
@@ -40,6 +40,7 @@ the authority for downstream claims.
 | Bounded WAV inspection | MLPL reads at most 16 header bytes per window, skips payloads by validated offsets, and matches whole-buffer metadata for every header split | Read-only WAV metadata scales structurally without sample retention; copy/write and measured-RSS claims remain separate. |
 | Bounded WAV output | MLPL writes a fixed 44-byte canonical PCM header, then copies or inverts unsigned 8-bit samples through range-read/append chunks with exact output budgets | Payload state is O(chunk size); arbitrary RIFF ancillary chunks are intentionally normalized away, and file-path/interpreter boundaries remain. |
 | Sparse-file peak RSS | Fixed-budget histogram and WAV consumers stayed below a 32 MiB ceiling as artifacts grew to 1 MiB and 64 MiB; repeat growth stayed at or below 1,081,344 bytes | The measured read-side high-water mark depends on chunk plus state, not total file size, on the recorded platform. |
+| Growing-output peak RSS | A 1 MiB/64 MiB byte-copy pair at 65,536-byte chunks measured 15,859,712/15,974,400-byte peak RSS; `cmp` verified exact outputs | A 64-fold logical-output increase added 114,688 RSS bytes and stayed below a 48 MiB ceiling, supporting chunk-plus-state rather than output-sized retention. |
 | Exact integer domain | Numeric arrays are f64-backed; `2^53` and mathematical `2^53+1` compare equal; bit operations reject operands at the upper domain boundary upstream | Byte and ordinary 32-bit field work is exact; 64-bit file fields require a split-word representation or a new type. |
 | Script process surface | `args`, `read_stdin`, `print`, `eprint`, and `exit(7)` produced separated streams and the requested status | Interpreter-backed Unix-style tools are available now. `read_stdin` is whole-input text, not binary chunk streaming. |
 | Native numeric build | `reduce_add(iota(8))` produced `28` in both interpreter and compiled artifact | The native path is real for its supported numeric subset. The artifact runs directly; `otool -L` shows no named MLPL interpreter/parser/evaluator dynamic dependency. |
@@ -54,12 +55,14 @@ The repository can now truthfully claim:
 - interpreter-side bit manipulation over exact non-negative f64 integers;
 - script arguments, text stdin, separated output streams, and exit codes;
 - a native compiler path for the tested numeric and arithmetic expressions;
-- bounded seekable-file MPEG Layer III structural statistics and ID3v2.3/v2.4
-  metadata/audio descriptors without codec or output claims.
+- bounded seekable-file MPEG Layer III structural statistics, ID3v2.3/v2.4
+  metadata/audio descriptors, ID3 stripping, and accepted-frame extraction
+  without codec-decoding claims.
 - bounded seekable-file Ogg page, single-stream packet-boundary, split-granule,
-  and CRC integrity descriptors without codec or output claims.
+  CRC integrity, page copying, and sequence/CRC rewriting without codec claims.
 - bounded interpreter-driven output to sandboxed file paths through validated
-  append chunks.
+  append chunks, with measured resident growth independent of 64-fold output
+  growth at the accepted chunk size.
 
 It cannot yet claim:
 

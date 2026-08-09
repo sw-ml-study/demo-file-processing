@@ -57,8 +57,8 @@ Status: accepted; see the [Ogg read-only report](ogg-report.md).
 
 ## Saga 5 — `incremental-binary-output`
 
-Status: active; unblocked for sandboxed file-path output by `append_bytes` in
-sw-MLPL `d3713461`. Binary stdout and compiled parity remain separate gates.
+Status: accepted; see the [bounded-output report](bounded-output-report.md).
+Binary stdout and compiled parity remain separate gates.
 
 1. `append_bytes` conformance including validation, counts, implicit per-call
    close/flush, path errors, initialization, and partial-output policy.

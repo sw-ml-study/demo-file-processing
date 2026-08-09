@@ -1,0 +1,78 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mlpl=$("$repo_root/scripts/select-mlpl")
+mkdir -p "$repo_root/tmp"
+work_dir=$(mktemp -d "$repo_root/tmp/file-processing-output.XXXXXX")
+trap 'rm -rf "$work_dir"' EXIT HUP INT TERM
+
+small_bytes=1048576
+large_bytes=67108864
+chunk_bytes=65536
+max_rss_bytes=50331648
+max_growth_bytes=8388608
+
+echo "Bounded-output peak-memory acceptance"
+echo "Purpose: measure the actual incremental file sink while logical output grows 64-fold."
+echo "Inputs and outputs: $small_bytes and $large_bytes bytes; fixed read/append chunk: $chunk_bytes bytes."
+echo "Acceptance: exact cmp output, every run below $max_rss_bytes RSS bytes, and growth no more than $max_growth_bytes bytes."
+
+small_source="$work_dir/source-small.bin"
+large_source="$work_dir/source-large.bin"
+small_output="$work_dir/output-small.bin"
+large_output="$work_dir/output-large.bin"
+truncate -s "$small_bytes" "$small_source"
+truncate -s "$large_bytes" "$large_source"
+
+measure() {
+  label=$1
+  source=$2
+  output=$3
+  expected_bytes=$4
+  stdout_file="$work_dir/$label.out"
+  metrics_file="$work_dir/$label.time"
+  case $(uname -s) in
+    Darwin)
+      /usr/bin/time -l "$mlpl" --source-dir "$repo_root" "$repo_root/demos/bytes/sparse_copy.mlpl" -- "$source" "$output" >"$stdout_file" 2>"$metrics_file" || {
+        cat "$stdout_file"; cat "$metrics_file" >&2; exit 1;
+      }
+      rss=$(awk '/maximum resident set size/ { print $1; exit }' "$metrics_file")
+      ;;
+    Linux)
+      /usr/bin/time -v "$mlpl" --source-dir "$repo_root" "$repo_root/demos/bytes/sparse_copy.mlpl" -- "$source" "$output" >"$stdout_file" 2>"$metrics_file" || {
+        cat "$stdout_file"; cat "$metrics_file" >&2; exit 1;
+      }
+      rss_kib=$(awk -F: '/Maximum resident set size/ { gsub(/^[ \t]+/, "", $2); print $2; exit }' "$metrics_file")
+      rss=$((rss_kib * 1024))
+      ;;
+    *)
+      echo "SKIP bounded-output memory evidence: /usr/bin/time parser supports Darwin and Linux only" >&2
+      exit 77
+      ;;
+  esac
+  cat "$stdout_file"
+  grep -Fqx 'Sparse bounded-output memory demonstration' "$stdout_file"
+  grep -Fqx 'Interpretation: logical output size grows from the number of chunks; no complete source or destination byte vector is retained.' "$stdout_file"
+  [ "$(wc -c < "$output" | tr -d ' ')" = "$expected_bytes" ] || { echo "$label output size mismatch" >&2; exit 1; }
+  cmp "$source" "$output"
+  [ -n "$rss" ] || { echo "peak RSS was not reported; run outside a restricted metrics sandbox" >&2; cat "$metrics_file" >&2; exit 1; }
+  echo "$rss" > "$work_dir/$label.rss"
+  echo "MEASURE $label output_bytes=$expected_bytes peak_rss_bytes=$rss"
+}
+
+measure output-small "$small_source" "$small_output" "$small_bytes"
+measure output-large "$large_source" "$large_output" "$large_bytes"
+
+small_rss=$(cat "$work_dir/output-small.rss")
+large_rss=$(cat "$work_dir/output-large.rss")
+growth=$((large_rss - small_rss))
+[ "$growth" -ge 0 ] || growth=0
+[ "$small_rss" -le "$max_rss_bytes" ] || { echo "small-output RSS $small_rss exceeded $max_rss_bytes bytes" >&2; exit 1; }
+[ "$large_rss" -le "$max_rss_bytes" ] || { echo "large-output RSS $large_rss exceeded $max_rss_bytes bytes" >&2; exit 1; }
+[ "$growth" -le "$max_growth_bytes" ] || { echo "output RSS growth $growth exceeded $max_growth_bytes bytes" >&2; exit 1; }
+[ "$large_bytes" -gt "$max_rss_bytes" ] || { echo "large output must exceed the RSS ceiling" >&2; exit 1; }
+
+echo "Measured result: small-output RSS=$small_rss bytes; large-output RSS=$large_rss bytes; non-negative growth=$growth bytes."
+echo "Interpretation: a 64-fold logical-output increase stayed within fixed absolute and growth ceilings; output size did not drive resident growth."
+echo "ACCEPT bounded output memory chunk_bytes=$chunk_bytes ceiling_bytes=$max_rss_bytes growth_ceiling_bytes=$max_growth_bytes"

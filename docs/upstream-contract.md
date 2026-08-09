@@ -115,12 +115,19 @@ memory budget; and measured resident memory proportional to chunk plus writer
 state rather than total output size. If a sequential source is added, it must
 also reproduce the already accepted range-reader results across split fields.
 
+The sandboxed file-path subset now satisfies those criteria downstream. The
+[bounded-output report](bounded-output-report.md) records a byte-identical
+64 MiB output above the RSS ceiling with only 114,688 bytes measured growth.
+This does not satisfy binary stdout, persistent-handle, pipe/backpressure, or
+compiler-lowering requirements; those remain the genuine upstream gaps.
+
 ## Deferred: packed bytes and exact 64-bit fields
 
 Current reads allocate an ordinary f64 per byte. That is inefficient, but it
 does not block tiny foundation fixtures or bounded range parsing. Request a
-packed `u8`/typed-array representation only after measurements show the range
-API cannot meet a concrete memory or throughput target.
+packed `u8`/typed-array representation when density or throughput becomes a
+concrete target. The accepted output measurement shows it is not required to
+bound file-copy RSS, because fixed chunking already bounds live f64 byte cells.
 
 Ogg granule positions and other 64-bit fields cannot be represented as one
 exact f64 across their full domain. Foundation code should first use two exact

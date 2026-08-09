@@ -1,6 +1,6 @@
 number = 6
 slug = "bounded-output-acceptance"
-status = "pending"
+status = "in-progress"
 description = "Measure growing-output peak RSS; run the full gate; stabilize file-path sink/..."
 role = "meta"
 context_files = []
