@@ -1,0 +1,1 @@
+Implemented chunk-bounded file copy using read_bytes and append_bytes with create-new destination safety, exact range and byte-budget checks, verified append counts, and deterministic partial-output cleanup policy. Added four native mlplunit cases plus a self-describing 7+7+3 demo with independent SHA-256 verification and integrated documentation/checks.

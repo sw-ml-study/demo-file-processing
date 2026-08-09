@@ -1,8 +1,9 @@
 number = 2
 slug = "bounded-byte-copy"
-status = "in-progress"
+status = "completed"
 description = "Implement bounded read-range to append_bytes copy loops with explicit chunk/t..."
 role = "production"
 context_files = []
 created_at = "2026-08-09T08:57:10"
-commits = []
+completed_at = "2026-08-09T09:18:26"
+commits = ["44a967f203d9a190c4d8358190ffd0a2795accb1"]
