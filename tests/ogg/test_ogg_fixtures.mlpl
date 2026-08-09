@@ -1,0 +1,25 @@
+include "src/bytes/validate.mlpl";
+include "src/ogg/packets.mlpl";
+include "src/ogg/crc.mlpl";
+
+def u:verify_ogg_fixture_pages(path, chunk_size) { "Verify every page checksum and return the page count.";
+  size = file_size(path)?; reader = u:range_reader(path, chunk_size)?; cursor = 0; pages = 0; while lt(cursor, size) { page = u:read_ogg_page(reader, cursor, 65536, 255, 65536)?; u:verify_ogg_page_crc(path, chunk_size, cursor, 65536, 255, 65536, 65536, chunk_size)?; cursor = page.next_offset; pages = pages + 1 }; ok(pages)
+}
+
+@test {name: "committed structural Ogg fixture is chunk invariant and checksum valid", tags: ["ogg", "fixture", "chunks", "crc"]}
+def u:test_ogg_structural_fixture() { "Pin page, packet, continuation, and checksum facts for the generated teaching stream.";
+  path = "fixtures/ogg/structural-cross-page.ogg"; size = file_size(path)?; one = u:inspect_ogg_packets(path, 1, 0, size, size, 8, 512, 8, 300, 16, 512)?; seven = u:inspect_ogg_packets(path, 7, 0, size, size, 8, 512, 8, 300, 16, 512)?; large = u:inspect_ogg_packets(path, 65536, 0, size, size, 8, 512, 8, 300, 16, 512)?;
+  u:assert_eq(one, seven, "one and seven byte fixture scans agree")?; u:assert_eq(one, large, "one and oversized fixture scans agree")?; u:assert_eq([one.pages, one.packets, one.spanning_packets, one.max_packet_bytes], [3, 4, 1, 265], "structural fixture facts")?; u:assert_eq(u:verify_ogg_fixture_pages(path, 1), ok(3), "one-byte CRC traversal")?; u:assert_eq(u:verify_ogg_fixture_pages(path, 64), ok(3), "64-byte CRC traversal")
+}
+
+@test {name: "committed malformed Ogg fixtures fail their intended contract", tags: ["ogg", "fixture", "malformed"]}
+def u:test_ogg_malformed_fixtures() { "Keep semantic continuation failure separate from byte-integrity failure.";
+  continuation = "fixtures/ogg/malformed-continuation.ogg"; size = file_size(continuation)?; u:assert_err(u:inspect_ogg_packets(continuation, 7, 0, size, size, 8, 512, 8, 300, 16, 512), "missing continuation flag")?; u:assert_err(u:verify_ogg_page_crc("fixtures/ogg/malformed-crc.ogg", 7, 0, 512, 8, 300, 512, 7), "corrupt first page CRC")
+}
+
+@test {name: "decodable Ogg Opus oracle fixture has stable MLPL structure", tags: ["ogg", "opus", "fixture", "oracle"]}
+def u:test_ogg_oracle_fixture() { "Keep default tests codec-independent while pinning the MLPL half of the opt-in ffprobe comparison.";
+  path = "fixtures/ogg/tone-opus.ogg"; size = file_size(path)?; seven = u:inspect_ogg_packets(path, 7, 0, size, size, 8, 65536, 255, 65536, 64, 65536)?; sixty_four = u:inspect_ogg_packets(path, 64, 0, size, size, 8, 65536, 255, 65536, 64, 65536)?; u:assert_eq(seven, sixty_four, "oracle fixture chunk invariance")?; u:assert_eq([seven.pages, seven.packets], [3, 15], "Opus headers plus audio packets")?; u:assert_eq(u:verify_ogg_fixture_pages(path, 7), ok(3), "all oracle page CRCs")
+}
+
+u:run_registered_tests()

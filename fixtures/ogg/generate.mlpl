@@ -1,0 +1,17 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/endian_encode.mlpl";
+include "../../src/ogg/crc.mlpl";
+
+def u:ogg_fixture_page(flags, serial, sequence, granule_low, granule_high, lacing, payload_byte) { "Build one deterministic page and encode its MLPL-computed checksum.";
+  body_bytes = u:ogg_lacing_summary(lacing).body_bytes; zero = concat(concat(concat(concat(concat(concat(concat(concat([79, 103, 103, 83, 0, flags], u:encode_uint(granule_low, 4, "le")?), u:encode_uint(granule_high, 4, "le")?), u:encode_uint(serial, 4, "le")?), u:encode_uint(sequence, 4, "le")?), fill(4, 0)), [tally(lacing)]), lacing), fill(body_bytes, payload_byte)); checksum = u:ogg_crc_bytes(zero)?; encoded = u:encode_uint(checksum, 4, "le")?; page = zero; index = 0; while lt(index, 4) { page = scatter(page, 22 + index, take(encoded, 0, index)); index = index + 1 }; ok(page)
+}
+
+first = u:ogg_fixture_page(2, 99, 10, 0, 0, [255], 11)?;
+second = u:ogg_fixture_page(1, 99, 11, 4294967295, 4294967295, [10, 3, 0], 13)?;
+third = u:ogg_fixture_page(4, 99, 12, 270, 0, [2], 17)?;
+structural = concat(concat(first, second), third);
+write_bytes("fixtures/ogg/structural-cross-page.ogg", structural)?;
+write_bytes("fixtures/ogg/malformed-crc.ogg", scatter(structural, 100, 18))?;
+bad_second = u:ogg_fixture_page(0, 99, 11, 0, 0, [10], 19)?;
+write_bytes("fixtures/ogg/malformed-continuation.ogg", concat(first, bad_second))?;
+ok(3)

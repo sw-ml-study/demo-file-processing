@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mode=${1:---write}
+case "$mode" in
+  --write) mlpl=$("$repo_root/scripts/select-mlpl"); "$mlpl" --source-dir "$repo_root" "$repo_root/fixtures/ogg/generate.mlpl" >/dev/null ;;
+  --check) : ;;
+  *) echo "usage: generate-ogg-fixtures [--write|--check]" >&2; exit 2 ;;
+esac
+
+expected='malformed-continuation.ogg 321
+malformed-crc.ogg 356
+structural-cross-page.ogg 356
+tone-opus.ogg 2324'
+actual=
+for path in malformed-continuation.ogg malformed-crc.ogg structural-cross-page.ogg tone-opus.ogg; do file="$repo_root/fixtures/ogg/$path"; [ -f "$file" ] || { echo "missing Ogg fixture: $path" >&2; exit 1; }; count=$(wc -c < "$file" | tr -d ' '); actual="${actual}${actual:+
+}$path $count"; done
+[ "$actual" = "$expected" ] || { echo "Ogg fixture manifest mismatch" >&2; printf '%s\n' "$actual" >&2; exit 1; }
+
+if command -v shasum >/dev/null 2>&1; then hash_command='shasum -a 256'; else hash_command=sha256sum; fi
+expected_hashes='26ee0dcb91993a88eed4a05a9ca7fd742728364a6c3ea09d0960f0ca72d5af45  malformed-continuation.ogg
+5ae7fbf9d826203829c513297a9e54581a0ecec64e5e4044b924bb6c4cfb945f  malformed-crc.ogg
+8b4de80379d5fa5d326813aad403bd2e38f3a19fd5704f926bc3f4af7abd332e  structural-cross-page.ogg
+82b696a43679702d6aa581707857d466050eb5ac74df4d1db0153e305e69c03c  tone-opus.ogg'
+actual_hashes=
+for path in malformed-continuation.ogg malformed-crc.ogg structural-cross-page.ogg tone-opus.ogg; do hash=$(cd "$repo_root/fixtures/ogg" && $hash_command "$path" | awk '{print $1}'); actual_hashes="${actual_hashes}${actual_hashes:+
+}$hash  $path"; done
+[ "$actual_hashes" = "$expected_hashes" ] || { echo "Ogg fixture checksum mismatch" >&2; printf '%s\n' "$actual_hashes" >&2; exit 1; }
+
+echo "PASS Ogg fixtures ($mode)"

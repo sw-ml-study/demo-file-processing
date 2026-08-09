@@ -45,6 +45,9 @@ generate-wav-fixtures:
 generate-mp3-fixtures:
     ./scripts/generate-mp3-fixtures --write
 
+generate-ogg-fixtures:
+    ./scripts/generate-ogg-fixtures --write
+
 # Run the readable byte-processing applications.
 hexdump:
     ./scripts/run-byte-demo hexdump
@@ -74,6 +77,22 @@ id3-inspect:
 # Opt-in pinned ffprobe comparison against the decodable tone fixture.
 mp3-oracle:
     ./scripts/run-mp3-oracle
+
+# Inspect Ogg page/lacing descriptors without reading payloads.
+ogg-pages:
+    ./scripts/run-ogg-demo pages
+
+# Reconstruct bounded packet boundaries across Ogg pages.
+ogg-packets:
+    ./scripts/run-ogg-demo packets
+
+# Verify Ogg checksums visibly in MLPL and contrast corruption.
+ogg-crc:
+    ./scripts/run-ogg-demo crc
+
+# Opt-in pinned ffprobe comparison against the decodable Ogg/Opus tone.
+ogg-oracle:
+    ./scripts/run-ogg-oracle
 
 # Inspect and canonically copy a tiny PCM WAV file.
 wav-inspect-copy:

@@ -1,0 +1,15 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/ogg/packets.mlpl";
+
+path = "fixtures/ogg/structural-cross-page.ogg"; size = file_size(path)?; scan = u:inspect_ogg_packets(path, 7, 0, size, size, 8, 512, 8, 300, 16, 512)?; large = u:inspect_ogg_packets(path, 65536, 0, size, size, 8, 512, 8, 300, 16, 512)?; malformed_path = "fixtures/ogg/malformed-continuation.ogg"; malformed_size = file_size(malformed_path)?; malformed = u:inspect_ogg_packets(malformed_path, 7, 0, malformed_size, malformed_size, 8, 512, 8, 300, 16, 512);
+if equal(scan, large) * is_err(malformed) {
+  print("Cross-page Ogg packet demonstration");
+  print("Purpose: reconstruct packet boundaries and continuation statistics without allocating packet payloads or a packet list.");
+  print("Input: three pages containing one 265-byte spanning packet, two ordinary packets, one zero-length packet, and valid BOS/continued/EOS state.");
+  print("MLPL work: fold lacing across pages, enforce serial/sequence/continuation state, and aggregate bounded packet sizes.");
+  print("Native runtime work: bounded byte reads only; page bodies are skipped by offsets and no codec is invoked.");
+  print("Output: pages", scan.pages, "; packets", scan.packets, "; spanning packets", scan.spanning_packets, "; zero packets", scan.zero_packets, "; size range", scan.min_packet_bytes, "to", scan.max_packet_bytes, ".");
+  print("Interpretation: 255 plus 10 becomes one 265-byte packet across a page boundary; chunk budgets 7 and 65,536 preserve all counts.");
+  print("Malformed contrast: a checksum-valid second page omits the required continued flag, so packet inspection returns Err before combining unrelated boundaries.");
+  ok({pages: scan.pages, packets: scan.packets, spanning: scan.spanning_packets})
+} else { err({kind: "invariant", message: "Ogg packet demo changed"}) }

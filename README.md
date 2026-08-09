@@ -71,6 +71,13 @@ Their [tiny fixtures and pinned oracle](docs/mp3-fixtures-oracle.md) distinguish
 synthetic structural evidence from a decodable 440 Hz tone and opt-in ffprobe
 validation.
 
+The bounded [Ogg page](docs/ogg-page-model.md),
+[cross-page packet](docs/ogg-packet-reconstruction.md), and
+[visible CRC](docs/ogg-crc.md) slices have narrated structural, continuation,
+and corruption contrasts. Their [fixtures and pinned Ogg/Opus
+oracle](docs/ogg-fixtures-oracle.md) separate container packet counts from
+codec-decoded audio packets.
+
 The [PCM WAV slice](docs/wav.md) inspects RIFF chunks and canonically copies
 empty/minimal mono files. It validates padding, lengths, derived rates, formats,
 and budgets while distinguishing byte-identical canonical round trips from
@@ -94,6 +101,10 @@ just binary-fields
 just mp3-scan
 just id3-inspect
 just mp3-oracle
+just ogg-pages
+just ogg-packets
+just ogg-crc
+just ogg-oracle
 just wav-inspect-copy
 just wav-range-inspect
 just sparse-memory-evidence

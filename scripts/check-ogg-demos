@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+pages=$("$repo_root/scripts/run-ogg-demo" pages); printf '%s\n' "$pages" | grep -Fqx 'Bounded Ogg page demonstration'; printf '%s\n' "$pages" | grep -Fqx 'Interpretation: lacing value 255 leaves a packet open; the next page'"'"'s continued flag and lacing complete it, while chunks 7 and 65,536 give the same descriptor.'
+packets=$("$repo_root/scripts/run-ogg-demo" packets); printf '%s\n' "$packets" | grep -Fqx 'Cross-page Ogg packet demonstration'; printf '%s\n' "$packets" | grep -Fqx 'Malformed contrast: a checksum-valid second page omits the required continued flag, so packet inspection returns Err before combining unrelated boundaries.'
+crc=$("$repo_root/scripts/run-ogg-demo" crc); printf '%s\n' "$crc" | grep -Fqx 'Visible Ogg CRC demonstration'; printf '%s\n' "$crc" | grep -Fqx 'Interpretation: structural parsing can still describe a damaged page, while required CRC verification rejects the changed payload deterministically.'
+echo "PASS Ogg demos"

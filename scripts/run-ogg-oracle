@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd); fixture="$repo_root/fixtures/ogg/tone-opus.ogg"; pinned=8.1.2
+command -v ffprobe >/dev/null 2>&1 || { echo "BLOCKED: ffprobe $pinned is required for this opt-in oracle" >&2; exit 2; }
+version=$(ffprobe -version | awk 'NR == 1 {print $3}'); [ "$version" = "$pinned" ] || { echo "BLOCKED: pinned ffprobe $pinned required; found $version" >&2; exit 2; }
+if command -v shasum >/dev/null 2>&1; then checksum=$(shasum -a 256 "$fixture" | awk '{print $1}'); else checksum=$(sha256sum "$fixture" | awk '{print $1}'); fi
+[ "$checksum" = 82b696a43679702d6aa581707857d466050eb5ac74df4d1db0153e305e69c03c ] || { echo "Ogg oracle fixture checksum mismatch" >&2; exit 1; }
+codec=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "$fixture"); rate=$(ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of default=noprint_wrappers=1:nokey=1 "$fixture"); channels=$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=noprint_wrappers=1:nokey=1 "$fixture"); packets=$(ffprobe -v error -count_packets -select_streams a:0 -show_entries stream=nb_read_packets -of default=noprint_wrappers=1:nokey=1 "$fixture"); duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$fixture"); title=$(ffprobe -v error -select_streams a:0 -show_entries stream_tags=title -of default=noprint_wrappers=1:nokey=1 "$fixture")
+[ "$codec,$rate,$channels,$packets,$duration,$title" = "opus,48000,1,13,0.256500,Bounded Ogg tone" ] || { echo "ffprobe Ogg oracle result changed" >&2; exit 1; }
+mlpl_output=$("$repo_root/scripts/run-ogg-demo" oracle); printf '%s\n' "$mlpl_output" | grep -Fqx 'MLPL Ogg pages: 3'; printf '%s\n' "$mlpl_output" | grep -Fqx 'MLPL structural packets: 15'
+echo "Pinned Ogg oracle comparison"
+echo "Purpose: compare MLPL container structure with a named codec-aware analyzer on one checksum-pinned decodable Ogg/Opus fixture."
+echo "Fixture: generated mono 440 Hz tone; SHA-256 $checksum."
+echo "MLPL result: 3 checksum-valid Ogg pages and 15 structural packets, using bounded reads and no codec."
+echo "ffprobe $version result: Ogg/$codec, $channels channel, $rate Hz, 13 decoded audio packets, duration $duration seconds, title '$title'."
+echo "Interpretation: MLPL includes the OpusHead and OpusTags header packets; ffprobe reports the 13 decoded audio packets after interpreting the codec."
+echo "Boundary: ffprobe is opt-in validation only and performs none of the default MLPL page, lacing, continuation, or CRC work."

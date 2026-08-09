@@ -25,3 +25,6 @@ The [packet reconstruction layer](ogg-packet-reconstruction.md) composes these
 descriptors across consecutive pages while keeping payload bytes out of memory.
 The separate [visible CRC verifier](ogg-crc.md) traverses page bytes only when a
 caller requests integrity evidence.
+
+Committed [structural, malformed, and decodable fixtures](ogg-fixtures-oracle.md)
+drive the narrated page, packet, CRC, and opt-in oracle demonstrations.
