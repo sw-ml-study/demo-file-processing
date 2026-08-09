@@ -1,6 +1,6 @@
 number = 1
 slug = "mpeg-frame-header-model"
-status = "pending"
+status = "in-progress"
 description = "Turn the existing golden MPEG bit-field demonstration into a reusable semanti..."
 role = "production"
 context_files = []

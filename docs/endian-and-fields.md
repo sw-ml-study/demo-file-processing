@@ -27,7 +27,10 @@ offsets  0 11 13 15 16 20 22 23 24 26 28 29 30
 values   2047 3 1 1 9 0 0 0 1 2 0 1 0
 ```
 
-That corresponds to the MPEG-1 Audio Layer III header fields in
+That foundation now feeds the reusable
+[semantic MPEG Layer III parser](mpeg-audio-header.md), which applies versioned
+bitrate/sample-rate tables, reserved-value policy, and frame geometry. The raw
+layout corresponds to the MPEG-1 Audio Layer III header fields in
 [ISO/IEC 11172-3](https://www.iso.org/standard/22412.html): sync, version,
 layer, protection, bitrate index, sample-rate index, padding, private bit,
 channel mode, mode extension, copyright, original, and emphasis. The standard

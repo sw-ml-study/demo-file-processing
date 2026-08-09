@@ -1,21 +1,21 @@
 include "../../src/bytes/validate.mlpl";
 include "../../src/binary/endian_decode.mlpl";
 include "../../src/binary/bit_fields.mlpl";
+include "../../src/mp3/header.mlpl";
 
-header = [255, 251, 144, 100];
-widths = [11, 2, 2, 1, 4, 2, 1, 1, 2, 2, 1, 1, 2];
-fields = u:unpack_fields(header, widths)?;
-expected = [2047, 3, 1, 1, 9, 0, 0, 0, 1, 2, 0, 1, 0];
-if equal(fields.values, expected) {
-  print("Declarative MPEG audio-header demonstration");
-  print("Purpose: decode packed fields that do not align to byte boundaries without a format-specific native parser.");
-  print("Input: FF FB 90 64, a four-byte MPEG-1 Layer III frame header.");
-  print("MLPL work: expand bytes to MSB-first bits and apply this data-described width vector:", fields.widths);
+mpeg1 = u:parse_mpeg_layer3_header([255, 251, 144, 100])?;
+mpeg25 = u:parse_mpeg_layer3_header([255, 227, 64, 192])?;
+if eq(mpeg1.frame_length, 417) * eq(mpeg25.frame_length, 208) {
+  print("Semantic MPEG audio-header demonstration");
+  print("Purpose: turn packed cross-byte selectors into validated Layer III frame geometry without a format-specific native parser.");
+  print("MLPL work: expand bytes to MSB-first fields, reject reserved selectors, apply versioned bitrate/rate tables, and derive frame length.");
   print("Native runtime work: fixed-width bit operations only; no MPEG parser or external tool is used.");
-  print("Bit offsets:", fields.offsets);
-  print("Raw field values:", fields.values);
-  print("Decoded meaning: sync=0x7FF, MPEG-1, Layer III, no CRC, bitrate index 9 (128 kbps), sample-rate index 0 (44.1 kHz).");
-  print("Decoded meaning: no padding, joint stereo, mode extension 2, not copyrighted, original, no emphasis.");
-  print("Interpretation: the 11-bit sync and following fields cross byte boundaries yet consume exactly", fields.total_bits, "bits.");
-  ok({bytes: 4, fields: tally(fields.values), total_bits: fields.total_bits})
+  print("Case 1 input: FF FB 90 64.");
+  print("Case 1 output:", mpeg1.version, mpeg1.layer, mpeg1.bitrate_kbps, "kbit/s", mpeg1.sample_rate_hz, "Hz", mpeg1.channel_mode, ";", mpeg1.frame_samples, "samples and", mpeg1.frame_length, "bytes per frame.");
+  print("Case 1 interpretation: a common 128 kbit/s, 44.1 kHz joint-stereo MPEG-1 frame uses the 144× formula and needs 417 bytes.");
+  print("Case 2 input: FF E3 40 C0.");
+  print("Case 2 output:", mpeg25.version, mpeg25.layer, mpeg25.bitrate_kbps, "kbit/s", mpeg25.sample_rate_hz, "Hz", mpeg25.channel_mode, ";", mpeg25.frame_samples, "samples and", mpeg25.frame_length, "bytes per frame.");
+  print("Case 2 interpretation: the de-facto MPEG-2.5 extension quarters the MPEG-1 rate and uses 576 samples plus the 72× frame formula.");
+  print("Policy: free-bitrate index 0 is explicit Err because header bytes alone cannot determine frame length; a scanner must infer sync distance.");
+  ok({headers: 2, mpeg1_frame_bytes: mpeg1.frame_length, mpeg25_frame_bytes: mpeg25.frame_length})
 } else { err({kind: "invariant", message: "MPEG header fields changed"}) }

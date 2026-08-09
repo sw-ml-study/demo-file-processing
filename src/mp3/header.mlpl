@@ -1,0 +1,48 @@
+include "../binary/bit_fields.mlpl";
+
+def u:mpeg_header_widths() { "Return the ISO MPEG audio 32-bit frame-header field layout.";
+  [11, 2, 2, 1, 4, 2, 1, 1, 2, 2, 1, 1, 2]
+}
+
+def u:mpeg_version_name(version_id) { "Map a non-reserved MPEG audio version id to its display name.";
+  if eq(version_id, 3) { "MPEG-1" } else { if eq(version_id, 2) { "MPEG-2" } else { "MPEG-2.5" } }
+}
+
+def u:mpeg_layer3_bitrate(version_id, bitrate_index) { "Resolve a non-free Layer III bitrate index in kbit/s.";
+  if eq(bitrate_index, 0) { err({kind: "free_bitrate", message: "free-bitrate Layer III requires sync-distance inference"}) } else {
+    if eq(bitrate_index, 15) { err({kind: "bitrate", message: "bitrate index 15 is reserved"}) } else {
+      mpeg1 = [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320];
+      low_rate = [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160];
+      ok(take(if eq(version_id, 3) { mpeg1 } else { low_rate }, 0, bitrate_index))
+    }
+  }
+}
+
+def u:mpeg_sample_rate(version_id, sample_rate_index) { "Resolve an MPEG-1, MPEG-2, or de-facto MPEG-2.5 sampling-frequency index.";
+  if eq(sample_rate_index, 3) { err({kind: "sample_rate", message: "sample-rate index 3 is reserved"}) } else {
+    rates = if eq(version_id, 3) { [44100, 48000, 32000] } else { if eq(version_id, 2) { [22050, 24000, 16000] } else { [11025, 12000, 8000] } };
+    ok(take(rates, 0, sample_rate_index))
+  }
+}
+
+def u:mpeg_channel_mode_name(channel_mode_id) { "Map the two-bit MPEG channel mode.";
+  if eq(channel_mode_id, 0) { "stereo" } else { if eq(channel_mode_id, 1) { "joint stereo" } else { if eq(channel_mode_id, 2) { "dual channel" } else { "single channel" } } }
+}
+
+def u:parse_mpeg_layer3_header(bytes) { "Parse one four-byte MPEG Layer III header and derive frame geometry entirely in MLPL.";
+  if (1 - u:bytes_valid(bytes)) + (1 - eq(tally(bytes), 4)) { err({kind: "input", message: "MPEG audio header must contain exactly four bytes"}) } else {
+    raw = u:unpack_fields(bytes, u:mpeg_header_widths())?; values = raw.values;
+    sync = take(values, 0, 0); version_id = take(values, 0, 1); layer_id = take(values, 0, 2); protection_bit = take(values, 0, 3); bitrate_index = take(values, 0, 4); sample_rate_index = take(values, 0, 5); padding = take(values, 0, 6); private_bit = take(values, 0, 7); channel_mode_id = take(values, 0, 8); mode_extension = take(values, 0, 9); copyrighted = take(values, 0, 10); original = take(values, 0, 11); emphasis = take(values, 0, 12);
+    if 1 - eq(sync, 2047) { err({kind: "sync", message: "MPEG audio sync must contain eleven one bits"}) } else {
+      if eq(version_id, 1) { err({kind: "version", message: "MPEG audio version id 1 is reserved"}) } else {
+        if 1 - eq(layer_id, 1) { err({kind: "layer", message: "this parser supports only Layer III headers"}) } else {
+          if eq(emphasis, 2) { err({kind: "emphasis", message: "MPEG emphasis value 2 is reserved"}) } else {
+            bitrate_kbps = u:mpeg_layer3_bitrate(version_id, bitrate_index)?; sample_rate_hz = u:mpeg_sample_rate(version_id, sample_rate_index)?;
+            mpeg1 = eq(version_id, 3); frame_samples = if mpeg1 { 1152 } else { 576 }; coefficient = if mpeg1 { 144 } else { 72 }; frame_length = floor(coefficient * bitrate_kbps * 1000 / sample_rate_hz) + padding;
+            ok({header_bytes: bytes, sync: sync, version_id: version_id, version: u:mpeg_version_name(version_id), layer_id: layer_id, layer: "Layer III", protection_bit: protection_bit, crc_present: 1 - protection_bit, bitrate_index: bitrate_index, bitrate_kbps: bitrate_kbps, sample_rate_index: sample_rate_index, sample_rate_hz: sample_rate_hz, padding: padding, private_bit: private_bit, channel_mode_id: channel_mode_id, channel_mode: u:mpeg_channel_mode_name(channel_mode_id), channels: if eq(channel_mode_id, 3) { 1 } else { 2 }, mode_extension: mode_extension, copyrighted: copyrighted, original: original, emphasis: emphasis, frame_samples: frame_samples, frame_length: frame_length})
+          }
+        }
+      }
+    }
+  }
+}

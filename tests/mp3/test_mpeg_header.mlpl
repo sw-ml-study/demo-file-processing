@@ -1,0 +1,60 @@
+include "src/bytes/validate.mlpl";
+include "src/binary/endian_decode.mlpl";
+include "src/binary/bit_fields.mlpl";
+include "src/mp3/header.mlpl";
+
+@test {name: "MPEG-1 Layer III header derives semantic geometry", tags: ["mp3", "mpeg", "header", "mpeg1"]}
+def u:test_mpeg1_header() { "Decode the classic 128 kbit/s, 44.1 kHz joint-stereo golden header.";
+  header = u:parse_mpeg_layer3_header([255, 251, 144, 100])?;
+  u:assert_eq([header.version_id, header.layer_id, header.bitrate_index, header.sample_rate_index], [3, 1, 9, 0], "raw MPEG-1 selectors")?;
+  u:assert_eq([header.bitrate_kbps, header.sample_rate_hz, header.frame_samples, header.frame_length], [128, 44100, 1152, 417], "MPEG-1 frame geometry")?;
+  u:assert_eq([header.crc_present, header.channels, header.mode_extension, header.original], [0, 2, 2, 1], "MPEG-1 flags")?;
+  u:assert_eq(header.version, "MPEG-1", "MPEG-1 display version")?;
+  u:assert_eq(header.layer, "Layer III", "MPEG layer display")?;
+  u:assert_eq(header.channel_mode, "joint stereo", "MPEG-1 channel display")
+}
+
+@test {name: "MPEG-2 Layer III uses low-rate table and 576 samples", tags: ["mp3", "mpeg", "header", "mpeg2"]}
+def u:test_mpeg2_header() { "Decode 64 kbit/s, 22.05 kHz mono with one padding byte.";
+  header = u:parse_mpeg_layer3_header([255, 243, 130, 192])?;
+  u:assert_eq([header.version_id, header.bitrate_kbps, header.sample_rate_hz], [2, 64, 22050], "MPEG-2 table lookup")?;
+  u:assert_eq([header.frame_samples, header.padding, header.frame_length], [576, 1, 209], "MPEG-2 frame formula")?;
+  u:assert_eq(header.channels, 1, "MPEG-2 mono channel count")?;
+  u:assert_eq(header.channel_mode, "single channel", "MPEG-2 mono mode")
+}
+
+@test {name: "MPEG-2.5 Layer III uses de-facto quarter-rate frequencies", tags: ["mp3", "mpeg", "header", "mpeg2.5"]}
+def u:test_mpeg25_header() { "Decode 32 kbit/s, 11.025 kHz mono without padding.";
+  header = u:parse_mpeg_layer3_header([255, 227, 64, 192])?;
+  u:assert_eq([header.version_id, header.bitrate_kbps, header.sample_rate_hz], [0, 32, 11025], "MPEG-2.5 table lookup")?;
+  u:assert_eq([header.frame_samples, header.frame_length], [576, 208], "MPEG-2.5 frame formula")?;
+  u:assert_eq(header.version, "MPEG-2.5", "MPEG-2.5 display name")
+}
+
+@test {name: "MPEG Layer III parser models CRC and channel modes", tags: ["mp3", "mpeg", "header", "flags"]}
+def u:test_mpeg_header_flags() { "Verify protection inversion and all two-bit channel-mode names.";
+  protected = u:parse_mpeg_layer3_header([255, 250, 144, 0])?;
+  stereo = u:parse_mpeg_layer3_header([255, 251, 144, 0])?; joint = u:parse_mpeg_layer3_header([255, 251, 144, 64])?; dual = u:parse_mpeg_layer3_header([255, 251, 144, 128])?; mono = u:parse_mpeg_layer3_header([255, 251, 144, 192])?;
+  u:assert_eq(protected.crc_present, 1, "zero protection bit means CRC follows")?;
+  u:assert_eq(stereo.channel_mode, "stereo", "stereo mode")?;
+  u:assert_eq(joint.channel_mode, "joint stereo", "joint-stereo mode")?;
+  u:assert_eq(dual.channel_mode, "dual channel", "dual-channel mode")?;
+  u:assert_eq(mono.channel_mode, "single channel", "single-channel mode")?;
+  u:assert_eq([stereo.channels, joint.channels, dual.channels, mono.channels], [2, 2, 2, 1], "channel counts")
+}
+
+@test {name: "MPEG Layer III parser rejects reserved and unsupported headers", tags: ["mp3", "mpeg", "header", "invalid"]}
+def u:test_mpeg_header_invalid() { "Reject bad shape/domain, sync, reserved ids, unsupported layers, and indeterminate free bitrate.";
+  u:assert_err(u:parse_mpeg_layer3_header([255, 251, 144]), "short header")?;
+  u:assert_err(u:parse_mpeg_layer3_header([255, 251, 144, 100, 0]), "long header")?;
+  u:assert_err(u:parse_mpeg_layer3_header([255, 251, 144, 256]), "invalid byte")?;
+  u:assert_err(u:parse_mpeg_layer3_header([254, 251, 144, 100]), "bad sync")?;
+  u:assert_err(u:parse_mpeg_layer3_header([255, 235, 144, 100]), "reserved version")?;
+  u:assert_err(u:parse_mpeg_layer3_header([255, 249, 144, 100]), "unsupported layer")?;
+  u:assert_err(u:parse_mpeg_layer3_header([255, 251, 0, 100]), "free bitrate policy")?;
+  u:assert_err(u:parse_mpeg_layer3_header([255, 251, 240, 100]), "reserved bitrate")?;
+  u:assert_err(u:parse_mpeg_layer3_header([255, 251, 156, 100]), "reserved sample rate")?;
+  u:assert_err(u:parse_mpeg_layer3_header([255, 251, 144, 102]), "reserved emphasis")
+}
+
+u:run_registered_tests()

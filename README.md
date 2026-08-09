@@ -58,7 +58,10 @@ opt-in sparse-file peak-RSS evidence below.
 The [endian and field-layout slice](docs/endian-and-fields.md) adds exact
 one-to-six-byte little/big-endian codecs and data-described MSB-first field
 extraction. Its narrated demo decodes a golden four-byte MPEG audio header,
-including fields that cross byte boundaries, entirely in MLPL.
+including fields that cross byte boundaries, entirely in MLPL. The
+[semantic Layer III model](docs/mpeg-audio-header.md) contrasts MPEG-1 and the
+de-facto MPEG-2.5 extension, derives rates/samples/frame lengths, and rejects
+reserved or indeterminate free-bitrate headers.
 
 The [PCM WAV slice](docs/wav.md) inspects RIFF chunks and canonically copies
 empty/minimal mono files. It validates padding, lengths, derived rates, formats,
