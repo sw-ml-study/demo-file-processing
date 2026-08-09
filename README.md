@@ -18,6 +18,7 @@ The foundation, bounded range analysis, MP3/ID3 and Ogg inspection, and
 sandboxed incremental file and binary stdout output are accepted with 93 native
 mlplunit tests across 28 suites. See [the stdout acceptance report](docs/stdout-report.md),
 [the compiled process conformance report](docs/compiler-process-conformance.md),
+[the compiled byte-application report](docs/compiled-byte-applications.md),
 [the bounded-output acceptance report](docs/bounded-output-report.md),
 [the Ogg acceptance report](docs/ogg-report.md),
 [the MP3/ID3 acceptance report](docs/mp3-id3-report.md),
@@ -40,6 +41,11 @@ native compiler handles the tested numeric and arithmetic cases plus partial
 bytes and discards write errors, while byte reads, append output, bit
 operations, stderr/exit support, and clean binary CLI termination remain
 tracked explicitly.
+
+Native compilation of the actual hexdump and histogram demos is attempted by
+the default gate. Both currently stop at unresolved `include` directives; even
+temporary flattened sources stop at unsupported user function definitions, so
+no standalone byte application is claimed.
 
 The [binary stdout contract](docs/write-stdout.md) verifies exact bytes, counts,
 multi-call ordering, empty/scalar writes, validation errors, and stderr

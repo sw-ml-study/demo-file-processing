@@ -1,6 +1,6 @@
 number = 2
 slug = "compile-byte-applications"
-status = "pending"
+status = "in-progress"
 description = "Compile demonstrable hexdump and histogram applications and verify exact inte..."
 role = "production"
 context_files = []

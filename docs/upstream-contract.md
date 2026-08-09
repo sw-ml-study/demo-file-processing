@@ -79,6 +79,12 @@ are discarded, and `read_stdin`, `print`, `eprint`, and `exit` are not lowered.
 Process parity therefore requires shared validation/error behavior as well as
 additional match arms; lowering a call name alone is not acceptance.
 
+The [compiled byte-application report](compiled-byte-applications.md) attempts
+the actual hexdump and histogram demos. Both fail on unresolved `include`
+directives; temporary already-resolved equivalents then fail on unsupported
+`FnDef`. Compiler source loading and user-function/control-flow lowering are
+therefore earlier gates than the already recorded byte I/O and process gaps.
+
 ### Minimum acceptance
 
 Shared runtime operations, with interpreter and compiled implementations using

@@ -49,6 +49,7 @@ the authority for downstream claims.
 | Native numeric build | `reduce_add(iota(8))` produced `28` in both interpreter and compiled artifact | The native path is real for its supported numeric subset. The artifact runs directly; `otool -L` shows no named MLPL interpreter/parser/evaluator dynamic dependency. |
 | Arithmetic build | `(iota(8) + 1) * 2` compiles and its reduction prints `72`, matching the interpreter | The prior generated-trait import defect is resolved in the selected adjacent development build; the gate now requires positive parity. |
 | Application lowering | `args/0`, `arg/1`, and `write_stdout/1` lower in the adjacent development compiler; exact probes show the requested bytes followed by the generated wrapper's textual count. Invalid bytes are silently coerced instead of rejected. `read_stdin`, `print`, `eprint`, `exit`, `read_bytes/1`, `append_bytes/2`, and `band/2` remain unsupported. | Clean compiled binary stdout and a useful file-processing CLI remain gated on process semantics, entry-point behavior, error propagation, and generic byte/bit runtime parity; interpreter success does not imply compiler success. |
+| Compiled byte applications | Actual hexdump and histogram demos fail first on unresolved `include`; mechanically flattened equivalents fail on unsupported `FnDef` | Neither application produces an artifact. Source loading, user functions/control flow, Results, byte I/O, and broader array/text lowering precede useful parity testing. |
 
 ## Claim boundaries
 

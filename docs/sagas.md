@@ -82,8 +82,10 @@ Status: accepted; see the [stdout acceptance report](stdout-report.md).
 Gate: separately authorized compiler/runtime work provides the generic CLI and
 I/O surface demonstrated necessary by Sagas 1–4.
 
-Status: active; process conformance is being measured. See the
-[compiled process conformance report](compiler-process-conformance.md).
+Status: active; process conformance is measured, while byte-application
+compilation is blocked before artifact production. See the
+[compiled process conformance report](compiler-process-conformance.md) and
+[compiled byte-application report](compiled-byte-applications.md).
 
 1. CLI argument, stdin/stdout/stderr, exit-status, and error conformance.
 2. Compile hexdump/histogram and verify interpreter/compiler parity.
