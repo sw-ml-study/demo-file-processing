@@ -1,0 +1,1 @@
+Built and accepted an argument-driven bounded WAV transformation app supporting canonical copy and unsigned-8-bit inversion with new-destination safety, cleanup, bounded output/reparse/preview verification, exact cmp and payload oracles, and four mlplunit tests. Full gate passes 104 tests across 31 suites.
