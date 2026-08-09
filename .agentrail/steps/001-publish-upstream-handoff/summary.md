@@ -1,0 +1,1 @@
+Published a self-contained sw-MLPL standalone compiler handoff covering accepted interpreter behavior, exact compiler failures and semantic mismatches, ordered generic upstream work, explicitly deferred later items, reproduction commands, and first actionable downstream resume triggers. Linked it from README and the durable assessment/contracts; full gate passes.
