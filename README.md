@@ -58,6 +58,11 @@ across arbitrary ranges and matches the whole-buffer oracle for chunk sizes 1,
 7, 64, and 65,536. Its structurally chunk-bounded allocation is backed by the
 opt-in sparse-file peak-RSS evidence below.
 
+The [bounded byte-copy contract](docs/bounded-copy.md) combines range reads and
+`append_bytes` to create byte-identical file output with O(chunk) payload state,
+a create-new destination policy, explicit partial-output cleanup, and narrated
+7+7+3 plus SHA-256 evidence.
+
 The [endian and field-layout slice](docs/endian-and-fields.md) adds exact
 one-to-six-byte little/big-endian codecs and data-described MSB-first field
 extraction. Its narrated demo decodes a golden four-byte MPEG audio header,
@@ -99,6 +104,7 @@ between zero and roughly 1.1 MiB across repeated small/large comparisons.
 just hexdump
 just histogram
 just bounded-histogram
+just bounded-copy
 just binary-fields
 just mp3-scan
 just id3-inspect

@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd); mlpl=$("$repo_root/scripts/select-mlpl")
+"$mlpl" --source-dir "$repo_root" "$repo_root/demos/bytes/bounded_copy.mlpl"
+if command -v shasum >/dev/null 2>&1; then hash='shasum -a 256'; else hash=sha256sum; fi
+source_hash=$(cd "$repo_root" && $hash fixtures/bytes/boundary-17.bin | awk '{print $1}'); output_hash=$(cd "$repo_root" && $hash .bounded-copy-output.bin | awk '{print $1}')
+echo "SHA-256 oracle: source $source_hash; output $output_hash; match $([ "$source_hash" = "$output_hash" ] && echo 1 || echo 0)."

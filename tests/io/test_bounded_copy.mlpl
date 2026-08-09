@@ -1,0 +1,30 @@
+include "src/io/bounded_copy.mlpl";
+
+def u:copy_fresh(path) { "Remove one test output if a prior interrupted run left it behind."; remove_path(path); 1 }
+
+@test {name: "bounded file copy is byte-identical at required chunks", tags: ["io", "copy", "append", "chunks"]}
+def u:test_bounded_copy_chunks() { "Copy the 17-byte boundary fixture through one-byte to oversized append chunks.";
+  source = "fixtures/bytes/boundary-17.bin"; expected = read_bytes(source)?; chunks = [1, 7, 64, 65536]; index = 0;
+  while lt(index, tally(chunks)) { chunk = take(chunks, 0, index); destination = if eq(chunk, 1) { ".capability-copy-1.bin" } else { if eq(chunk, 7) { ".capability-copy-7.bin" } else { if eq(chunk, 64) { ".capability-copy-64.bin" } else { ".capability-copy-65536.bin" } } }; u:copy_fresh(destination); result = u:bounded_copy_file(source, destination, chunk, 17, 1)?; u:assert_eq(read_bytes(destination), ok(expected), "copied bytes match source")?; u:assert_eq([result.bytes_copied, result.destination_size], [17, 17], "copy sizes")?; remove_path(destination); index = index + 1 };
+  ok(1)
+}
+
+@test {name: "bounded range copy preserves exact subranges and empty files", tags: ["io", "copy", "range", "empty"]}
+def u:test_bounded_copy_ranges() { "Copy a middle five-byte range and a genuinely empty source without whole-source materialization.";
+  middle = ".capability-copy-middle.bin"; empty = ".capability-copy-empty.bin"; u:copy_fresh(middle); u:copy_fresh(empty); mid = u:bounded_copy_range("fixtures/bytes/boundary-17.bin", middle, 6, 5, 2, 5, 1)?; zero = u:bounded_copy_file("fixtures/bytes/empty.bin", empty, 7, 0, 1)?;
+  u:assert_eq(read_bytes(middle), ok([6, 7, 8, 9, 10]), "middle range bytes")?; u:assert_eq([mid.chunks, mid.last_chunk_bytes], [3, 1], "middle chunk geometry")?; u:assert_eq([zero.bytes_copied, zero.chunks, zero.destination_size], [0, 0, 0], "empty copy geometry")?; remove_path(middle); remove_path(empty); ok(1)
+}
+
+@test {name: "bounded copy rejects unsafe destinations ranges and budgets", tags: ["io", "copy", "invalid", "budget"]}
+def u:test_bounded_copy_invalid() { "Reject overwrite/source aliases before writes, invalid ranges/budgets, missing sources/parents, and sandbox traversal.";
+  source = "fixtures/bytes/boundary-17.bin"; destination = ".capability-copy-existing.bin"; write_bytes(destination, [99])?;
+  u:assert_err(u:bounded_copy_file(source, destination, 7, 17, 1), "existing destination")?; u:assert_eq(read_bytes(destination), ok([99]), "existing destination preserved")?; u:assert_err(u:bounded_copy_file(source, source, 7, 17, 1), "same path is existing")?; u:assert_err(u:bounded_copy_file(source, ".capability-copy-budget.bin", 7, 16, 1), "total budget")?; u:assert_err(u:bounded_copy_range(source, ".capability-copy-range.bin", 16, 2, 7, 2, 1), "range beyond source")?; u:assert_err(u:bounded_copy_file(source, ".capability-copy-zero.bin", 0, 17, 1), "zero chunk")?; u:assert_err(u:bounded_copy_file("fixtures/bytes/missing.bin", ".capability-copy-missing.bin", 7, 17, 1), "missing source")?; u:assert_err(u:bounded_copy_file(source, "tmp/missing-copy-parent/out.bin", 7, 17, 1), "missing destination parent")?; u:assert_err(u:bounded_copy_file(source, "../copy-escape.bin", 7, 17, 1), "sandbox destination")?; remove_path(destination); ok(1)
+}
+
+@test {name: "bounded copy applies explicit partial-output cleanup policy", tags: ["io", "copy", "cleanup", "failure"]}
+def u:test_bounded_copy_cleanup_policy() { "Exercise cleanup and keep-partial branches directly with deterministic injected failures.";
+  remove_path(".capability-copy-clean.bin"); append_bytes(".capability-copy-clean.bin", [1, 2])?; cleaned = u:bounded_copy_abort(".capability-copy-clean.bin", 1, err({kind: "injected", message: "copy failed"})); u:assert_err(cleaned, "cleanup returns original failure")?; u:assert_err(file_size(".capability-copy-clean.bin"), "partial output removed")?;
+  remove_path(".capability-copy-keep.bin"); append_bytes(".capability-copy-keep.bin", [1, 2])?; kept = u:bounded_copy_abort(".capability-copy-keep.bin", 0, err({kind: "injected", message: "copy failed"})); u:assert_err(kept, "keep returns original failure")?; u:assert_eq(read_bytes(".capability-copy-keep.bin"), ok([1, 2]), "partial output retained")?; remove_path(".capability-copy-keep.bin"); ok(1)
+}
+
+u:run_registered_tests()

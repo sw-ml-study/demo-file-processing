@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd); output=$("$repo_root/scripts/run-copy-demo")
+printf '%s\n' "$output" | grep -Fqx 'Bounded incremental byte-copy demonstration'
+printf '%s\n' "$output" | grep -Fqx 'Interpretation: 7 + 7 + 3 reconstructs the exact 17-byte file; the shell wrapper independently prints matching SHA-256 values.'
+printf '%s\n' "$output" | grep -Eq '^SHA-256 oracle: source ([0-9a-f]{64}); output \1; match 1\.$'
+echo "PASS bounded copy demo"

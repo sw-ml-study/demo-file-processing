@@ -59,6 +59,10 @@ histogram:
 bounded-histogram:
     ./scripts/run-byte-demo range_histogram
 
+# Copy 17 bytes in 7+7+3 bounded append chunks with a SHA-256 oracle.
+bounded-copy:
+    ./scripts/run-copy-demo
+
 byte-demos:
     ./scripts/check-byte-demos
 

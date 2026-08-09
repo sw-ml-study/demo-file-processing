@@ -41,3 +41,7 @@ output size.
 
 `mlpl-build` still rejects `append_bytes/2`; this contract is interpreter-only
 until the queued compiler I/O parity work lands.
+
+The downstream [bounded-copy contract](bounded-copy.md) now supplies the
+create-new, budget, count-verification, and partial-output policy around this
+primitive.

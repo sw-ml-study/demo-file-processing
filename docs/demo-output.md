@@ -23,6 +23,7 @@ presented as demonstrations.
 | `just hexdump` | 17 sequential bytes across a 16-byte row | why offset `00000010` begins a second row |
 | `just histogram` | uniform, concentrated, ramp, and empty distributions | how the same 256-bin shape represents different data |
 | `just bounded-histogram` | every byte value across 37 seven-byte ranges | why chunk boundaries do not change counts |
+| `just bounded-copy` | 17 bytes emitted as 7+7+3 with matching SHA-256 | how bounded reads and appends produce exact file output |
 | `just binary-fields` | contrasting MPEG-1 and de-facto MPEG-2.5 headers | how selectors become rates, samples, and byte lengths |
 | `just mp3-scan` | 128/160/128 kbit/s frames plus a separate damaged gap | why bitrate changes imply VBR and how synchronization is reacquired |
 | `just id3-inspect` | selected text, unknown payload, padding, audio range, and truncation | why metadata is materialized but audio remains a descriptor |

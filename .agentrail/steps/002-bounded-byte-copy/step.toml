@@ -1,6 +1,6 @@
 number = 2
 slug = "bounded-byte-copy"
-status = "pending"
+status = "in-progress"
 description = "Implement bounded read-range to append_bytes copy loops with explicit chunk/t..."
 role = "production"
 context_files = []
