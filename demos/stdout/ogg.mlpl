@@ -1,0 +1,19 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/slice.mlpl";
+include "../../src/binary/endian_decode.mlpl";
+include "../../src/binary/bit_fields.mlpl";
+include "../../src/ogg/page.mlpl";
+include "../../src/ogg/crc.mlpl";
+include "../../src/io/bounded_stdout.mlpl";
+
+path = "fixtures/ogg/structural-cross-page.ogg"; verified = u:verify_ogg_page_crc(path, 7, 0, 512, 8, 300, 512, 7)?; page = verified.page;
+eprint("Bounded checksum-verified Ogg-page stdout demonstration");
+eprint("Purpose: emit exactly one accepted Ogg page descriptor range while keeping its structural explanation off the binary stream.");
+eprint("Input: BOS page sequence 10, one lacing value 255, 255 payload bytes, and stored CRC 2585586540.");
+eprint("MLPL work: parse lacing/extents, recompute and require CRC integrity, then copy the 283-byte accepted page range.");
+eprint("Native runtime work: bounded range reads and ordered 64-byte binary stdout writes; no Ogg parser or codec is native.");
+result = u:bounded_stdout_range(path, page.offset, page.page_bytes, 64, 283)?;
+eprint("Output: 283 page bytes in 5 chunks with a 27-byte tail; the shell oracle reparses and re-verifies the captured page.");
+eprint("Interpretation: lacing value 255 leaves the packet open for a later continued page, so this artifact is one valid page rather than a complete logical stream.");
+eprint("Boundary: checksum integrity and container structure do not imply decodable audio payloads.");
+exit(0)

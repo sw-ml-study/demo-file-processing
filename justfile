@@ -103,6 +103,18 @@ ogg-crc:
 ogg-bounded-output:
     ./scripts/run-ogg-demo bounded_output
 
+# Emit exact raw bytes to stdout; narration remains on stderr.
+stdout-bytes:
+    ./scripts/run-stdout-demo raw
+
+# Emit a complete canonical WAV to stdout; narration remains on stderr.
+stdout-wav:
+    ./scripts/run-stdout-demo wav
+
+# Emit one checksum-verified Ogg page to stdout; narration remains on stderr.
+stdout-ogg:
+    ./scripts/run-stdout-demo ogg
+
 # Opt-in pinned ffprobe comparison against the decodable Ogg/Opus tone.
 ogg-oracle:
     ./scripts/run-ogg-oracle

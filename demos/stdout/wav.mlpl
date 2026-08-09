@@ -1,0 +1,19 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/binary/slice.mlpl";
+include "../../src/binary/endian_decode.mlpl";
+include "../../src/wav/model.mlpl";
+include "../../src/wav/parse.mlpl";
+include "../../src/wav/range_inspect.mlpl";
+include "../../src/io/bounded_stdout.mlpl";
+
+path = "fixtures/wav/minimal-mono8.wav"; wav = u:inspect_wav_ranges(path, 7, 8)?;
+eprint("Bounded PCM WAV stdout demonstration");
+eprint("Purpose: pipe a complete valid WAV while MLPL first explains its accepted structure on stderr.");
+eprint("Input: canonical mono unsigned 8-bit PCM, 8000 Hz, 3 frames, sample values 0/127/255, and one required odd-data pad.");
+eprint("MLPL work: validate RIFF/fmt/data descriptors, then copy the exact 48-byte file through seven-byte stdout chunks.");
+eprint("Native runtime work: bounded seekable reads and ordered binary stdout writes; no codec or WAV runtime builtin participates.");
+result = u:bounded_stdout_file(path, 7, 48)?;
+eprint("Output: 48 WAV bytes in 7 chunks with a 6-byte tail; the redirected artifact is byte-identical and independently parseable.");
+eprint("Interpretation: stdout carries audio-container bytes only; metadata, sample meaning, and chunk geometry stay on stderr.");
+eprint("Boundary: this copies accepted PCM structure without decoding audio and cannot roll back bytes already consumed by a pipe.");
+exit(0)

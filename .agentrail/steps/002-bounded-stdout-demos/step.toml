@@ -1,6 +1,6 @@
 number = 2
 slug = "bounded-stdout-demos"
-status = "pending"
+status = "in-progress"
 description = "Implement bounded file-range to write_stdout loops with explicit chunk and to..."
 role = "production"
 context_files = []

@@ -1,0 +1,31 @@
+include "range_reader.mlpl";
+
+def u:bounded_stdout_range(source, start_offset, length, chunk_size, max_total_bytes) { "Write one exact source range to binary stdout through bounded reads with no rollback semantics.";
+  if 1 - equal(type_of(source), "string") { err({kind: "path", message: "bounded stdout source must be a string"}) } else {
+    if (1 - u:range_exact_nonnegative(start_offset)) + (1 - u:range_exact_nonnegative(length)) + (1 - u:range_exact_nonnegative(chunk_size)) + (1 - u:range_exact_nonnegative(max_total_bytes)) { err({kind: "budget", message: "stdout range and budgets must be exact non-negative integers"}) } else {
+      if eq(chunk_size, 0) { err({kind: "budget", message: "bounded stdout chunk_size must be positive"}) } else {
+        if gt(length, max_total_bytes) { err({kind: "budget", message: "stdout length exceeds max_total_bytes"}) } else {
+          reader = u:range_reader(source, chunk_size)?;
+          if gt(length, 9007199254740991 - start_offset) { err({kind: "overflow", message: "stdout range exceeds the exact f64 offset domain"}) } else {
+            if gt(start_offset + length, reader.size) { err({kind: "range", message: "stdout range exceeds the source snapshot"}) } else {
+              cursor = 0; chunks = 0; last_chunk_bytes = 0;
+              while lt(cursor, length) {
+                remaining = length - cursor; width = if lt(remaining, chunk_size) { remaining } else { chunk_size }; read_result = u:range_read_at(reader, start_offset + cursor, width);
+                if is_err(read_result) { return read_result } else { 0 }; bytes = unwrap(read_result);
+                if 1 - eq(tally(bytes), width) { return err({kind: "short_read", message: "source changed during bounded stdout write"}) } else { 0 };
+                write_result = write_stdout(bytes); if is_err(write_result) { return write_result } else { 0 }; written = unwrap(write_result);
+                if 1 - eq(written, width) { return err({kind: "short_write", message: "write_stdout count differs from supplied chunk"}) } else { 0 };
+                cursor = cursor + width; chunks = chunks + 1; last_chunk_bytes = width
+              };
+              ok({source_offset: start_offset, bytes_written: length, chunks: chunks, chunk_size: chunk_size, last_chunk_bytes: last_chunk_bytes})
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+def u:bounded_stdout_file(source, chunk_size, max_total_bytes) { "Write one metadata-snapshotted file to binary stdout with O(chunk_size) payload state.";
+  reader = u:range_reader(source, chunk_size)?; u:bounded_stdout_range(source, 0, reader.size, chunk_size, max_total_bytes)
+}

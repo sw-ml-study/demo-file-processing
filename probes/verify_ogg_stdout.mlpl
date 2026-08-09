@@ -1,0 +1,9 @@
+include "../src/bytes/validate.mlpl";
+include "../src/binary/slice.mlpl";
+include "../src/binary/endian_decode.mlpl";
+include "../src/binary/bit_fields.mlpl";
+include "../src/ogg/page.mlpl";
+include "../src/ogg/crc.mlpl";
+
+path = list_get(args(), 0)?; evidence = u:verify_ogg_page_crc(path, 7, 0, 512, 8, 300, 512, 7)?;
+if eq(file_size(path)?, evidence.page.page_bytes) * eq(evidence.page.sequence, 10) * evidence.valid { print("PASS captured Ogg page sequence 10 CRC valid") } else { err({kind: "invariant", message: "captured Ogg stdout artifact changed"}) }

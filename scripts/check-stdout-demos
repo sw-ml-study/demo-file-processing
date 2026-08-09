@@ -1,0 +1,28 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mlpl=$("$repo_root/scripts/select-mlpl")
+mkdir -p "$repo_root/tmp"
+scratch=$(mktemp -d "$repo_root/tmp/demo-file-stdout-demos.XXXXXX")
+trap 'rm -rf "$scratch"' EXIT HUP INT TERM
+
+"$repo_root/scripts/run-stdout-demo" raw >"$scratch/raw.bin" 2>"$scratch/raw.txt"
+cmp "$repo_root/fixtures/bytes/boundary-17.bin" "$scratch/raw.bin"
+grep -Fqx 'Bounded raw-byte stdout demonstration' "$scratch/raw.txt"
+grep -Fqx 'Interpretation: redirection creates the exact binary file; no narrative or final MLPL value contaminates stdout.' "$scratch/raw.txt"
+
+"$repo_root/scripts/run-stdout-demo" wav >"$scratch/output.wav" 2>"$scratch/wav.txt"
+cmp "$repo_root/fixtures/wav/minimal-mono8.wav" "$scratch/output.wav"
+grep -Fqx 'Bounded PCM WAV stdout demonstration' "$scratch/wav.txt"
+grep -Fqx 'Interpretation: stdout carries audio-container bytes only; metadata, sample meaning, and chunk geometry stay on stderr.' "$scratch/wav.txt"
+
+"$repo_root/scripts/run-stdout-demo" ogg >"$scratch/output.ogg" 2>"$scratch/ogg.txt"
+dd if="$repo_root/fixtures/ogg/structural-cross-page.ogg" of="$scratch/expected.ogg" bs=283 count=1 2>/dev/null
+cmp "$scratch/expected.ogg" "$scratch/output.ogg"
+verified=$("$mlpl" --source-dir "$repo_root" "$repo_root/probes/verify_ogg_stdout.mlpl" -- "$scratch/output.ogg")
+printf '%s\n' "$verified" | grep -Fqx 'PASS captured Ogg page sequence 10 CRC valid'
+grep -Fqx 'Bounded checksum-verified Ogg-page stdout demonstration' "$scratch/ogg.txt"
+grep -Fqx 'Interpretation: lacing value 255 leaves the packet open for a later continued page, so this artifact is one valid page rather than a complete logical stream.' "$scratch/ogg.txt"
+
+echo "PASS bounded stdout raw/WAV/Ogg demos and exact binary oracles"

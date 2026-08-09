@@ -1,0 +1,22 @@
+include "src/io/bounded_stdout.mlpl";
+
+@test {name: "bounded stdout file writes are chunk invariant", tags: ["io", "stdout", "chunks", "binary"]}
+def u:test_bounded_stdout_chunks() { "Emit the 17-byte boundary fixture at all required chunks and compare returned geometry.";
+  chunks = [1, 7, 64, 65536]; index = 0;
+  while lt(index, tally(chunks)) { chunk = take(chunks, 0, index); result = u:bounded_stdout_file("fixtures/bytes/boundary-17.bin", chunk, 17)?; u:assert_eq([result.bytes_written, result.chunks, result.last_chunk_bytes], [17, if eq(chunk, 1) { 17 } else { if eq(chunk, 7) { 3 } else { 1 } }, if eq(chunk, 1) { 1 } else { if eq(chunk, 7) { 3 } else { 17 } }], "stdout chunk geometry")?; index = index + 1 };
+  ok(1)
+}
+
+@test {name: "bounded stdout writes exact subranges and empty files", tags: ["io", "stdout", "range", "empty"]}
+def u:test_bounded_stdout_ranges() { "Emit a five-byte middle range and a genuinely empty source.";
+  middle = u:bounded_stdout_range("fixtures/bytes/boundary-17.bin", 6, 5, 2, 5)?; empty = u:bounded_stdout_file("fixtures/bytes/empty.bin", 7, 0)?;
+  u:assert_eq([middle.bytes_written, middle.chunks, middle.last_chunk_bytes], [5, 3, 1], "middle stdout range")?; u:assert_eq([empty.bytes_written, empty.chunks, empty.last_chunk_bytes], [0, 0, 0], "empty stdout geometry")
+}
+
+@test {name: "bounded stdout rejects unsafe ranges before output", tags: ["io", "stdout", "invalid", "budget"]}
+def u:test_bounded_stdout_invalid() { "Reject budgets, ranges, missing sources, and path kinds before the write loop.";
+  source = "fixtures/bytes/boundary-17.bin";
+  u:assert_err(u:bounded_stdout_file(source, 0, 17), "zero chunk")?; u:assert_err(u:bounded_stdout_file(source, 7, 16), "total budget")?; u:assert_err(u:bounded_stdout_range(source, 16, 2, 7, 2), "range beyond source")?; u:assert_err(u:bounded_stdout_range(source, 0, 1, 7, 1.5), "fractional budget")?; u:assert_err(u:bounded_stdout_file("fixtures/bytes/missing.bin", 7, 17), "missing source")?; u:assert_err(u:bounded_stdout_file(42, 7, 17), "non-string source")
+}
+
+u:run_registered_tests()

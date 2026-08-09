@@ -6,10 +6,14 @@ compiler-file-io	probes/compiler_file_io.mlpl	native-executable	file-io-lowering
 compiler-args	probes/compiler_args.mlpl	native-executable	argument-lowering	mlpl-native	not-applicable	no	compiled-args	constrained
 compiler-bits	probes/compiler_bits.mlpl	native-executable	bit-operation-lowering	mlpl-native	not-applicable	no	compiled-bit-ops	constrained
 compiler-append	probes/compiler_append.mlpl	native-executable	incremental-output-lowering	mlpl-native	chunk-bounded	no	compiled-append_bytes	constrained
+compiler-stdout	probes/compiler_stdout.mlpl	native-executable	binary-stdout-lowering	mlpl-native	chunk-bounded	no	compiled-write_stdout	constrained
 hexdump	demos/bytes/hexdump.mlpl	raw-bytes	hexdump	mlpl-native	whole-file	yes	read_bytes,decode_bytes	runnable
 byte-histogram	demos/bytes/histogram.mlpl	raw-bytes	histogram	mlpl-native	whole-file	yes	read_bytes,table,reduce_add	runnable
 bounded-byte-histogram	demos/bytes/range_histogram.mlpl	raw-bytes	bounded-histogram	mlpl-native	chunk-bounded	yes	file_size,range-read,table,reduce_add	runnable
 bounded-byte-copy	demos/bytes/bounded_copy.mlpl	raw-bytes	bounded-incremental-copy	mlpl-native	chunk-bounded	yes	file_size,range-read,append_bytes	runnable
+stdout-byte-copy	demos/stdout/raw.mlpl	raw-bytes	bounded-binary-stdout	mlpl-native	chunk-bounded	yes	file_size,range-read,write_stdout,eprint	runnable
+stdout-wav-copy	demos/stdout/wav.mlpl	wav	bounded-binary-stdout	mlpl-native	chunk-bounded	yes	file_size,range-read,write_stdout,endian-codecs,eprint	runnable
+stdout-ogg-page	demos/stdout/ogg.mlpl	ogg	bounded-binary-stdout	mlpl-native	chunk-bounded	yes	file_size,range-read,write_stdout,bit-ops,eprint	runnable
 sparse-byte-histogram	demos/bytes/sparse_histogram.mlpl	raw-bytes	sparse-bounded-histogram	mlpl-native	chunk-bounded	no	file_size,range-read,platform-time	runnable
 mpeg-header-fields	demos/binary/mpeg_header.mlpl	mpeg-audio	semantic-layer3-header	mlpl	not-applicable	yes	bit-ops,endian-codecs	runnable
 mpeg-frame-scan	demos/mp3/scan.mlpl	mpeg-audio	bounded-frame-scan	mlpl-native	chunk-bounded	yes	file_size,range-read,bit-ops	runnable

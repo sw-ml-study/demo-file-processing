@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+name=${1:?usage: run-stdout-demo raw|wav|ogg}
+case "$name" in raw|wav|ogg) : ;; *) echo "unknown stdout demo: $name" >&2; exit 2 ;; esac
+mlpl=$("$repo_root/scripts/select-mlpl")
+exec "$mlpl" --source-dir "$repo_root" "$repo_root/demos/stdout/$name.mlpl"

@@ -38,8 +38,13 @@ byte/process/bit lowering remains tracked explicitly.
 
 The [binary stdout contract](docs/write-stdout.md) verifies exact bytes, counts,
 multi-call ordering, empty/scalar writes, validation errors, and stderr
-separation. Bounded stdout applications and growing-output evidence are the
-active follow-on saga; `write_stdout` is not yet compiler-lowered.
+separation. Bounded stdout applications are implemented; growing-output RSS
+evidence is the active acceptance step. `write_stdout` is not compiler-lowered.
+
+The [bounded stdout applications](docs/bounded-stdout.md) emit exact raw bytes,
+a complete canonical WAV, or one checksum-verified Ogg page while keeping their
+self-description exclusively on stderr. Shell oracles compare every captured
+artifact, and the Ogg capture is independently reparsed and CRC-verified.
 
 ## What runs now
 
@@ -130,6 +135,9 @@ just hexdump
 just histogram
 just bounded-histogram
 just bounded-copy
+just stdout-bytes > output.bin
+just stdout-wav > output.wav
+just stdout-ogg > first-page.ogg
 just binary-fields
 just mp3-scan
 just id3-inspect

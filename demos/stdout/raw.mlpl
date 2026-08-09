@@ -1,0 +1,12 @@
+include "../../src/io/bounded_stdout.mlpl";
+
+eprint("Bounded raw-byte stdout demonstration");
+eprint("Purpose: emit an exact binary artifact to a pipe or redirected file without retaining the whole input.");
+eprint("Input: the 17-byte sequence 0 through 16; a seven-byte budget forces writes 7 + 7 + 3.");
+eprint("MLPL work: validate source/range/total budgets, perform bounded range reads, verify write_stdout counts, and track chunk geometry.");
+eprint("Native runtime work: seekable file ranges plus ordered, per-call-flushed binary stdout writes.");
+result = u:bounded_stdout_file("fixtures/bytes/boundary-17.bin", 7, 17)?;
+eprint("Output: 17 raw bytes in 3 chunks; final chunk 3 bytes. The shell oracle compares stdout byte-for-byte with the fixture.");
+eprint("Interpretation: redirection creates the exact binary file; no narrative or final MLPL value contaminates stdout.");
+eprint("Boundary: stdout is irreversible after a later failure and write_stdout remains interpreter-only.");
+exit(0)
