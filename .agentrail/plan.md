@@ -1,1 +1,6 @@
-1. Build a unified argument-driven media inspector for WAV, Ogg, MP3/ID3, and unknown inputs using existing bounded parsers.\n2. Build a media-doctor application that explains structural health, warnings, damage, unsupported cases, and safe next actions.\n3. Build an argument-driven transforming tool using existing bounded WAV or Ogg output primitives with exact artifact and semantic verification.\n4. Run acceptance, reconcile README/catalog/capabilities/plans, measure memory where newly claimed, and publish the interpreter-media-apps report.
+# Saga: compiler-gate-refresh
+
+Refresh downstream evidence after upstream compiler source loading shipped, without modifying sw-mlpl.
+
+## Steps
+1. compiler-source-loading-evidence -- Update focused detectors and documentation to accept include expansion with an explicit repository source root, identify FnDef as the current earliest blocker, run the full gate, and publish the evidence.

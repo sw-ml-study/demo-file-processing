@@ -19,15 +19,16 @@ applications can become native artifacts.
 
 ## Measured blocker ladder
 
-`scripts/check-compiled-byte-apps` records two independent compiler gates:
+`scripts/check-compiled-byte-apps` records the shipped source-loading rung and
+the next independent compiler gate:
 
-1. Compiling either application as written fails on its first `include`.
-   `mlpl-build` says it requires already-resolved source, but exposes no loader
-   option and does not resolve the repository-relative library graph.
-2. The check mechanically concatenates the same library and application files
-   in a temporary directory, removing only `include` statements. Both flattened
-   programs then fail on their first `FnDef` because user function definitions
-   are not lowered.
+1. With `--source-dir` set to the repository root, both applications
+   resolve their source-relative `include` graphs. This is positive evidence
+   for upstream `compiler-source-loading` (B0), shipped 2026-08-10.
+2. The selected development binary now also lowers their user function
+   definitions. Both real expanded programs fail on their first `If`;
+   mechanically concatenated controls reach the same boundary, showing that
+   source expansion and the former workaround agree about the next gate.
 
 Even after those front-end gates, the measured capability matrix still shows
 that these programs depend on unsupported `read_bytes`, conditionals, Results,
@@ -44,16 +45,15 @@ fresh positive-parity implementation, rather than leaving this report stale.
 
 The recommended compiler order is:
 
-1. resolve `include` graphs before lowering, preserving source-relative paths;
-2. lower user function definitions/calls and control flow;
-3. provide interpreter-equivalent Result propagation and byte validation;
-4. lower bounded byte input plus the array/bit/text operations exercised here;
-5. provide clean stdout/stderr and exit semantics from the process-conformance
+1. lower conditionals and the remaining control-flow constructs;
+2. provide interpreter-equivalent Result propagation and byte validation;
+3. lower bounded byte input plus the array/bit/text operations exercised here;
+4. provide clean stdout/stderr and exit semantics from the process-conformance
    contract; and
-6. run these exact applications against all existing mlplunit fixtures and
+5. run these exact applications against all existing mlplunit fixtures and
    compare interpreter and artifact streams/statuses.
 
-Until at least the first four items land, the next format-application step is
+Until at least the first three items land, the next format-application step is
 blocked by the same general application surface before WAV/Ogg-specific logic
 is reached.
 

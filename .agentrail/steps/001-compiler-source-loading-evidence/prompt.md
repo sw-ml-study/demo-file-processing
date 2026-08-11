@@ -1,0 +1,1 @@
+Update focused compiled byte and format application detectors for shipped include expansion. Invoke mlpl-build with an explicit repository --source-dir, assert the real programs now reach FnDef, retain flattened controls as appropriate, update capability reports/upstream contract/saga status with exact evidence and remaining ordered gates, run full just check, commit and publish.

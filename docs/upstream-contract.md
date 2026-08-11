@@ -80,17 +80,18 @@ Process parity therefore requires shared validation/error behavior as well as
 additional match arms; lowering a call name alone is not acceptance.
 
 The [compiled byte-application report](compiled-byte-applications.md) attempts
-the actual hexdump and histogram demos. Both fail on unresolved `include`
-directives; temporary already-resolved equivalents then fail on unsupported
-`FnDef`. Compiler source loading and user-function/control-flow lowering are
-therefore earlier gates than the already recorded byte I/O and process gaps.
+the actual hexdump and histogram demos. With the repository supplied as
+`--source-dir`, both now resolve their include graphs. The selected development
+binary also lowers their user functions, and both real sources fail on
+unsupported `If`, matching temporary already-resolved controls. Control-flow
+lowering is now the earliest gate before the recorded byte I/O and process gaps.
 
 The [compiled format-application report](compiled-format-applications.md)
 repeats the experiment with the real bounded WAV copy/invert and Ogg page
-copy/rewrite programs. Both hit the same `include` then `FnDef` ladder before
-format-specific lowering, artifact byte parity, or bounded-memory auditing can
-begin. No new codec builtin is requested: the existing MLPL algorithms need the
-generic compiler surface first.
+copy/rewrite programs. Both pass source and function lowering and hit the same
+`If` wall before format-specific lowering, artifact byte parity, or bounded-
+memory auditing can begin. No new codec builtin is requested: the existing MLPL
+algorithms need the generic compiler surface first.
 
 The [standalone artifact audit](standalone-artifact-audit.md) confirms that
 numeric and partial-stdout control artifacts run in a clean source-free
@@ -100,8 +101,8 @@ artifact-launch mechanism; the control is explicitly not accepted as a useful
 file-processing CLI.
 
 The consolidated [standalone application assessment](standalone-report.md)
-orders the remaining generic work: source loading; user functions/control
-flow/Results/records; shared byte validation and error propagation; bounded
+orders the remaining generic work: control flow/Results/records;
+shared byte validation and error propagation; bounded
 byte/bit/text lowering; clean process entry/status semantics; then positive
 byte and format artifact parity plus a repeated clean-environment audit. Codec
 extensions and binary source handles are tracked separately and do not explain
@@ -125,12 +126,13 @@ runtime or codec builtin is requested.
 
 The complete [interpreter media-apps acceptance](interpreter-media-apps-report.md)
 confirms the higher-level application objective is unblocked in the interpreter.
-It does not alter the upstream request: compiling the same MLPL application
-sources still waits on queued B0/B1/C/D/D2/E parity.
+It does not alter the broader upstream request: compiling the same MLPL
+application sources now waits on C/D/D2/E parity in the selected development
+binary after B0 shipped and function lowering appeared.
 
 ## Upstream coordination status
 
-As of 2026-08-09, the adjacent sw-MLPL repository records this downstream
+As of 2026-08-11, the adjacent sw-MLPL repository records this downstream
 contract in `docs/companion-demo-file-processing.md`. Its
 `docs/future-sagas-queue.md` expands the compiler track in the same measured
 gate order: `compiler-source-loading` (B0), `compiler-functions` (B1),
@@ -138,10 +140,12 @@ gate order: `compiler-source-loading` (B0), `compiler-functions` (B1),
 `compiler-process-semantics` (D2), and `compiler-bit-ops` (E).
 
 Saga A—the compiled `CVal` plus string/`args`/`arg`/`write_stdout` groundwork—is
-recorded upstream as shipped. B0 through E are queued, not delivered, so this
-repository intentionally retains its exact expected-failure probes. Each probe
-must become positive parity only when its corresponding upstream rung changes
-the selected development compiler behavior.
+recorded upstream as shipped. B0 (`compiler-source-loading`) shipped on
+2026-08-10 and is accepted here through real-source checks using `--source-dir`.
+B1 has appeared in the selected development binary while upstream work is in
+progress; C through E remain. This repository now retains exact `If`
+change-detector probes. Each probe advances only when its corresponding
+upstream rung changes the selected development compiler behavior.
 
 ### Minimum acceptance
 

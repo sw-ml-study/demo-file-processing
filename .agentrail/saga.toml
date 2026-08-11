@@ -1,6 +1,6 @@
-name = "interpreter-media-apps"
-status = "completed"
-current_step = 4
-created_at = "2026-08-09T14:05:51"
+name = "compiler-gate-refresh"
+status = "active"
+current_step = 1
+created_at = "2026-08-11T10:58:41"
 plan_file = ".agentrail/plan.md"
 retroactive = false

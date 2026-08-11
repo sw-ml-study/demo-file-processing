@@ -10,28 +10,29 @@ expect_rejection() {
   name=$1
   source=$2
   pattern=$3
-  if "$mlpl_build" "$source" -o "$scratch/$name" >"$scratch/$name.out" 2>"$scratch/$name.err"; then
+  shift 3
+  if "$mlpl_build" "$source" -o "$scratch/$name" "$@" >"$scratch/$name.out" 2>"$scratch/$name.err"; then
     echo "compiler unexpectedly accepted blocked $name application" >&2
     exit 1
   fi
   grep -Fq "$pattern" "$scratch/$name.err"
 }
 
-expect_rejection hexdump "$repo_root/demos/bytes/hexdump.mlpl" 'unsupported construct: include "../../src/bytes/validate.mlpl"'
-expect_rejection histogram "$repo_root/demos/bytes/histogram.mlpl" 'unsupported construct: include "../../src/bytes/validate.mlpl"'
+expect_rejection hexdump "$repo_root/demos/bytes/hexdump.mlpl" 'unsupported construct: If' --source-dir "$repo_root"
+expect_rejection histogram "$repo_root/demos/bytes/histogram.mlpl" 'unsupported construct: If' --source-dir "$repo_root"
 
 {
   sed '/^include /d' "$repo_root/src/bytes/validate.mlpl"
   sed '/^include /d' "$repo_root/src/bytes/hex.mlpl"
   sed '/^include /d' "$repo_root/demos/bytes/hexdump.mlpl"
 } >"$scratch/hexdump-flat.mlpl"
-expect_rejection hexdump-flat "$scratch/hexdump-flat.mlpl" 'unsupported construct: FnDef'
+expect_rejection hexdump-flat "$scratch/hexdump-flat.mlpl" 'unsupported construct: If'
 
 {
   sed '/^include /d' "$repo_root/src/bytes/validate.mlpl"
   sed '/^include /d' "$repo_root/src/bytes/histogram.mlpl"
   sed '/^include /d' "$repo_root/demos/bytes/histogram.mlpl"
 } >"$scratch/histogram-flat.mlpl"
-expect_rejection histogram-flat "$scratch/histogram-flat.mlpl" 'unsupported construct: FnDef'
+expect_rejection histogram-flat "$scratch/histogram-flat.mlpl" 'unsupported construct: If'
 
-echo "PASS compiled byte-application blockers: source loading and function lowering"
+echo "PASS compiled byte applications resolve includes/functions and stop at control flow"

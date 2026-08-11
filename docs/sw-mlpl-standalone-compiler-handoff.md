@@ -17,9 +17,11 @@ boundary moves.
 The sw-MLPL repository has acknowledged this contract in
 `docs/companion-demo-file-processing.md` and expanded
 `docs/future-sagas-queue.md` into the corresponding B0/B1/C/D/D2/E compiler
-rungs. Saga A is shipped; the remaining rungs are queued rather than delivered.
-Downstream expected-failure probes therefore remain authoritative until a
-rebuilt development compiler changes their observed behavior.
+rungs. Saga A and B0 (`compiler-source-loading`) are shipped. Downstream accepts
+B0 with real-source probes using `--source-dir`; function lowering has also
+appeared in the selected development binary. The expected-`If` probes remain
+authoritative until a rebuilt development compiler changes their observed
+behavior.
 
 ## What is already accepted downstream
 
@@ -63,14 +65,15 @@ See `scripts/check-compiler` and
 
 ### Real byte applications
 
-Direct compilation of both existing applications fails at the first include:
+Compilation of both existing applications with the repository supplied as
+`--source-dir` resolves their include graphs:
 
 - `demos/bytes/hexdump.mlpl`
 - `demos/bytes/histogram.mlpl`
 
-The error says `include` is unsupported and asks for already-resolved source.
-The downstream check then mechanically concatenates the exact dependencies in
-a temporary file. Both resolved programs next fail at unsupported `FnDef`.
+Both expanded programs lower their user functions and next fail at unsupported
+`If`. The downstream check also mechanically concatenates the exact
+dependencies in a temporary file; those controls reach the same boundary.
 
 See `scripts/check-compiled-byte-apps` and
 [`compiled-byte-applications.md`](compiled-byte-applications.md).
@@ -83,9 +86,10 @@ The same experiment is performed with useful bounded-output applications:
   inversion;
 - `demos/ogg/bounded_output.mlpl` — page copy plus sequence/CRC rewrite.
 
-Direct sources fail on `include`; dependency-concatenated sources fail on
-`FnDef`. No native format artifact exists, so downstream cannot yet compare
-bytes, reparse output, test malformed-file statuses, or measure compiled RSS.
+Real sources resolve includes and functions, then fail on `If`, as do
+dependency-concatenated controls. No native format artifact exists, so
+downstream cannot yet compare bytes, reparse output, test malformed-file
+statuses, or measure compiled RSS.
 
 See `scripts/check-compiled-format-apps` and
 [`compiled-format-applications.md`](compiled-format-applications.md).
@@ -105,19 +109,18 @@ See `scripts/check-standalone-artifact` and
 
 Please implement or expose these in dependency order:
 
-1. Resolve source-relative `include` graphs before lowering.
-2. Lower user functions and calls, conditionals/loops, Result propagation,
-   records, and field access with interpreter-equivalent behavior.
-3. Share exact byte validation and I/O error propagation; do not coerce invalid
+1. Lower conditionals/loops, Result propagation, records, and field access with
+   interpreter-equivalent behavior.
+2. Share exact byte validation and I/O error propagation; do not coerce invalid
    byte values or discard sink errors.
-4. Lower bounded `read_bytes`, `file_size`, `append_bytes` or equivalent binary
+3. Lower bounded `read_bytes`, `file_size`, `append_bytes` or equivalent binary
    output, plus the array/bit/text operations used by the existing demos.
-5. Provide application entry-point semantics with pristine binary stdout,
+4. Provide application entry-point semantics with pristine binary stdout,
    stderr, useful nonzero exit status, and required stdin behavior—without an
    automatic textual result trailer.
-6. Compile the existing hexdump and histogram and compare interpreter/artifact
+5. Compile the existing hexdump and histogram and compare interpreter/artifact
    streams and statuses across their current fixture suites.
-7. Compile bounded WAV or Ogg output, compare exact bytes, semantically reparse
+6. Compile bounded WAV or Ogg output, compare exact bytes, semantically reparse
    the artifact, test failure statuses, and measure compiled peak RSS.
 
 No format-specific hexdump, histogram, WAV, Ogg, or MP3 builtin is requested.
@@ -149,11 +152,10 @@ After rebuilding the adjacent development `mlpl-build`, run from
 just check
 ```
 
-The expected-failure checks intentionally fail when upstream support advances.
+The expected-boundary checks intentionally fail when upstream support advances.
 The first of these changes is enough to notify the downstream agent:
 
-- a real demo no longer fails on `include`;
-- a dependency-concatenated demo no longer fails on `FnDef`;
+- a real or dependency-concatenated demo no longer fails on `If`;
 - a previously unsupported process or byte-I/O call lowers; or
 - compiled stdout no longer contains its textual trailer and matches
   interpreter validation/error behavior.

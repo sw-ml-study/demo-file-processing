@@ -22,8 +22,8 @@ claims remain accepted independently.
 | Byte validation | Interpreter rejects invalid bytes | Fail: compiler coerces `256`, `-1`, `1.5` to `255`, `0`, `1` |
 | Output errors | Interpreter returns errors | Fail: compiled runtime discards write/flush failures |
 | stdin/stderr/exit | Exact interpreter probe passes | Fail: `read_stdin`, `eprint`, and `exit` are not lowered |
-| Source loading | Actual applications use repository-relative includes | Fail: `mlpl-build` rejects `include` |
-| User application code | Dependency-concatenated demos reach lowering | Fail: `FnDef` is unsupported; control flow, Results, records, and fields also remain gaps |
+| Source loading | Actual applications compile with the repository passed as `--source-dir` | Pass: include graphs expand and reach lowering |
+| User application code | Real expanded and dependency-concatenated demos lower user functions | Partial: both now fail on unsupported `If`; Results, records, and fields also remain gaps |
 | Byte and format I/O | Interpreter bounded reads/appends pass | Fail: `read_bytes`, `file_size`, `append_bytes`, and required bit operations lack compiler parity |
 | Hexdump/histogram artifact | Actual demos and flattened equivalents are attempted | Fail before artifact production |
 | WAV/Ogg artifact | Bounded copy/rewrite demos and flattened equivalents are attempted | Fail before artifact production |
@@ -38,34 +38,34 @@ The default `just check` gate now includes:
 - exact interpreter process and binary-stdout contracts;
 - numeric/arithmetic compiler parity;
 - exact partial `args`/`arg`/`write_stdout` compiler behavior;
-- expected-failure compilation of actual and dependency-concatenated hexdump,
-  histogram, WAV, and Ogg applications;
+- positive include/function lowering plus expected `If` rejection for actual and
+  dependency-concatenated hexdump, histogram, WAV, and Ogg applications;
 - isolated execution and dependency inspection of supported control artifacts;
 - exact raw, WAV, Ogg, MP3, bounded-output, CRC, and demo narration oracles.
 
-The expected-failure application probes are deliberate change detectors. When
-upstream adds source loading or user functions, the default gate fails rather
-than silently preserving a stale blocker report; downstream must then replace
-the affected negative assertion with positive artifact parity.
+The expected-`If` application probes are deliberate change detectors. Source
+loading and function lowering are now positive prerequisites. When upstream
+adds control flow, the default gate fails rather than silently
+preserving a stale blocker report; downstream must then advance the assertion
+to the next measured boundary or positive artifact parity.
 
 ## Ordered compiler/runtime unblock
 
 The smallest useful upstream sequence is:
 
-1. resolve source-relative `include` graphs before lowering;
-2. lower user functions/calls, conditionals/loops, Results, records, and field
-   access with interpreter-equivalent semantics;
-3. share byte validation and error propagation instead of coercing values or
+1. lower conditionals/loops, Results, records, and field access with
+   interpreter-equivalent semantics;
+2. share byte validation and error propagation instead of coercing values or
    discarding sink failures;
-4. lower bounded `read_bytes`, `file_size`, `append_bytes`/binary stdout, and
+3. lower bounded `read_bytes`, `file_size`, `append_bytes`/binary stdout, and
    the array/bit/text operations used by the existing demos;
-5. provide clean entry-point behavior, stderr, exit status, and required stdin
+4. provide clean entry-point behavior, stderr, exit status, and required stdin
    behavior without a generated stdout trailer;
-6. compile hexdump and histogram and run the existing fixture matrix in both
+5. compile hexdump and histogram and run the existing fixture matrix in both
    modes;
-7. compile bounded WAV or Ogg output, compare exact bytes, semantically reparse
+6. compile bounded WAV or Ogg output, compare exact bytes, semantically reparse
    them, and measure compiled peak RSS; then
-8. repeat the clean-environment artifact audit on that useful application.
+7. repeat the clean-environment artifact audit on that useful application.
 
 These are generic compiler/runtime needs. No WAV-, Ogg-, MP3-, or histogram-
 specific builtin is requested.

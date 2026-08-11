@@ -45,9 +45,11 @@ The application audit still has no artifact on which to verify:
 - byte-identical WAV/Ogg output and semantic reparse; or
 - peak RSS of a compiled bounded-I/O application.
 
-The smallest unblock remains generic compiler source loading, user functions
-and control flow, Results, byte I/O, process semantics, and the array/bit
-operations already enumerated in the upstream contract. Once one real
+Compiler source loading is now accepted with an explicit repository
+`--source-dir`, and the selected development binary lowers user functions. The
+smallest unblock is control flow, followed by Results, byte I/O, process
+semantics, and the array/bit operations already enumerated in the upstream
+contract. Once one real
 application compiles, this control must be replaced or extended with that
 artifact's full fixture matrix.
 

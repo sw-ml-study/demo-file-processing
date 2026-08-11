@@ -51,13 +51,14 @@ operations, stderr/exit support, and clean binary CLI termination remain
 tracked explicitly.
 
 Native compilation of the actual hexdump and histogram demos is attempted by
-the default gate. Both currently stop at unresolved `include` directives; even
-temporary flattened sources stop at unsupported user function definitions, so
-no standalone byte application is claimed.
+the default gate. With the repository passed as `--source-dir`, both now
+resolve their include graphs and user functions, then stop at unsupported
+control flow; temporary flattened controls reach the same boundary. No
+standalone byte application is claimed.
 
 The same gate attempts the bounded WAV copy/invert and Ogg page copy/rewrite
 applications. Their real and temporarily flattened sources stop at the same
-loader and user-function boundaries before any native format artifact exists.
+control-flow boundary before any native format artifact exists.
 
 An isolated-execution control proves that the supported numeric and partial
 stdout artifacts run from a source-free directory with no named parser/REPL/

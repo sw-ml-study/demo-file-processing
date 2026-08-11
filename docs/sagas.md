@@ -93,6 +93,9 @@ audit method on narrow compiler controls, but remains blocked for a real file
 application because no such artifact is produced.
 The consolidated verdict and ordered unblock are in the
 [standalone application assessment](standalone-report.md).
+Compiler source loading (B0) is accepted: real application include graphs
+expand with `--source-dir`. The selected development binary also lowers user
+functions; control flow (`If`, C) is the current earliest blocker.
 
 1. CLI argument, stdin/stdout/stderr, exit-status, and error conformance.
 2. Compile hexdump/histogram and verify interpreter/compiler parity.

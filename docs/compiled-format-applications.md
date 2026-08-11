@@ -23,18 +23,20 @@ short chunks, cleanup policy, and unsupported WAV variants.
 `scripts/check-compiled-format-apps` attempts each real source file and asserts
 the current boundary:
 
-1. Both fail on their first repository-relative `include`; `mlpl-build` does
-   not resolve the application library graph.
-2. The check concatenates each exact dependency list and application into a
-   temporary already-resolved source. Both then fail on unsupported `FnDef`.
+1. With `--source-dir` set to the repository root, both real applications now
+   resolve their repository-relative `include` graphs. This confirms upstream
+   `compiler-source-loading` (B0), shipped 2026-08-10.
+2. The selected development binary lowers user functions, after which both
+   expanded applications fail on unsupported `If`. Temporary
+   dependency-concatenated controls reach the same boundary.
 
 No WAV or Ogg native artifact is produced, so binary I/O parity and bounded
 artifact memory cannot yet be measured. Claiming a standalone copy tool from
 the successful interpreter path would be an interpreter-wrapper claim, which
 does not satisfy this repository's acceptance definition.
 
-After source loading and user functions, these applications still require
-conditionals, records and field access, Result propagation, bounded
+These applications still require conditionals, records and field access,
+Result propagation, bounded
 `read_bytes`, `file_size`, `append_bytes`, removal/cleanup effects, text
 diagnostics, exit status, and broad array operations. Ogg additionally requires
 the fixed-width bit family; both require exact byte validation rather than the
