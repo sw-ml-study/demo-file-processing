@@ -1,9 +1,10 @@
 number = 1
 slug = "compiler-source-loading-evidence"
-status = "in-progress"
+status = "completed"
 description = "Update focused compiled byte and format application detectors for shipped inc..."
 role = "production"
 context_files = []
 created_at = "2026-08-11T10:58:50"
+completed_at = "2026-08-11T11:08:10"
 task_type = "maintenance"
-commits = []
+commits = ["8d968434ea3aa86e43828a57a38a47c946d448d6"]
