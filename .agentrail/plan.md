@@ -1,6 +1,6 @@
-# Saga: compiler-gate-refresh
+# Saga: file-date-metadata
 
-Refresh downstream evidence after upstream compiler source loading shipped, without modifying sw-mlpl.
+Define the downstream date-scanning demonstration and acceptance contract for the proposed confined exact UTC Unix-millisecond file metadata API, without modifying sw-mlpl.
 
 ## Steps
-1. compiler-source-loading-evidence -- Update focused detectors and documentation to accept include expansion with an explicit repository source root, identify FnDef as the current earliest blocker, run the full gate, and publish the evidence.
+1. file-date-contract -- Record ownership, exact API semantics, demo/test cases, platform parity requirements, blockers, and ordered implementation plan in repository documentation.

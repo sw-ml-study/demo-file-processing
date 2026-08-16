@@ -53,10 +53,10 @@ The configured sw-MLPL has whole-file `read_bytes`/`write_bytes`, bounded
 `read_bytes(path, offset, length)`, `file_size`, f64-backed exact-integer byte
 values, fixed-width bit operations, and interpreter-side CLI facilities. Its
 native build path works for the tested numeric and arithmetic expressions and
-partially lowers `args`/`arg`/`write_stdout`, but the generated wrapper
-contaminates binary stdout with a textual result line, invalid bytes are
-coerced instead of rejected, write errors are discarded, and stdin/stderr/exit,
-byte reads/appends, and bit operations are not lowered. Packed `u8` arrays,
+lowers `args`/`arg`/`write_stdout`, byte reads, file size, append/write, bit
+operations, functions, control flow, Results, and records. The generated wrapper
+still contaminates binary stdout with Result text; invalid bytes are now
+rejected, while write-error parity and stdin/stderr/exit remain gaps. Packed `u8` arrays,
 incremental binary sources/sinks, broad application lowering, and extension
 linking remain absent or incomplete. See [the measured baseline](capabilities.md).
 
@@ -265,8 +265,17 @@ applications: the [unified bounded inspector](media-inspector.md),
 rerun standalone executable change detectors when upstream application
 lowering, byte I/O, and process parity change. Source loading is accepted with
 an explicit repository `--source-dir`; the selected development binary also
-lowers functions, and control flow is the current earliest gate. Binary stdout
+passes control flow and byte/bit I/O, and `eq/2` is the current earliest gate. Binary stdout
 remains accepted in the interpreter; binary stdin/source
 handles remain separate. Codec-extension prototyping may proceed against
 seekable interpreter file paths when separately authorized, but standalone
 MP3-to-Ogg remains gated on compiler parity.
+
+The independently requested file-date slice is planned in the
+[file-date metadata contract](file-date-metadata-plan.md). Its first executable
+step waits for the confined exact UTC Unix-millisecond
+`file_metadata(...).modified_unix_ms` primitive in sw-MLPL. Once committed and
+rebuilt, probe the runtime contract before implementing pure MLPL
+sorting/UTC formatting and the narrated explicit-path demo. This work does not
+need codec extensions and must not be approximated through an external `stat`
+process.

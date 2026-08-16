@@ -19,7 +19,7 @@ mkdir "$scratch/clean"
 [ "$(cat "$scratch/clean/numeric.out")" = 28 ]
 [ ! -s "$scratch/clean/numeric.err" ]
 [ ! -s "$scratch/clean/stdout.err" ]
-printf '\000\3772\n' >"$scratch/stdout.expected"
+printf '\000\377ok(2)\n' >"$scratch/stdout.expected"
 cmp "$scratch/stdout.expected" "$scratch/clean/stdout.out"
 
 if command -v otool >/dev/null 2>&1; then

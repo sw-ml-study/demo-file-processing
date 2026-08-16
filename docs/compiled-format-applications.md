@@ -26,8 +26,9 @@ the current boundary:
 1. With `--source-dir` set to the repository root, both real applications now
    resolve their repository-relative `include` graphs. This confirms upstream
    `compiler-source-loading` (B0), shipped 2026-08-10.
-2. The selected development binary lowers user functions, after which both
-   expanded applications fail on unsupported `If`. Temporary
+2. The selected development binary lowers functions, control flow,
+   Results/records, byte I/O, and bit operations, after which both expanded
+   applications fail on unsupported `eq/2`. Temporary
    dependency-concatenated controls reach the same boundary.
 
 No WAV or Ogg native artifact is produced, so binary I/O parity and bounded
@@ -35,12 +36,10 @@ artifact memory cannot yet be measured. Claiming a standalone copy tool from
 the successful interpreter path would be an interpreter-wrapper claim, which
 does not satisfy this repository's acceptance definition.
 
-These applications still require conditionals, records and field access,
-Result propagation, bounded
-`read_bytes`, `file_size`, `append_bytes`, removal/cleanup effects, text
-diagnostics, exit status, and broad array operations. Ogg additionally requires
-the fixed-width bit family; both require exact byte validation rather than the
-compiler runtime's currently measured coercion.
+These applications still require comparison and later array/text operations,
+removal/cleanup effects, text diagnostics, exit status, and accepted sink-error
+semantics. The selected compiler now rejects invalid bytes rather than coercing
+them.
 
 ## Status and next action
 

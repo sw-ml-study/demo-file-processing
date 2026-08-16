@@ -18,13 +18,13 @@ claims remain accepted independently.
 | Native executable exists | Numeric reduction and partial stdout controls compile and run | Pass for narrow controls only |
 | No source/parser/REPL runtime dependency | Controls run from a fresh source-free directory under `env -i`; dependency inspection finds no named parser/REPL/evaluator library | Pass for narrow controls only |
 | CLI arguments | `args` and `arg` lower | Partial: wrapper output and error parity remain unsuitable |
-| Pristine binary stdout | `write_stdout([0,255])` lowers | Fail: generated `main` appends `2\n` |
-| Byte validation | Interpreter rejects invalid bytes | Fail: compiler coerces `256`, `-1`, `1.5` to `255`, `0`, `1` |
+| Pristine binary stdout | `write_stdout([0,255])` lowers | Fail: generated `main` appends `ok(2)\n` |
+| Byte validation | Interpreter rejects invalid bytes | Pass for probe: compiler emits `err(...)` without binary bytes |
 | Output errors | Interpreter returns errors | Fail: compiled runtime discards write/flush failures |
 | stdin/stderr/exit | Exact interpreter probe passes | Fail: `read_stdin`, `eprint`, and `exit` are not lowered |
 | Source loading | Actual applications compile with the repository passed as `--source-dir` | Pass: include graphs expand and reach lowering |
-| User application code | Real expanded and dependency-concatenated demos lower user functions | Partial: both now fail on unsupported `If`; Results, records, and fields also remain gaps |
-| Byte and format I/O | Interpreter bounded reads/appends pass | Fail: `read_bytes`, `file_size`, `append_bytes`, and required bit operations lack compiler parity |
+| User application code | Real expanded and dependency-concatenated demos lower functions, control flow, Results, and records | Partial: both now fail on unsupported `eq/2` |
+| Byte and format I/O | Read/append and bit probes compile and match expected values/bytes | Partial: full application parity still waits on later operations and process semantics |
 | Hexdump/histogram artifact | Actual demos and flattened equivalents are attempted | Fail before artifact production |
 | WAV/Ogg artifact | Bounded copy/rewrite demos and flattened equivalents are attempted | Fail before artifact production |
 | Clean application audit | Audit contract and control are executable | Blocked: no useful application artifact exists |
@@ -38,14 +38,14 @@ The default `just check` gate now includes:
 - exact interpreter process and binary-stdout contracts;
 - numeric/arithmetic compiler parity;
 - exact partial `args`/`arg`/`write_stdout` compiler behavior;
-- positive include/function lowering plus expected `If` rejection for actual and
+- positive source/function/control-flow/Result/record/I/O lowering plus expected `eq/2` rejection for actual and
   dependency-concatenated hexdump, histogram, WAV, and Ogg applications;
 - isolated execution and dependency inspection of supported control artifacts;
 - exact raw, WAV, Ogg, MP3, bounded-output, CRC, and demo narration oracles.
 
-The expected-`If` application probes are deliberate change detectors. Source
-loading and function lowering are now positive prerequisites. When upstream
-adds control flow, the default gate fails rather than silently
+The expected-`eq/2` application probes are deliberate change detectors. Earlier
+compiler rungs are now positive prerequisites. When upstream adds comparison,
+the default gate fails rather than silently
 preserving a stale blocker report; downstream must then advance the assertion
 to the next measured boundary or positive artifact parity.
 
@@ -53,19 +53,15 @@ to the next measured boundary or positive artifact parity.
 
 The smallest useful upstream sequence is:
 
-1. lower conditionals/loops, Results, records, and field access with
-   interpreter-equivalent semantics;
-2. share byte validation and error propagation instead of coercing values or
-   discarding sink failures;
-3. lower bounded `read_bytes`, `file_size`, `append_bytes`/binary stdout, and
-   the array/bit/text operations used by the existing demos;
-4. provide clean entry-point behavior, stderr, exit status, and required stdin
+1. lower `eq/2` and remaining array/text operations used by the demos;
+2. preserve byte validation and provide accepted sink-error propagation;
+3. provide clean entry-point behavior, stderr, exit status, and required stdin
    behavior without a generated stdout trailer;
-5. compile hexdump and histogram and run the existing fixture matrix in both
+4. compile hexdump and histogram and run the existing fixture matrix in both
    modes;
-6. compile bounded WAV or Ogg output, compare exact bytes, semantically reparse
+5. compile bounded WAV or Ogg output, compare exact bytes, semantically reparse
    them, and measure compiled peak RSS; then
-7. repeat the clean-environment artifact audit on that useful application.
+6. repeat the clean-environment artifact audit on that useful application.
 
 These are generic compiler/runtime needs. No WAV-, Ogg-, MP3-, or histogram-
 specific builtin is requested.

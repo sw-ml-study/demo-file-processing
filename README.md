@@ -44,27 +44,33 @@ the original design discussion.
 Bounded range reads, incremental sandboxed file-path writes, and interpreter
 binary stdout are available, but packed byte storage, binary stdin/source
 handles, and compiled application APIs are not current claims. The
-native compiler handles the tested numeric and arithmetic cases plus partial
-`args`/`arg`/`write_stdout` lowering. That lowering silently coerces invalid
-bytes and discards write errors, while byte reads, append output, bit
-operations, stderr/exit support, and clean binary CLI termination remain
-tracked explicitly.
+native compiler handles the tested numeric/arithmetic/bit cases, bounded reads,
+file size, append/write output, and partial `args`/`arg`/`write_stdout` lowering.
+Invalid stdout bytes are now rejected, but generated Result text still
+contaminates binary stdout and write-error parity remains unaccepted;
+stdin/stderr/exit support and broader application operations remain tracked.
 
 Native compilation of the actual hexdump and histogram demos is attempted by
 the default gate. With the repository passed as `--source-dir`, both now
-resolve their include graphs and user functions, then stop at unsupported
-control flow; temporary flattened controls reach the same boundary. No
+resolve includes, functions, control flow, Results/records, byte I/O, and bit
+operations, then stop at unsupported `eq/2`; flattened controls agree. No
 standalone byte application is claimed.
 
 The same gate attempts the bounded WAV copy/invert and Ogg page copy/rewrite
 applications. Their real and temporarily flattened sources stop at the same
-control-flow boundary before any native format artifact exists.
+`eq/2` boundary before any native format artifact exists.
 
 An isolated-execution control proves that the supported numeric and partial
 stdout artifacts run from a source-free directory with no named parser/REPL/
 evaluator dynamic dependency. That control is not a standalone file application;
 the intended artifact audit remains blocked until a real byte or format program
 compiles.
+
+A planned file-date index is separately gated on confined
+`file_metadata(path).modified_unix_ms`. After that generic API is committed and
+available in a rebuilt interpreter, this repository will demonstrate bounded
+explicit-path scanning, deterministic date sorting and ties, UTC formatting,
+unavailable timestamps, and macOS/Linux parity; it will not shell out to `stat`.
 
 The standalone assessment is complete with a **not accepted** verdict. The
 default gate preserves exact expected compiler failures so future upstream

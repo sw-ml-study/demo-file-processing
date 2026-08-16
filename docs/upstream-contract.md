@@ -68,28 +68,27 @@ remain blocked by the separate byte/process/bit lowering boundary below.
 
 The interpreter passes probes for `args`, `read_stdin`, stdout/stderr, exit
 status, whole/range byte reads, and bit operations. The adjacent development
-`mlpl-build` now lowers `args/0` and `write_stdout/1`, but the generated wrapper
-adds a textual result line after binary stdout. It still rejects `read_bytes/1`
-and `band/2` during lowering.
+`mlpl-build` now lowers arguments, binary stdout, whole/range reads, file size,
+append/write, and bit operations, but the generated wrapper still adds textual
+Result output after binary stdout.
 
 The expanded [compiled process conformance report](compiler-process-conformance.md)
 also verifies `arg/1` lowering and records the remaining semantic defects:
-compiled invalid bytes are coerced rather than rejected, runtime write errors
-are discarded, and `read_stdin`, `print`, `eprint`, and `exit` are not lowered.
+compiled invalid bytes are now rejected, while runtime write-error acceptance
+remains open and `read_stdin`, `print`, `eprint`, and `exit` are not lowered.
 Process parity therefore requires shared validation/error behavior as well as
 additional match arms; lowering a call name alone is not acceptance.
 
 The [compiled byte-application report](compiled-byte-applications.md) attempts
 the actual hexdump and histogram demos. With the repository supplied as
 `--source-dir`, both now resolve their include graphs. The selected development
-binary also lowers their user functions, and both real sources fail on
-unsupported `If`, matching temporary already-resolved controls. Control-flow
-lowering is now the earliest gate before the recorded byte I/O and process gaps.
+binary also lowers functions, control flow, Results/records, byte I/O, and bits;
+both real sources fail on unsupported `eq/2`, matching flattened controls.
 
 The [compiled format-application report](compiled-format-applications.md)
 repeats the experiment with the real bounded WAV copy/invert and Ogg page
-copy/rewrite programs. Both pass source and function lowering and hit the same
-`If` wall before format-specific lowering, artifact byte parity, or bounded-
+copy/rewrite programs. Both pass the earlier compiler rungs and hit the same
+`eq/2` wall before format-specific lowering, artifact byte parity, or bounded-
 memory auditing can begin. No new codec builtin is requested: the existing MLPL
 algorithms need the generic compiler surface first.
 
@@ -101,9 +100,8 @@ artifact-launch mechanism; the control is explicitly not accepted as a useful
 file-processing CLI.
 
 The consolidated [standalone application assessment](standalone-report.md)
-orders the remaining generic work: control flow/Results/records;
-shared byte validation and error propagation; bounded
-byte/bit/text lowering; clean process entry/status semantics; then positive
+orders the remaining generic work: comparison and later array/text lowering;
+accepted sink-error propagation; clean process entry/status semantics; then positive
 byte and format artifact parity plus a repeated clean-environment audit. Codec
 extensions and binary source handles are tracked separately and do not explain
 the current compile failures.
@@ -127,8 +125,8 @@ runtime or codec builtin is requested.
 The complete [interpreter media-apps acceptance](interpreter-media-apps-report.md)
 confirms the higher-level application objective is unblocked in the interpreter.
 It does not alter the broader upstream request: compiling the same MLPL
-application sources now waits on C/D/D2/E parity in the selected development
-binary after B0 shipped and function lowering appeared.
+application sources now waits on remaining operation and process parity after
+source, functions, control flow, Results/records, byte I/O, and bits appeared.
 
 ## Upstream coordination status
 
@@ -142,10 +140,9 @@ gate order: `compiler-source-loading` (B0), `compiler-functions` (B1),
 Saga A—the compiled `CVal` plus string/`args`/`arg`/`write_stdout` groundwork—is
 recorded upstream as shipped. B0 (`compiler-source-loading`) shipped on
 2026-08-10 and is accepted here through real-source checks using `--source-dir`.
-B1 has appeared in the selected development binary while upstream work is in
-progress; C through E remain. This repository now retains exact `If`
-change-detector probes. Each probe advances only when its corresponding
-upstream rung changes the selected development compiler behavior.
+Later compiler rungs through byte I/O and bits have appeared in the selected
+development binary. This repository now retains exact `eq/2` change-detector
+probes, advancing them only when selected compiler behavior changes.
 
 ### Minimum acceptance
 
@@ -221,3 +218,21 @@ Ogg granule positions and other 64-bit fields cannot be represented as one
 exact f64 across their full domain. Foundation code should first use two exact
 32-bit words. A native unsigned 64-bit or typed scalar request should follow
 only if that representation prevents a concrete operation or compiler parity.
+
+## Gate: confined file modification time
+
+The demo-extensions model picker needs the same generic timestamp surface as a
+planned file-date demonstration here. The selected interpreter currently has
+no usable `file_metadata(...).modified_unix_ms` operation, so date scanning
+is blocked before any MLPL sorting or formatting can observe real file dates.
+
+The active upstream saga is implementing a confined lookup returning an exact integral
+UTC Unix-millisecond value, with explicit stable errors for unavailable or
+unrepresentable timestamps and unchanged sandbox/traversal/symlink protection.
+This repository will own bounded explicit-path scanning, deterministic sorting
+and ties, pure UTC formatting, unavailable-value presentation, platform parity,
+and mlplunit coverage after the primitive ships. It does not request a model
+picker, directory walker, locale formatter, or external `stat` wrapper.
+
+The complete downstream acceptance contract and resume trigger are in the
+[file-date metadata plan](file-date-metadata-plan.md).

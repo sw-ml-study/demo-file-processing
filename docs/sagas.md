@@ -94,8 +94,9 @@ application because no such artifact is produced.
 The consolidated verdict and ordered unblock are in the
 [standalone application assessment](standalone-report.md).
 Compiler source loading (B0) is accepted: real application include graphs
-expand with `--source-dir`. The selected development binary also lowers user
-functions; control flow (`If`, C) is the current earliest blocker.
+expand with `--source-dir`. The selected development binary also lowers
+functions, control flow, Results/records, byte I/O, and bit operations; `eq/2`
+is the current earliest blocker.
 
 1. CLI argument, stdin/stdout/stderr, exit-status, and error conformance.
 2. Compile hexdump/histogram and verify interpreter/compiler parity.
@@ -135,6 +136,23 @@ canonical copy and unsigned-8-bit inversion with exact artifact verification.
 3. Validate audio/container output against pinned external oracles.
 4. Prove large-input bounded memory and document performance methodology.
 5. Compile and audit the standalone native MP3-to-Ogg application.
+
+## Saga 9 — `file-date-metadata`
+
+Status: contract recorded; implementation blocked on the confined sw-MLPL
+`file_metadata(path).modified_unix_ms` primitive. Upstream implementation is in
+progress but the selected interpreters do not expose it yet. See the
+[file-date metadata plan](file-date-metadata-plan.md).
+
+1. Probe exact UTC Unix-millisecond units, errors, sandboxing, symlinks, and
+   platform behavior in a rebuilt adjacent interpreter.
+2. Implement pure MLPL timestamp records, deterministic sorting/ties, and UTC
+   ISO-8601 formatting with native mlplunit edge coverage.
+3. Add a self-describing explicit-path date-index demo with interesting ordered
+   and unavailable outputs plus an exact narration oracle.
+4. Verify macOS/Linux parity and document precision/resolution limitations.
+5. Add compiled artifact parity only after the generic compiler surface lowers
+   both the application and metadata operation.
 
 ## Cross-saga rules
 

@@ -18,8 +18,8 @@ The sw-MLPL repository has acknowledged this contract in
 `docs/companion-demo-file-processing.md` and expanded
 `docs/future-sagas-queue.md` into the corresponding B0/B1/C/D/D2/E compiler
 rungs. Saga A and B0 (`compiler-source-loading`) are shipped. Downstream accepts
-B0 with real-source probes using `--source-dir`; function lowering has also
-appeared in the selected development binary. The expected-`If` probes remain
+B0 with real-source probes using `--source-dir`; functions, control flow,
+Results/records, byte I/O, and bits have also appeared. The expected-`eq/2` probes remain
 authoritative until a rebuilt development compiler changes their observed
 behavior.
 
@@ -51,11 +51,9 @@ probes named below are the authority.
 
 - `args()` and `arg(i)` lower.
 - `write_stdout(bytes)` lowers.
-- Generated `main` always prints the returned numeric result, contaminating
-  binary output. `write_stdout([0,255])` produces bytes `[0,255]` followed by
-  text `2\n`.
-- Invalid `[256,-1,1.5]` is coerced to `[255,0,1]` instead of being rejected
-  before output like the interpreter.
+- Generated `main` prints returned Result text, contaminating binary output.
+  `write_stdout([0,255])` produces bytes `[0,255]` followed by `ok(2)\n`.
+- Invalid `[256,-1,1.5]` is now rejected as `err(...)` without binary bytes.
 - Compiled stdout code discards `write_all`/`flush` failures and returns the
   requested count.
 - `read_stdin`, `print`, `eprint`, and `exit` are rejected as unsupported.
@@ -86,7 +84,8 @@ The same experiment is performed with useful bounded-output applications:
   inversion;
 - `demos/ogg/bounded_output.mlpl` — page copy plus sequence/CRC rewrite.
 
-Real sources resolve includes and functions, then fail on `If`, as do
+Real sources pass includes, functions, control flow, Results/records, byte I/O,
+and bits, then fail on `eq/2`, as do
 dependency-concatenated controls. No native format artifact exists, so
 downstream cannot yet compare bytes, reparse output, test malformed-file
 statuses, or measure compiled RSS.
@@ -109,18 +108,14 @@ See `scripts/check-standalone-artifact` and
 
 Please implement or expose these in dependency order:
 
-1. Lower conditionals/loops, Result propagation, records, and field access with
-   interpreter-equivalent behavior.
-2. Share exact byte validation and I/O error propagation; do not coerce invalid
-   byte values or discard sink errors.
-3. Lower bounded `read_bytes`, `file_size`, `append_bytes` or equivalent binary
-   output, plus the array/bit/text operations used by the existing demos.
-4. Provide application entry-point semantics with pristine binary stdout,
+1. Lower `eq/2` and the remaining array/text operations used by the demos.
+2. Preserve exact byte validation and provide accepted I/O error propagation.
+3. Provide application entry-point semantics with pristine binary stdout,
    stderr, useful nonzero exit status, and required stdin behavior—without an
    automatic textual result trailer.
-5. Compile the existing hexdump and histogram and compare interpreter/artifact
+4. Compile the existing hexdump and histogram and compare interpreter/artifact
    streams and statuses across their current fixture suites.
-6. Compile bounded WAV or Ogg output, compare exact bytes, semantically reparse
+5. Compile bounded WAV or Ogg output, compare exact bytes, semantically reparse
    the artifact, test failure statuses, and measure compiled peak RSS.
 
 No format-specific hexdump, histogram, WAV, Ogg, or MP3 builtin is requested.
@@ -155,7 +150,7 @@ just check
 The expected-boundary checks intentionally fail when upstream support advances.
 The first of these changes is enough to notify the downstream agent:
 
-- a real or dependency-concatenated demo no longer fails on `If`;
+- a real or dependency-concatenated demo no longer fails on `eq/2`;
 - a previously unsupported process or byte-I/O call lowers; or
 - compiled stdout no longer contains its textual trailer and matches
   interpreter validation/error behavior.

@@ -1,0 +1,9 @@
+number = 1
+slug = "file-date-contract"
+status = "in-progress"
+description = "Document the demo-extensions timestamp handoff in demo-file-processing. Add t..."
+role = "production"
+context_files = []
+created_at = "2026-08-16T15:38:31"
+task_type = "planning"
+commits = []
