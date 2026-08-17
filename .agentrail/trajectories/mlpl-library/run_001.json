@@ -1,0 +1,11 @@
+{
+  "task_type": "mlpl-library",
+  "state": {
+    "number": 1,
+    "step": "date-index-library"
+  },
+  "action": "Native mlplunit red/green; pure MLPL date arithmetic and bounded insertion permutation; self-describing demo and shell oracle; current published compiler probes; documentation/catalog reconciliation; full just check.",
+  "result": "success",
+  "reward": 1,
+  "timestamp": "2026-08-16T18:22:35"
+}
