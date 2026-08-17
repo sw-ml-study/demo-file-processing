@@ -2,10 +2,10 @@
 
 ## Verdict
 
-**Not accepted.** The selected development compiler produces genuine native
-artifacts for a narrow numeric subset and partial argument/stdout operations,
-but it does not produce a useful hexdump, histogram, WAV, or Ogg application.
-No repository demo is claimed as a standalone native file-processing CLI.
+**Accepted for one narrow whole-input application.** The selected development
+compiler produces a genuine native wc-style stdin filter with useful counts,
+host-oracle parity, and source-free execution. Bounded stdin, file-path wc,
+grep, du, hexdump, histogram, WAV, and Ogg applications remain unaccepted.
 
 This is an evidence-complete assessment of the current boundary, not a
 successful standalone delivery. Interpreter applications and their bounded-I/O
@@ -15,7 +15,7 @@ claims remain accepted independently.
 
 | Requirement | Evidence | Result |
 |---|---|---|
-| Native executable exists | Numeric reduction and partial stdout controls compile and run | Pass for narrow controls only |
+| Native executable exists | The wc stdin filter compiles and runs through pipes and redirection | Pass for the whole-input wc filter |
 | No source/parser/REPL runtime dependency | Controls run from a fresh source-free directory under `env -i`; dependency inspection finds no named parser/REPL/evaluator library | Pass for narrow controls only |
 | CLI arguments | `args` and `arg` lower | Pass for the narrow exact-output probes |
 | Pristine binary stdout | `write_stdout([0,255])` lowers | Pass: generated `main` emits exactly bytes `00 ff` with no result trailer |
@@ -23,11 +23,12 @@ claims remain accepted independently.
 | Output errors | Interpreter returns errors | Fail: compiled runtime discards write/flush failures |
 | stdin/stderr/exit | Exact interpreter probe passes | Partial: all lower and effect results no longer add trailers; broader application parity remains unaccepted |
 | Source loading | Actual applications compile with the repository passed as `--source-dir` | Pass: include graphs expand and reach lowering |
-| User application code | Real expanded and dependency-concatenated demos lower functions, control flow, Results, records, comparisons, tally, and indexing | Partial: applications now fail on unsupported `equal/2` |
+| User application code | Real expanded and dependency-concatenated demos lower functions, control flow, Results, records, comparisons, tally, indexing, and equality | Partial: remaining demos diverge at entry shape, `pow/2`, `fill/2`, `concat/2`, or `to_string/1` |
 | Byte and format I/O | Read/append and bit probes compile and match expected values/bytes | Partial: full application parity still waits on later operations and process semantics |
+| wc stdin artifact | Mixed, empty, and terminated inputs plus host `wc` oracle | Pass; whole-input memory only |
 | Hexdump/histogram artifact | Actual demos and flattened equivalents are attempted | Fail before artifact production |
 | WAV/Ogg artifact | Bounded copy/rewrite demos and flattened equivalents are attempted | Fail before artifact production |
-| Clean application audit | Audit contract and control are executable | Blocked: no useful application artifact exists |
+| Clean application audit | wc artifact runs under `env -i`; dependency inspection rejects named parser/REPL/evaluator libraries | Pass for wc stdin artifact |
 
 ## Verification completed
 
@@ -39,13 +40,14 @@ The default `just check` gate now includes:
 - numeric/arithmetic compiler parity;
 - exact partial `args`/`arg`/`write_stdout` compiler behavior;
 - positive source/function/control-flow/Result/record/I/O/comparison lowering
-  plus expected `equal/2` rejection for actual hexdump, histogram, WAV, Ogg,
-  wc, grep, and du applications and the dependency-concatenated controls;
+  plus exact current rejections for actual hexdump, histogram, WAV, Ogg,
+  narrated wc, grep, and du applications and dependency-concatenated controls;
 - isolated execution and dependency inspection of supported control artifacts;
 - exact raw, WAV, Ogg, MP3, bounded-output, CRC, and demo narration oracles.
 
-The expected-`equal/2` application probes are deliberate change detectors.
-Earlier compiler rungs are now positive prerequisites. When upstream adds structural equality,
+The remaining expected-failure application probes are deliberate change
+detectors. Earlier compiler rungs are now positive prerequisites. When upstream
+adds the next missing operations,
 the default gate fails rather than silently
 preserving a stale blocker report; downstream must then advance the assertion
 to the next measured boundary or positive artifact parity.
@@ -54,7 +56,7 @@ to the next measured boundary or positive artifact parity.
 
 The smallest useful upstream sequence is:
 
-1. lower `equal/2` and remaining array/text operations used by the demos;
+1. lower the remaining `pow/2`, `fill/2`, `concat/2`, `to_string/1`, and record-state operations used by the demos;
 2. preserve byte validation and provide accepted sink-error propagation;
 3. provide clean entry-point behavior, stderr, exit status, and required stdin
    behavior without a generated stdout trailer;

@@ -1,0 +1,34 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mlpl_build=$("$repo_root/scripts/select-mlpl-build")
+scratch=$(mktemp -d "${TMPDIR:-/tmp}/demo-file-wc-stdin.XXXXXX")
+trap 'rm -rf "$scratch"' EXIT HUP INT TERM
+
+if ! "$mlpl_build" "$repo_root/demos/files/wc_stdin.mlpl" -o "$scratch/mlpl-wc" --source-dir "$repo_root" >"$scratch/build.out" 2>"$scratch/build.err"; then
+  cat "$scratch/build.err" >&2
+  exit 1
+fi
+
+printf 'alpha beta\r\ngamma\t delta\nfinal café' | env -i PATH=/usr/bin:/bin "$scratch/mlpl-wc" >"$scratch/mixed.out"
+printf '' | env -i PATH=/usr/bin:/bin "$scratch/mlpl-wc" >"$scratch/empty.out"
+printf 'one two\n' | env -i PATH=/usr/bin:/bin "$scratch/mlpl-wc" >"$scratch/terminated.out"
+
+grep -Fqx 'lines words bytes' "$scratch/mixed.out"
+grep -Fqx '| 2 6 36 |' "$scratch/mixed.out"
+grep -Fqx '| 0 0 0 |' "$scratch/empty.out"
+grep -Fqx '| 1 2 8 |' "$scratch/terminated.out"
+
+host_counts=$(printf 'alpha beta\r\ngamma\t delta\nfinal café' | wc -l -w -c | awk '{ print $1, $2, $3 }')
+[ "$host_counts" = '2 6 36' ]
+
+if command -v otool >/dev/null 2>&1; then
+  otool -L "$scratch/mlpl-wc" >"$scratch/libs"
+  ! grep -Eq 'mlpl-repl|mlpl-parser|mlpl-eval' "$scratch/libs"
+elif command -v ldd >/dev/null 2>&1; then
+  ldd "$scratch/mlpl-wc" >"$scratch/libs"
+  ! grep -Eq 'mlpl-repl|mlpl-parser|mlpl-eval' "$scratch/libs"
+fi
+
+echo "PASS standalone compiled wc stdin filter, host oracle, and source-free execution"

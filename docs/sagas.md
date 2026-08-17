@@ -161,7 +161,8 @@ downstream acceptance work after live acquisition is available.
 
 1. `wc-like-demo` — bounded byte/LF-line/logical-line/ASCII-word counting with
    chunk invariance and explicit UTF-8 policy. **Accepted.** See
-   [the wc-like report](wc-like.md).
+   [the wc-like report](wc-like.md). A separate whole-input
+   [compiled stdin filter](compiled-wc-stdin.md) is also accepted.
 2. `grep-like-demo` — accepted: bounded literal matching with cross-chunk
    lines/matches, line numbers, budgets, and explicit text policy. Documented
    in [the grep-like report](grep-like.md).

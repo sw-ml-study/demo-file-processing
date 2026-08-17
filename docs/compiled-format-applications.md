@@ -27,8 +27,9 @@ the current boundary:
    resolve their repository-relative `include` graphs. This confirms upstream
    `compiler-source-loading` (B0), shipped 2026-08-10.
 2. The selected development binary lowers functions, control flow,
-   Results/records, byte I/O, bit operations, comparisons, tally, and indexing,
-   after which both expanded applications fail on unsupported `equal/2`. Temporary
+   Results/records, byte I/O, bit operations, comparisons, tally, indexing, and
+   structural equality, after which both expanded applications fail on
+   unsupported `concat/2`. Temporary
    dependency-concatenated controls reach the same boundary.
 
 No WAV or Ogg native artifact is produced, so binary I/O parity and bounded

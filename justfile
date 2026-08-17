@@ -171,6 +171,10 @@ grep-like:
 du-like:
     ./scripts/run-du-demo
 
+# Compile the whole-stdin wc-style filter to target/demo-bin/mlpl-wc.
+compiled-wc:
+    ./scripts/build-wc-stdin
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

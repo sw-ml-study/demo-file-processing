@@ -18,8 +18,8 @@ expect_rejection() {
   grep -Fq "$pattern" "$scratch/$name.err"
 }
 
-expect_rejection wav "$repo_root/demos/wav/bounded_output.mlpl" 'unsupported construct: fncall equal/2' --source-dir "$repo_root"
-expect_rejection ogg "$repo_root/demos/ogg/bounded_output.mlpl" 'unsupported construct: fncall equal/2' --source-dir "$repo_root"
+expect_rejection wav "$repo_root/demos/wav/bounded_output.mlpl" 'unsupported construct: fncall concat/2' --source-dir "$repo_root"
+expect_rejection ogg "$repo_root/demos/ogg/bounded_output.mlpl" 'unsupported construct: fncall concat/2' --source-dir "$repo_root"
 
 {
   sed '/^include /d' "$repo_root/src/bytes/validate.mlpl"
@@ -33,7 +33,7 @@ expect_rejection ogg "$repo_root/demos/ogg/bounded_output.mlpl" 'unsupported con
   sed '/^include /d' "$repo_root/src/wav/bounded_output.mlpl"
   sed '/^include /d' "$repo_root/demos/wav/bounded_output.mlpl"
 } >"$scratch/wav-flat.mlpl"
-expect_rejection wav-flat "$scratch/wav-flat.mlpl" 'unsupported construct: fncall equal/2'
+expect_rejection wav-flat "$scratch/wav-flat.mlpl" 'unsupported construct: fncall concat/2'
 
 {
   sed '/^include /d' "$repo_root/src/bytes/validate.mlpl"
@@ -46,6 +46,6 @@ expect_rejection wav-flat "$scratch/wav-flat.mlpl" 'unsupported construct: fncal
   sed '/^include /d' "$repo_root/src/ogg/bounded_output.mlpl"
   sed '/^include /d' "$repo_root/demos/ogg/bounded_output.mlpl"
 } >"$scratch/ogg-flat.mlpl"
-expect_rejection ogg-flat "$scratch/ogg-flat.mlpl" 'unsupported construct: fncall equal/2'
+expect_rejection ogg-flat "$scratch/ogg-flat.mlpl" 'unsupported construct: fncall concat/2'
 
-echo "PASS compiled WAV/Ogg applications pass tally/take and stop at equal/2 lowering"
+echo "PASS compiled WAV/Ogg applications pass equality and stop at concat/2 lowering"

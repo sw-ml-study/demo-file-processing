@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+mlpl_build=$("$repo_root/scripts/select-mlpl-build")
+output="$repo_root/target/demo-bin/mlpl-wc"
+
+mkdir -p "$repo_root/target/demo-bin"
+"$mlpl_build" "$repo_root/demos/files/wc_stdin.mlpl" -o "$output" --source-dir "$repo_root"
+printf '%s\n' "$output"

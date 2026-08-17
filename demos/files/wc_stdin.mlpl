@@ -1,0 +1,10 @@
+bytes = tokenize_bytes(read_stdin()); byte_count = tally(bytes); line_sum = reduce_add(eq(bytes, 10)); lines = if eq(byte_count, 0) { 0 } else { line_sum };
+index = 0; words = 0; in_word = 0;
+while lt(index, byte_count) {
+  byte = take(bytes, 0, index);
+  whitespace = eq(byte, 9) + eq(byte, 10) + eq(byte, 11) + eq(byte, 12) + eq(byte, 13) + eq(byte, 32);
+  starts_word = (1 - whitespace) * (1 - in_word);
+  words = words + starts_word; in_word = 1 - whitespace; index = index + 1
+};
+print("lines words bytes");
+disp([lines, words, byte_count])

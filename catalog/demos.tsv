@@ -42,3 +42,4 @@ file-date-index	demos/files/date_index.mlpl	filesystem	deterministic-date-index	
 wc-like	demos/files/wc.mlpl	text	bounded-byte-line-word-count	mlpl-native	chunk-bounded	yes	file_size,range-read,string-bytes	runnable
 grep-like	demos/files/grep.mlpl	text	bounded-literal-line-match	mlpl-native	chunk-bounded	yes	file_size,range-read,string-bytes	runnable
 du-like	demos/files/du.mlpl	filesystem	confined-logical-size-total	mlpl-native	whole-file	yes	fs_walk,file_size,logical-size	runnable
+compiled-wc-stdin	demos/files/wc_stdin.mlpl	native-executable	stdin-line-word-byte-count	mlpl-native	whole-file	yes	mlpl-build,read_stdin,tokenize_bytes,tally,take	runnable

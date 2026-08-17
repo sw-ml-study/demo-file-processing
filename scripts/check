@@ -13,6 +13,7 @@ repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 "$repo_root/scripts/check-compiled-byte-apps"
 "$repo_root/scripts/check-compiled-format-apps"
 "$repo_root/scripts/check-compiled-file-tools"
+"$repo_root/scripts/check-compiled-wc-stdin"
 "$repo_root/scripts/check-standalone-artifact"
 "$repo_root/scripts/check-media-inspector"
 "$repo_root/scripts/check-media-doctor"

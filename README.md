@@ -91,10 +91,16 @@ logical-size rows, and entry/depth/sum validation against an independent host
 blocks and does not claim bounded discovery while `fs_walk` materializes its
 result. See [docs/du-like.md](docs/du-like.md).
 
-The standalone assessment is complete with a **not accepted** verdict. The
-default gate preserves exact expected compiler failures so future upstream
-support triggers positive parity work; it does not disguise an interpreter
-script or numeric control as a standalone file application.
+`just compiled-wc` produces the genuine standalone stdin filter
+`target/demo-bin/mlpl-wc`. It counts LF lines, ASCII-delimited words, and UTF-8
+encoding bytes, passes a host `wc` oracle and source-free execution audit, and
+honestly remains whole-input because compiled `read_stdin()` reads through EOF.
+See [docs/compiled-wc-stdin.md](docs/compiled-wc-stdin.md).
+
+The standalone assessment now accepts the whole-input wc stdin filter, while
+bounded stdin, file-path wc, grep, du, and format applications remain
+unaccepted. The default gate preserves their exact current compiler failures so
+future upstream support triggers positive parity work.
 
 The [binary stdout contract](docs/write-stdout.md) verifies exact bytes, counts,
 multi-call ordering, empty/scalar writes, validation errors, and stderr

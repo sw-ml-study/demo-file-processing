@@ -9,15 +9,16 @@ trap 'rm -rf "$scratch"' EXIT HUP INT TERM
 expect_boundary() {
   name=$1
   source=$2
+  pattern=$3
   if "$mlpl_build" "$source" -o "$scratch/$name" --source-dir "$repo_root" >"$scratch/$name.out" 2>"$scratch/$name.err"; then
     echo "compiler unexpectedly accepted $name; replace this boundary with positive artifact parity" >&2
     exit 1
   fi
-  grep -Fq 'unsupported construct: fncall equal/2' "$scratch/$name.err"
+  grep -Fq "$pattern" "$scratch/$name.err"
 }
 
-expect_boundary wc-like "$repo_root/demos/files/wc.mlpl"
-expect_boundary grep-like "$repo_root/demos/files/grep.mlpl"
-expect_boundary du-like "$repo_root/demos/files/du.mlpl"
+expect_boundary wc-like "$repo_root/demos/files/wc.mlpl" 'check (the `?` operator) outside a Result-returning function'
+expect_boundary grep-like "$repo_root/demos/files/grep.mlpl" 'unsupported construct: fncall concat/2'
+expect_boundary du-like "$repo_root/demos/files/du.mlpl" 'unsupported construct: fncall to_string/1'
 
-echo "PASS compiled wc/grep/du sources advance through tally/take and stop at equal/2 lowering"
+echo "PASS narrated wc/grep/du demos retain exact entry/concat/to_string compiler boundaries"

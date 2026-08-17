@@ -281,6 +281,7 @@ parity without building a peer repository or approximating through `stat`.
 
 The Unix-like application sequence now includes the accepted
 [bounded wc-like counter](wc-like.md) and
+[standalone whole-input wc stdin filter](compiled-wc-stdin.md), the
 [bounded grep-like literal matcher](grep-like.md), then proceeds to
 the accepted [logical-size du-like traversal](du-like.md) and finally ls-like
 metadata display.
