@@ -1,0 +1,11 @@
+{
+  "task_type": "mlpl-application",
+  "state": {
+    "number": 4,
+    "step": "du-like-demo"
+  },
+  "action": "Used mlplunit TDD for the pure summary contract; exercised the live confined fs_walk/file_size path; added exact demo and host oracles; used only existing upstream binaries without editing or rebuilding the peer repository; refreshed catalog, plans, capability and compiler reports; ran focused checks and the complete gate.",
+  "result": "success",
+  "reward": 1,
+  "timestamp": "2026-08-17T08:55:19"
+}
