@@ -97,6 +97,12 @@ encoding bytes, passes a host `wc` oracle and source-free execution audit, and
 honestly remains whole-input because compiled `read_stdin()` reads through EOF.
 See [docs/compiled-wc-stdin.md](docs/compiled-wc-stdin.md).
 
+The required end state is a bounded pipe, not merely pipe compatibility. The
+[upstream bounded-stdin contract](docs/sw-mlpl-bounded-stdin-request.md) requires
+incremental raw-byte reads, explicit EOF, compiler parity, cross-chunk state,
+and growing-input RSS evidence. Slicing `read_stdin()` after EOF is explicitly
+not streaming.
+
 The standalone assessment now accepts the whole-input wc stdin filter, while
 bounded stdin, file-path wc, grep, du, and format applications remain
 unaccepted. The default gate preserves their exact current compiler failures so

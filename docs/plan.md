@@ -287,3 +287,9 @@ the accepted [logical-size du-like traversal](du-like.md) and finally ls-like
 metadata display.
 This order establishes chunked text state before traversal and leaves the
 live-date consumer until the rebuilt metadata interpreter is available.
+
+The compiled wc stdin artifact is a whole-input milestone, not the final
+pipeline. After ls, the queued bounded-stdin step waits for the
+[incremental byte-source contract](sw-mlpl-bounded-stdin-request.md), then
+reuses the accepted wc fold across true stdin chunks and requires growing-input
+RSS evidence before any streaming claim.

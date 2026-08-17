@@ -16,11 +16,16 @@ inspection rejects a named parser, REPL, or evaluator dependency.
 
 The current `read_stdin()` blocks until EOF and returns the complete input as a
 string. `tokenize_bytes` then creates the logical-byte array. This is a genuine
-standalone Unix filter, but its live memory is `O(input bytes)` and it is not a
-bounded streaming implementation. Words use only ASCII TAB/LF/VT/FF/CR/SPACE
+standalone Unix filter and compiler milestone, but it does **not** satisfy the
+project's target pipeline requirement: live memory is `O(input bytes)` and it
+is not a bounded streaming implementation. Words use only ASCII TAB/LF/VT/FF/CR/SPACE
 as delimiters; bytes are UTF-8 encoding bytes, not Unicode character counts.
 
 The reusable record-valued wc library remains interpreter-only because current
 code generation infers some record state parameters as `DenseArray`, producing
 `CVal`/`DenseArray` Rust type errors. The compiled filter deliberately uses
 scalar state while preserving the same tested counting policy.
+
+Replacement is gated on the explicit
+[bounded incremental stdin contract](sw-mlpl-bounded-stdin-request.md). Slicing
+or chunking the result of `read_stdin()` is not an accepted workaround.

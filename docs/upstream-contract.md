@@ -8,6 +8,10 @@ The [foundation acceptance report](foundation-report.md) closes the measured
 foundation work and separates the unblocked bounded-read path from capabilities
 that still require upstream authorization.
 
+The [bounded stdin request](sw-mlpl-bounded-stdin-request.md) specifies the
+remaining process-source gap for genuine Unix pipelines. Whole-input
+`read_stdin()` is useful but cannot support an `O(chunk_size)` memory claim.
+
 The [bounded-read acceptance report](bounded-read-report.md) now demonstrates
 that no upstream source API is required for seekable-file histogram, WAV,
 MP3/ID3, or Ogg inspection. Repeated exact range reads plus MLPL state are the

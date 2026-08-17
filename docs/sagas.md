@@ -172,6 +172,9 @@ downstream acceptance work after live acquisition is available.
    [the du-like report](du-like.md).
 4. `ls-like-demo` — deterministic kind/size/date rows reusing the date-index
    library once a rebuilt interpreter exposes live metadata.
+5. `bounded-stdin-pipeline` — replace the whole-input compiled wc milestone
+   after upstream supplies bounded byte chunks plus explicit EOF with
+   interpreter/compiler parity; require host parity and growing-input RSS.
 
 ## Cross-saga rules
 
