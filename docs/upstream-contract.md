@@ -84,12 +84,13 @@ The [compiled byte-application report](compiled-byte-applications.md) attempts
 the actual hexdump and histogram demos. With the repository supplied as
 `--source-dir`, both now resolve their include graphs. The selected development
 binary also lowers functions, control flow, Results/records, byte I/O, and bits;
-both real sources fail on unsupported `eq/2`, matching flattened controls.
+both real sources now pass comparison lowering and fail on unsupported
+`tally/1`, matching flattened controls.
 
 The [compiled format-application report](compiled-format-applications.md)
 repeats the experiment with the real bounded WAV copy/invert and Ogg page
 copy/rewrite programs. Both pass the earlier compiler rungs and hit the same
-`eq/2` wall before format-specific lowering, artifact byte parity, or bounded-
+`tally/1` wall before format-specific lowering, artifact byte parity, or bounded-
 memory auditing can begin. No new codec builtin is requested: the existing MLPL
 algorithms need the generic compiler surface first.
 
@@ -131,7 +132,7 @@ source, functions, control flow, Results/records, byte I/O, and bits appeared.
 
 ## Upstream coordination status
 
-As of 2026-08-11, the adjacent sw-MLPL repository records this downstream
+As of 2026-08-17, the adjacent sw-MLPL repository records this downstream
 contract in `docs/companion-demo-file-processing.md`. Its
 `docs/future-sagas-queue.md` expands the compiler track in the same measured
 gate order: `compiler-source-loading` (B0), `compiler-functions` (B1),
@@ -142,8 +143,9 @@ Saga Aâ€”the compiled `CVal` plus string/`args`/`arg`/`write_stdout` groundworkâ
 recorded upstream as shipped. B0 (`compiler-source-loading`) shipped on
 2026-08-10 and is accepted here through real-source checks using `--source-dir`.
 Later compiler rungs through byte I/O and bits have appeared in the selected
-development binary. This repository now retains exact `eq/2` change-detector
-probes, advancing them only when selected compiler behavior changes.
+development binary. Comparison lowering is now accepted here; this repository
+retains exact `tally/1` change-detector probes and advances them only when
+selected compiler behavior changes.
 
 ### Minimum acceptance
 

@@ -18,21 +18,21 @@ expect_rejection() {
   grep -Fq "$pattern" "$scratch/$name.err"
 }
 
-expect_rejection hexdump "$repo_root/demos/bytes/hexdump.mlpl" 'unsupported construct: fncall eq/2' --source-dir "$repo_root"
-expect_rejection histogram "$repo_root/demos/bytes/histogram.mlpl" 'unsupported construct: fncall eq/2' --source-dir "$repo_root"
+expect_rejection hexdump "$repo_root/demos/bytes/hexdump.mlpl" 'unsupported construct: fncall tally/1' --source-dir "$repo_root"
+expect_rejection histogram "$repo_root/demos/bytes/histogram.mlpl" 'unsupported construct: fncall tally/1' --source-dir "$repo_root"
 
 {
   sed '/^include /d' "$repo_root/src/bytes/validate.mlpl"
   sed '/^include /d' "$repo_root/src/bytes/hex.mlpl"
   sed '/^include /d' "$repo_root/demos/bytes/hexdump.mlpl"
 } >"$scratch/hexdump-flat.mlpl"
-expect_rejection hexdump-flat "$scratch/hexdump-flat.mlpl" 'unsupported construct: fncall eq/2'
+expect_rejection hexdump-flat "$scratch/hexdump-flat.mlpl" 'unsupported construct: fncall tally/1'
 
 {
   sed '/^include /d' "$repo_root/src/bytes/validate.mlpl"
   sed '/^include /d' "$repo_root/src/bytes/histogram.mlpl"
   sed '/^include /d' "$repo_root/demos/bytes/histogram.mlpl"
 } >"$scratch/histogram-flat.mlpl"
-expect_rejection histogram-flat "$scratch/histogram-flat.mlpl" 'unsupported construct: fncall eq/2'
+expect_rejection histogram-flat "$scratch/histogram-flat.mlpl" 'unsupported construct: fncall tally/1'
 
-echo "PASS compiled byte applications pass control flow and stop at eq/2 lowering"
+echo "PASS compiled byte applications pass comparisons and stop at tally/1 lowering"

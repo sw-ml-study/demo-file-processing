@@ -15,8 +15,8 @@ when a runtime, codec extension, or validation oracle performs the work.
 ## Project status
 
 The foundation, bounded range analysis, MP3/ID3 and Ogg inspection, and
-sandboxed incremental file and binary stdout output are accepted with 104 native
-mlplunit tests across 31 suites. See [the bounded WAV transformation app](docs/wav-transform-app.md),
+sandboxed incremental file and binary stdout output are accepted with 120 native
+mlplunit tests across 35 suites. See [the bounded WAV transformation app](docs/wav-transform-app.md),
 [the structural media doctor](docs/media-doctor.md),
 [the unified media inspector](docs/media-inspector.md),
 [the interpreter media-apps acceptance report](docs/interpreter-media-apps-report.md),
@@ -84,6 +84,12 @@ answer across one-byte through oversized range-read chunks.
 line numbers, cross-chunk invariance, explicit malformed-UTF-8 and CRLF
 semantics, and separate file, line, and match budgets. See
 [docs/grep-like.md](docs/grep-like.md).
+
+`just du-like` demonstrates confined regular-file discovery, deterministic
+logical-size rows, and entry/depth/sum validation against an independent host
+`wc -c` oracle. It explicitly distinguishes apparent length from allocated
+blocks and does not claim bounded discovery while `fs_walk` materializes its
+result. See [docs/du-like.md](docs/du-like.md).
 
 The standalone assessment is complete with a **not accepted** verdict. The
 default gate preserves exact expected compiler failures so future upstream

@@ -1,0 +1,23 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/io/range_reader.mlpl";
+include "../../src/files/date_index.mlpl";
+include "../../src/files/du.mlpl";
+
+result = u:du_walk("fixtures/bytes", 8, 1, 1024)?;
+
+print("Confined du-like logical-size demonstration");
+print("Purpose: walk regular files beneath one sandboxed root and total their logical byte lengths.");
+print("Input: the six deterministic fixtures/bytes files, including empty, singleton, repeated, boundary, and all-byte payloads.");
+print("Row 1:", list_get(result.paths, 0)?, take(result.sizes, 0, 0), "bytes");
+print("Row 2:", list_get(result.paths, 1)?, take(result.sizes, 0, 1), "bytes");
+print("Row 3:", list_get(result.paths, 2)?, take(result.sizes, 0, 2), "bytes");
+print("Row 4:", list_get(result.paths, 3)?, take(result.sizes, 0, 3), "bytes");
+print("Row 5:", list_get(result.paths, 4)?, take(result.sizes, 0, 4), "bytes");
+print("Row 6:", list_get(result.paths, 5)?, take(result.sizes, 0, 5), "bytes");
+print("Output: entries", result.entries, "; maximum relative depth", result.max_depth_seen, "; logical bytes", result.logical_bytes, ".");
+print("Interpretation: this is apparent file length like du --apparent-size, not allocated blocks, compression, sparseness, or directory storage.");
+print("Confinement: fs_walk resolves beneath the source root, returns UTF-8 lexical order, selects regular files, and never follows symlinks.");
+print("Budget boundary: MLPL checks root, entry count, relative depth, each exact size, and overflow-safe byte sum; current fs_walk materializes the path list before entry/depth rejection.");
+print("Host oracle: the checker independently sums the same regular files with wc -c and requires 573 logical bytes.");
+print("Complexity: O(entries) summary time and O(entries) retained path/size state after fs_walk; bounded traversal is not claimed.");
+ok({entries: result.entries, logical_bytes: result.logical_bytes, max_depth_seen: result.max_depth_seen, allocated_blocks: result.allocated_blocks})

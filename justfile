@@ -167,6 +167,10 @@ wc-like:
 grep-like:
     ./scripts/run-grep-demo
 
+# Walk confined regular files and total logical bytes with explicit budgets.
+du-like:
+    ./scripts/run-du-demo
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

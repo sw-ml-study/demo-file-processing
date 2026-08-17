@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+output=$("$repo_root/scripts/run-du-demo")
+
+printf '%s\n' "$output" | grep -Fqx 'Confined du-like logical-size demonstration'
+printf '%s\n' "$output" | grep -Fqx 'Row 1: fixtures/bytes/all-bytes.bin 256 bytes'
+printf '%s\n' "$output" | grep -Fqx 'Row 2: fixtures/bytes/boundary-17.bin 17 bytes'
+printf '%s\n' "$output" | grep -Fqx 'Row 3: fixtures/bytes/empty.bin 0 bytes'
+printf '%s\n' "$output" | grep -Fqx 'Row 4: fixtures/bytes/generate.mlpl 287 bytes'
+printf '%s\n' "$output" | grep -Fqx 'Row 5: fixtures/bytes/repeated-7.bin 12 bytes'
+printf '%s\n' "$output" | grep -Fqx 'Row 6: fixtures/bytes/singleton-ff.bin 1 bytes'
+printf '%s\n' "$output" | grep -Fqx 'Output: entries 6 ; maximum relative depth 1 ; logical bytes 573 .'
+printf '%s\n' "$output" | grep -Fqx 'Complexity: O(entries) summary time and O(entries) retained path/size state after fs_walk; bounded traversal is not claimed.'
+
+set -- "$repo_root"/fixtures/bytes/*
+host_total=$(wc -c "$@" | awk 'END { print $1 }')
+[ "$host_total" -eq 573 ]
+
+echo "PASS self-describing confined du-like demo and host logical-size oracle"

@@ -282,6 +282,7 @@ parity without building a peer repository or approximating through `stat`.
 The Unix-like application sequence now includes the accepted
 [bounded wc-like counter](wc-like.md) and
 [bounded grep-like literal matcher](grep-like.md), then proceeds to
-logical-size du-like traversal and finally ls-like metadata display.
+the accepted [logical-size du-like traversal](du-like.md) and finally ls-like
+metadata display.
 This order establishes chunked text state before traversal and leaves the
 live-date consumer until the rebuilt metadata interpreter is available.

@@ -27,8 +27,8 @@ the current boundary:
    resolve their repository-relative `include` graphs. This confirms upstream
    `compiler-source-loading` (B0), shipped 2026-08-10.
 2. The selected development binary lowers functions, control flow,
-   Results/records, byte I/O, and bit operations, after which both expanded
-   applications fail on unsupported `eq/2`. Temporary
+   Results/records, byte I/O, bit operations, and comparisons, after which both
+   expanded applications fail on unsupported `tally/1`. Temporary
    dependency-concatenated controls reach the same boundary.
 
 No WAV or Ogg native artifact is produced, so binary I/O parity and bounded
@@ -36,7 +36,7 @@ artifact memory cannot yet be measured. Claiming a standalone copy tool from
 the successful interpreter path would be an interpreter-wrapper claim, which
 does not satisfy this repository's acceptance definition.
 
-These applications still require comparison and later array/text operations,
+These applications still require structural array and later text operations,
 removal/cleanup effects, text diagnostics, exit status, and accepted sink-error
 semantics. The selected compiler now rejects invalid bytes rather than coercing
 them.

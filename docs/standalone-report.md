@@ -23,7 +23,7 @@ claims remain accepted independently.
 | Output errors | Interpreter returns errors | Fail: compiled runtime discards write/flush failures |
 | stdin/stderr/exit | Exact interpreter probe passes | Partial: all lower and effect results no longer add trailers; broader application parity remains unaccepted |
 | Source loading | Actual applications compile with the repository passed as `--source-dir` | Pass: include graphs expand and reach lowering |
-| User application code | Real expanded and dependency-concatenated demos lower functions, control flow, Results, and records | Partial: both now fail on unsupported `eq/2` |
+| User application code | Real expanded and dependency-concatenated demos lower functions, control flow, Results, records, and comparisons | Partial: applications now fail on unsupported `tally/1` |
 | Byte and format I/O | Read/append and bit probes compile and match expected values/bytes | Partial: full application parity still waits on later operations and process semantics |
 | Hexdump/histogram artifact | Actual demos and flattened equivalents are attempted | Fail before artifact production |
 | WAV/Ogg artifact | Bounded copy/rewrite demos and flattened equivalents are attempted | Fail before artifact production |
@@ -33,18 +33,19 @@ claims remain accepted independently.
 
 The default `just check` gate now includes:
 
-- 104 native mlplunit tests across 31 suites, including the later unified media
+- 120 native mlplunit tests across 35 suites, including the later unified media
   inspector, structural media doctor, and WAV transformation app coverage;
 - exact interpreter process and binary-stdout contracts;
 - numeric/arithmetic compiler parity;
 - exact partial `args`/`arg`/`write_stdout` compiler behavior;
-- positive source/function/control-flow/Result/record/I/O lowering plus expected `eq/2` rejection for actual and
-  dependency-concatenated hexdump, histogram, WAV, and Ogg applications;
+- positive source/function/control-flow/Result/record/I/O/comparison lowering
+  plus expected `tally/1` rejection for actual hexdump, histogram, WAV, Ogg,
+  wc, grep, and du applications and the dependency-concatenated controls;
 - isolated execution and dependency inspection of supported control artifacts;
 - exact raw, WAV, Ogg, MP3, bounded-output, CRC, and demo narration oracles.
 
-The expected-`eq/2` application probes are deliberate change detectors. Earlier
-compiler rungs are now positive prerequisites. When upstream adds comparison,
+The expected-`tally/1` application probes are deliberate change detectors.
+Earlier compiler rungs are now positive prerequisites. When upstream adds tally,
 the default gate fails rather than silently
 preserving a stale blocker report; downstream must then advance the assertion
 to the next measured boundary or positive artifact parity.
@@ -53,7 +54,7 @@ to the next measured boundary or positive artifact parity.
 
 The smallest useful upstream sequence is:
 
-1. lower `eq/2` and remaining array/text operations used by the demos;
+1. lower `tally/1` and remaining array/text operations used by the demos;
 2. preserve byte validation and provide accepted sink-error propagation;
 3. provide clean entry-point behavior, stderr, exit status, and required stdin
    behavior without a generated stdout trailer;
@@ -90,8 +91,9 @@ are cleared.
 
 ## Next action
 
-Pause standalone downstream implementation until upstream compiler/runtime
-parity changes. Re-run `just check` against each new adjacent development build;
+Keep compiler-ready application sources and exact boundary probes current while
+upstream compiler/runtime parity changes. Re-run `just check` against each new
+adjacent development build;
 the first expected-failure oracle that breaks identifies the next positive
 downstream parity step. Do not start a new file-application implementation by
 wrapping the interpreter or duplicating MLPL algorithms externally.

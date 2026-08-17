@@ -1,6 +1,6 @@
 number = 4
 slug = "du-like-demo"
-status = "pending"
+status = "in-progress"
 description = "Build a confined du-like MLPL application using the available generic travers..."
 role = "production"
 context_files = []

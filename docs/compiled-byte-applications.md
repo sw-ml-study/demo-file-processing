@@ -26,14 +26,14 @@ the next independent compiler gate:
    resolve their source-relative `include` graphs. This is positive evidence
    for upstream `compiler-source-loading` (B0), shipped 2026-08-10.
 2. The selected development binary also lowers functions, control flow,
-   Results/records, byte I/O, and bit operations. Both real expanded programs
-   now fail on their first `eq/2` call;
+   Results/records, byte I/O, bit operations, and comparisons. Both real
+   expanded programs now fail on their first `tally/1` call;
    mechanically concatenated controls reach the same boundary, showing that
    source expansion and the former workaround agree about the next gate.
 
 Even after those front-end gates, the measured capability matrix still shows
-that these programs still depend on unsupported comparison and later array/text
-operations, especially hexdump formatting.
+that these programs still depend on unsupported structural array and later
+text operations, especially hexdump formatting.
 The histogram additionally needs table/comparison/reduction operations beyond
 the compiler's narrow current numeric subset.
 
@@ -46,7 +46,7 @@ fresh positive-parity implementation, rather than leaving this report stale.
 
 The recommended compiler order is:
 
-1. lower `eq/2` and the remaining array/text operations exercised here;
+1. lower `tally/1` and the remaining array/text operations exercised here;
 2. retain interpreter-equivalent Result propagation and byte validation;
 3. provide clean stdout/stderr and exit semantics from the process-conformance
    contract; and

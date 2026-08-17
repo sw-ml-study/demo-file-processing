@@ -1,0 +1,38 @@
+include "src/bytes/validate.mlpl";
+include "src/io/range_reader.mlpl";
+include "src/files/date_index.mlpl";
+include "src/files/du.mlpl";
+
+@test {name: "du-like summary totals logical bytes in deterministic path order", tags: ["files", "du", "summary"]}
+def u:test_du_summary() { paths = ["tree/a.txt", "tree/sub/b.bin", "tree/sub/empty"]; sizes = [5,7,0];
+  result = u:du_summarize(paths, sizes, "tree", 8, 2, 20)?;
+  u:assert_eq([result.entries, result.logical_bytes, result.max_depth_seen], [3,12,2], "logical totals and depth")?;
+  u:assert_eq(result.paths, paths, "lexical path order is preserved")
+}
+
+@test {name: "du-like summary accepts empty and exact-budget boundaries", tags: ["files", "du", "boundary"]}
+def u:test_du_boundaries() {
+  empty = u:du_summarize([], [], "tree", 0, 0, 0)?;
+  exact = u:du_summarize(["tree/a"], [9], "tree", 1, 1, 9)?;
+  u:assert_eq([empty.entries, empty.logical_bytes], [0,0], "empty tree")?;
+  u:assert_eq([exact.entries, exact.logical_bytes, exact.max_depth_seen], [1,9,1], "exact budgets")
+}
+
+@test {name: "du-like summary rejects entry depth and byte budget overflow", tags: ["files", "du", "budgets"]}
+def u:test_du_budgets() {
+  u:assert_err(u:du_summarize(["tree/a", "tree/b"], [1,1], "tree", 1, 1, 2), "entry budget")?;
+  u:assert_err(u:du_summarize(["tree/sub/a"], [1], "tree", 1, 1, 1), "depth budget")?;
+  u:assert_err(u:du_summarize(["tree/a", "tree/b"], [6,5], "tree", 2, 1, 10), "sum budget")
+}
+
+@test {name: "du-like summary validates roots paths sizes and lexical ordering", tags: ["files", "du", "invalid"]}
+def u:test_du_invalid() {
+  u:assert_err(u:du_summarize(["tree/a"], [], "tree", 2, 2, 10), "parallel inputs")?;
+  u:assert_err(u:du_summarize(["tree/a"], [1.5], "tree", 2, 2, 10), "fractional size")?;
+  u:assert_err(u:du_summarize(["tree/b", "tree/a"], [1,1], "tree", 2, 2, 10), "non-lexical paths")?;
+  u:assert_err(u:du_summarize(["other/a"], [1], "tree", 2, 2, 10), "outside root label")?;
+  u:assert_err(u:du_summarize([], [], "../tree", 2, 2, 10), "unsafe root")?;
+  u:assert_err(u:du_summarize([], [], "tree", 1.5, 2, 10), "fractional budget")
+}
+
+u:run_registered_tests()

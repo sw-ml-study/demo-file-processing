@@ -165,8 +165,10 @@ downstream acceptance work after live acquisition is available.
 2. `grep-like-demo` — accepted: bounded literal matching with cross-chunk
    lines/matches, line numbers, budgets, and explicit text policy. Documented
    in [the grep-like report](grep-like.md).
-3. `du-like-demo` — confined traversal and logical byte totals with root,
-   entry, depth, and sum budgets; do not claim allocated filesystem blocks.
+3. `du-like-demo` — **Accepted:** confined traversal and logical byte totals
+   with root, entry, depth, and sum validation, plus a host oracle. Discovery
+   remains materialized and allocated filesystem blocks are not claimed. See
+   [the du-like report](du-like.md).
 4. `ls-like-demo` — deterministic kind/size/date rows reusing the date-index
    library once a rebuilt interpreter exposes live metadata.
 
