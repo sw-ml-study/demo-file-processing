@@ -1,0 +1,1 @@
+Implemented and accepted a bounded wc-like MLPL application with physical bytes, LF lines, explicit logical final lines, ASCII word boundaries, UTF-8 byte policy, CRLF handling, chunk invariance, preflight budgets, narrated outputs, and cleanup. Full just check passed with 112 tests across 33 suites. Next step is the queued grep-like literal matcher.

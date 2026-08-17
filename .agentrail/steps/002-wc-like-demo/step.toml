@@ -1,9 +1,10 @@
 number = 2
 slug = "wc-like-demo"
-status = "in-progress"
+status = "completed"
 description = "Build a bounded wc-like MLPL application over whole/range reads. Define exact..."
 role = "production"
 context_files = []
 created_at = "2026-08-16T17:48:47"
+completed_at = "2026-08-16T18:41:35"
 task_type = "mlpl-application"
-commits = []
+commits = ["05403a84c1de98b85a6f06b3e881b5b62a4b9fc3"]
