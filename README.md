@@ -80,6 +80,11 @@ cases distinguish LF terminators from logical final lines, define CRLF and
 ASCII whitespace policy, show UTF-8 byte counts, and prove the same semantic
 answer across one-byte through oversized range-read chunks.
 
+`just grep-like` demonstrates bounded literal-byte matching with deterministic
+line numbers, cross-chunk invariance, explicit malformed-UTF-8 and CRLF
+semantics, and separate file, line, and match budgets. See
+[docs/grep-like.md](docs/grep-like.md).
+
 The standalone assessment is complete with a **not accepted** verdict. The
 default gate preserves exact expected compiler failures so future upstream
 support triggers positive parity work; it does not disguise an interpreter
@@ -88,9 +93,9 @@ script or numeric control as a standalone file application.
 The [binary stdout contract](docs/write-stdout.md) verifies exact bytes, counts,
 multi-call ordering, empty/scalar writes, validation errors, and stderr
 separation. Bounded stdout applications and growing-output RSS evidence are
-accepted. `write_stdout` now lowers in the adjacent development compiler, but
-its generated wrapper appends a textual result line, so it cannot yet produce
-a pristine standalone binary stream.
+accepted. `write_stdout` now lowers in the adjacent development compiler and
+produces a pristine standalone binary stream without a textual result trailer.
+Generic file applications remain blocked on later lowering boundaries.
 
 The [bounded stdout applications](docs/bounded-stdout.md) emit exact raw bytes,
 a complete canonical WAV, or one checksum-verified Ogg page while keeping their

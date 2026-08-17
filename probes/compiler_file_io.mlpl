@@ -1,1 +1,1 @@
-read_bytes("input.bin")
+print(read_bytes("input.bin"))

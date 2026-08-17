@@ -1,6 +1,6 @@
 number = 3
 slug = "grep-like-demo"
-status = "pending"
+status = "in-progress"
 description = "Build a bounded grep-like MLPL literal matcher with explicit byte/text semant..."
 role = "production"
 context_files = []

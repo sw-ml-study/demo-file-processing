@@ -1,0 +1,20 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/io/range_reader.mlpl";
+include "../../src/files/grep.mlpl";
+
+path = ".grep-demo-input.txt"; bytes = tokenize_bytes("zero\nneedle at start\nsplit needle across chunks\nnone\nfinal needle"); pattern = tokenize_bytes("needle"); write_bytes(path, bytes)?;
+one = u:grep_file(path, pattern, 1, 4096, 128, 8)?; seven = u:grep_file(path, pattern, 7, 4096, 128, 8)?; sixty_four = u:grep_file(path, pattern, 64, 4096, 128, 8)?; remove_path(path);
+crlf = u:grep_bytes(tokenize_bytes("one\r\ntwo\r\n"), tokenize_bytes("two\r"), 32, 4)?; malformed = u:grep_bytes([255,10,97], [255], 8, 4)?;
+
+print("Bounded grep-like literal matcher demonstration");
+print("Purpose: find literal byte patterns and report logical line numbers without retaining the whole file.");
+print("Input A: five lines, three needle matches, a long line spanning chunks, and an unterminated matching final line.");
+print("Output A: matched lines", one.match_lines, "; matches", one.matches, "; logical lines", one.lines, "; bytes", one.bytes, ".");
+print("Chunk evidence: chunk sizes 1, 7, and 64 return the same lines; calls used", one.chunks, ",", seven.chunks, ", and", sixty_four.chunks, "chunks.");
+print("Output B — CRLF: pattern two+CR matches line", crlf.match_lines, "because LF alone terminates a line and CR remains content.");
+print("Output C — malformed UTF-8 bytes: literal byte 255 matches line", malformed.match_lines, ".");
+print("Pattern policy: matching is non-empty literal bytes, not regex or Unicode text; malformed UTF-8 is accepted without decoding.");
+print("Budget policy: max_bytes is preflighted, max_line_bytes bounds retained line state, and max_matches bounds the numeric result list.");
+print("Ownership: MLPL drives range reads, reconstructs bounded lines, matches across chunk splits, numbers lines, and enforces budgets; the runtime only returns byte ranges.");
+print("Complexity: O(file bytes × pattern bytes) worst-case time and O(chunk_size + max_line_bytes + max_matches) live state.");
+ok({matches: one.matches, match_lines: one.match_lines, chunk_invariant: equal(one.match_lines, seven.match_lines) * equal(one.match_lines, sixty_four.match_lines)})

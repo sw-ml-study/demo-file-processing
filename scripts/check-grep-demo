@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+output=$("$repo_root/scripts/run-grep-demo")
+
+printf '%s\n' "$output" | grep -Fqx 'Bounded grep-like literal matcher demonstration'
+printf '%s\n' "$output" | grep -Fqx 'Output A: matched lines 2 3 5 ; matches 3 ; logical lines 5 ; bytes 65 .'
+printf '%s\n' "$output" | grep -Fqx 'Chunk evidence: chunk sizes 1, 7, and 64 return the same lines; calls used 65 , 10 , and 2 chunks.'
+printf '%s\n' "$output" | grep -Fqx 'Output B — CRLF: pattern two+CR matches line 2 because LF alone terminates a line and CR remains content.'
+printf '%s\n' "$output" | grep -Fqx 'Output C — malformed UTF-8 bytes: literal byte 255 matches line 1 .'
+printf '%s\n' "$output" | grep -Fqx 'Complexity: O(file bytes × pattern bytes) worst-case time and O(chunk_size + max_line_bytes + max_matches) live state.'
+[ ! -e "$repo_root/.grep-demo-input.txt" ]
+
+echo "PASS self-describing bounded grep-like demo"

@@ -23,7 +23,7 @@ cp "$scratch/file-interpreted/input.bin" "$scratch/file-compiled/input.bin"
 (cd "$scratch/file-interpreted" && "$mlpl" probe.mlpl) >"$scratch/file-interpreted.out"
 "$mlpl_build" "$scratch/file-compiled/probe.mlpl" -o "$scratch/compiler-file-io" >/dev/null
 (cd "$scratch/file-compiled" && "$scratch/compiler-file-io") >"$scratch/file-compiled.out"
-printf 'Ok(1 2 255)\n' >"$scratch/file-interpreted.expected"
+printf 'Ok(1 2 255)\nOk(1 2 255)\n' >"$scratch/file-interpreted.expected"
 printf 'ok(1 2 255)\n' >"$scratch/file-compiled.expected"
 cmp "$scratch/file-interpreted.expected" "$scratch/file-interpreted.out"
 cmp "$scratch/file-compiled.expected" "$scratch/file-compiled.out"
@@ -33,22 +33,25 @@ write_stdout(args())
 EOF
 "$mlpl_build" "$scratch/args.mlpl" -o "$scratch/compiler-args" >/dev/null
 "$scratch/compiler-args" alpha beta >"$scratch/args.actual"
-printf 'alpha\nbetaok(10)\n' >"$scratch/args.expected"
+printf 'alpha\nbeta' >"$scratch/args.expected"
 cmp "$scratch/args.expected" "$scratch/args.actual"
 
 "$mlpl_build" "$repo_root/probes/compiler_arg.mlpl" -o "$scratch/compiler-arg" >/dev/null
 "$scratch/compiler-arg" alpha beta >"$scratch/arg.actual"
-printf 'betaok(4)\n' >"$scratch/arg.expected"
+printf 'beta' >"$scratch/arg.expected"
 cmp "$scratch/arg.expected" "$scratch/arg.actual"
 
 "$mlpl_build" "$repo_root/probes/compiler_invalid_stdout.mlpl" -o "$scratch/compiler-invalid-stdout" >/dev/null
-"$scratch/compiler-invalid-stdout" >"$scratch/invalid-stdout.actual"
-printf 'err(write_stdout: cell 0 = 256 is not an integer in 0..=255)\n' >"$scratch/invalid-stdout.expected"
+invalid_stdout_status=0
+"$scratch/compiler-invalid-stdout" >"$scratch/invalid-stdout.out" 2>"$scratch/invalid-stdout.actual" || invalid_stdout_status=$?
+[ "$invalid_stdout_status" -ne 0 ]
+[ ! -s "$scratch/invalid-stdout.out" ]
+printf 'write_stdout: cell 0 = 256 is not an integer in 0..=255\n' >"$scratch/invalid-stdout.expected"
 cmp "$scratch/invalid-stdout.expected" "$scratch/invalid-stdout.actual"
 
 "$mlpl_build" "$repo_root/probes/compiler_read_stdin.mlpl" -o "$scratch/compiler-read-stdin" >/dev/null
 printf 'alpha\nbeta\n' | "$scratch/compiler-read-stdin" >"$scratch/read-stdin.actual" 2>"$scratch/read-stdin.err"
-printf 'alpha\nbeta\n\n' >"$scratch/read-stdin.expected"
+printf 'alpha\nbeta\n' >"$scratch/read-stdin.expected"
 cmp "$scratch/read-stdin.expected" "$scratch/read-stdin.actual"
 [ ! -s "$scratch/read-stdin.err" ]
 
@@ -86,14 +89,14 @@ cp "$repo_root/probes/compiler_append.mlpl" "$scratch/append-compiled/probe.mlpl
 "$mlpl_build" "$scratch/append-compiled/probe.mlpl" -o "$scratch/compiler-append" >/dev/null
 (cd "$scratch/append-compiled" && "$scratch/compiler-append") >"$scratch/append-compiled.out"
 printf 'Ok(3)\n' >"$scratch/append-interpreted.expected"
-printf 'ok(3)\n' >"$scratch/append-compiled.expected"
+: >"$scratch/append-compiled.expected"
 cmp "$scratch/append-interpreted.expected" "$scratch/append-interpreted.out"
 cmp "$scratch/append-compiled.expected" "$scratch/append-compiled.out"
 cmp "$scratch/append-interpreted/out.bin" "$scratch/append-compiled/out.bin"
 
 "$mlpl_build" "$repo_root/probes/compiler_stdout.mlpl" -o "$scratch/compiler-stdout" >/dev/null
 "$scratch/compiler-stdout" >"$scratch/stdout.actual"
-printf '\000\377ok(2)\n' >"$scratch/stdout.expected"
+printf '\000\377' >"$scratch/stdout.expected"
 cmp "$scratch/stdout.expected" "$scratch/stdout.actual"
 
 arithmetic_interpreted=$("$mlpl" "$repo_root/probes/compiler_arithmetic.mlpl")

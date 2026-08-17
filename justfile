@@ -163,6 +163,10 @@ file-date-index:
 wc-like:
     ./scripts/run-wc-demo
 
+# Search literal bytes by line with bounded reads, retained line state, and results.
+grep-like:
+    ./scripts/run-grep-demo
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

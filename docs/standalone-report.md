@@ -17,11 +17,11 @@ claims remain accepted independently.
 |---|---|---|
 | Native executable exists | Numeric reduction and partial stdout controls compile and run | Pass for narrow controls only |
 | No source/parser/REPL runtime dependency | Controls run from a fresh source-free directory under `env -i`; dependency inspection finds no named parser/REPL/evaluator library | Pass for narrow controls only |
-| CLI arguments | `args` and `arg` lower | Partial: wrapper output and error parity remain unsuitable |
-| Pristine binary stdout | `write_stdout([0,255])` lowers | Fail: generated `main` appends `ok(2)\n` |
-| Byte validation | Interpreter rejects invalid bytes | Pass for probe: compiler emits `err(...)` without binary bytes |
+| CLI arguments | `args` and `arg` lower | Pass for the narrow exact-output probes |
+| Pristine binary stdout | `write_stdout([0,255])` lowers | Pass: generated `main` emits exactly bytes `00 ff` with no result trailer |
+| Byte validation | Interpreter rejects invalid bytes | Pass for probe: compiler exits nonzero, emits the diagnostic on stderr, and writes no binary bytes |
 | Output errors | Interpreter returns errors | Fail: compiled runtime discards write/flush failures |
-| stdin/stderr/exit | Exact interpreter probe passes | Partial: all lower, but generated return rendering still affects stdin/print/eprint streams |
+| stdin/stderr/exit | Exact interpreter probe passes | Partial: all lower and effect results no longer add trailers; broader application parity remains unaccepted |
 | Source loading | Actual applications compile with the repository passed as `--source-dir` | Pass: include graphs expand and reach lowering |
 | User application code | Real expanded and dependency-concatenated demos lower functions, control flow, Results, and records | Partial: both now fail on unsupported `eq/2` |
 | Byte and format I/O | Read/append and bit probes compile and match expected values/bytes | Partial: full application parity still waits on later operations and process semantics |

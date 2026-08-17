@@ -162,8 +162,9 @@ downstream acceptance work after live acquisition is available.
 1. `wc-like-demo` — bounded byte/LF-line/logical-line/ASCII-word counting with
    chunk invariance and explicit UTF-8 policy. **Accepted.** See
    [the wc-like report](wc-like.md).
-2. `grep-like-demo` — bounded literal matching with cross-chunk lines/matches,
-   line numbers, budgets, and explicit text policy.
+2. `grep-like-demo` — accepted: bounded literal matching with cross-chunk
+   lines/matches, line numbers, budgets, and explicit text policy. Documented
+   in [the grep-like report](grep-like.md).
 3. `du-like-demo` — confined traversal and logical byte totals with root,
    entry, depth, and sum budgets; do not claim allocated filesystem blocks.
 4. `ls-like-demo` — deterministic kind/size/date rows reusing the date-index

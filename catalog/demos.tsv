@@ -40,3 +40,4 @@ media-doctor	demos/apps/media_doctor.mlpl	multi-format	structural-health-actions
 wav-transform-app	demos/apps/wav_transform.mlpl	wav	bounded-copy-invert-app	mlpl-native	chunk-bounded	yes	args,file_size,range-read,append_bytes,endian-codecs	runnable
 file-date-index	demos/files/date_index.mlpl	filesystem	deterministic-date-index	mlpl	not-applicable	yes	current	runnable
 wc-like	demos/files/wc.mlpl	text	bounded-byte-line-word-count	mlpl-native	chunk-bounded	yes	file_size,range-read,string-bytes	runnable
+grep-like	demos/files/grep.mlpl	text	bounded-literal-line-match	mlpl-native	chunk-bounded	yes	file_size,range-read,string-bytes	runnable
