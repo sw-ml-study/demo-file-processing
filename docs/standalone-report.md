@@ -23,7 +23,7 @@ claims remain accepted independently.
 | Output errors | Interpreter returns errors | Fail: compiled runtime discards write/flush failures |
 | stdin/stderr/exit | Exact interpreter probe passes | Partial: all lower and effect results no longer add trailers; broader application parity remains unaccepted |
 | Source loading | Actual applications compile with the repository passed as `--source-dir` | Pass: include graphs expand and reach lowering |
-| User application code | Real expanded and dependency-concatenated demos lower functions, control flow, Results, records, and comparisons | Partial: applications now fail on unsupported `tally/1` |
+| User application code | Real expanded and dependency-concatenated demos lower functions, control flow, Results, records, comparisons, tally, and indexing | Partial: applications now fail on unsupported `equal/2` |
 | Byte and format I/O | Read/append and bit probes compile and match expected values/bytes | Partial: full application parity still waits on later operations and process semantics |
 | Hexdump/histogram artifact | Actual demos and flattened equivalents are attempted | Fail before artifact production |
 | WAV/Ogg artifact | Bounded copy/rewrite demos and flattened equivalents are attempted | Fail before artifact production |
@@ -39,13 +39,13 @@ The default `just check` gate now includes:
 - numeric/arithmetic compiler parity;
 - exact partial `args`/`arg`/`write_stdout` compiler behavior;
 - positive source/function/control-flow/Result/record/I/O/comparison lowering
-  plus expected `tally/1` rejection for actual hexdump, histogram, WAV, Ogg,
+  plus expected `equal/2` rejection for actual hexdump, histogram, WAV, Ogg,
   wc, grep, and du applications and the dependency-concatenated controls;
 - isolated execution and dependency inspection of supported control artifacts;
 - exact raw, WAV, Ogg, MP3, bounded-output, CRC, and demo narration oracles.
 
-The expected-`tally/1` application probes are deliberate change detectors.
-Earlier compiler rungs are now positive prerequisites. When upstream adds tally,
+The expected-`equal/2` application probes are deliberate change detectors.
+Earlier compiler rungs are now positive prerequisites. When upstream adds structural equality,
 the default gate fails rather than silently
 preserving a stale blocker report; downstream must then advance the assertion
 to the next measured boundary or positive artifact parity.
@@ -54,7 +54,7 @@ to the next measured boundary or positive artifact parity.
 
 The smallest useful upstream sequence is:
 
-1. lower `tally/1` and remaining array/text operations used by the demos;
+1. lower `equal/2` and remaining array/text operations used by the demos;
 2. preserve byte validation and provide accepted sink-error propagation;
 3. provide clean entry-point behavior, stderr, exit status, and required stdin
    behavior without a generated stdout trailer;

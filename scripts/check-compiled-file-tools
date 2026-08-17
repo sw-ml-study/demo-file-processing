@@ -13,11 +13,11 @@ expect_boundary() {
     echo "compiler unexpectedly accepted $name; replace this boundary with positive artifact parity" >&2
     exit 1
   fi
-  grep -Fq 'unsupported construct: fncall tally/1' "$scratch/$name.err"
+  grep -Fq 'unsupported construct: fncall equal/2' "$scratch/$name.err"
 }
 
 expect_boundary wc-like "$repo_root/demos/files/wc.mlpl"
 expect_boundary grep-like "$repo_root/demos/files/grep.mlpl"
 expect_boundary du-like "$repo_root/demos/files/du.mlpl"
 
-echo "PASS compiled wc/grep/du sources advance through comparisons and stop at tally/1 lowering"
+echo "PASS compiled wc/grep/du sources advance through tally/take and stop at equal/2 lowering"

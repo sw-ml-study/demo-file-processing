@@ -1,6 +1,6 @@
 number = 5
 slug = "ls-like-demo"
-status = "pending"
+status = "in-progress"
 description = "Build a confined ls-like MLPL application using fs_walk/file_metadata once th..."
 role = "production"
 context_files = []
