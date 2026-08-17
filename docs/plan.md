@@ -271,11 +271,10 @@ handles remain separate. Codec-extension prototyping may proceed against
 seekable interpreter file paths when separately authorized, but standalone
 MP3-to-Ogg remains gated on compiler parity.
 
-The independently requested file-date slice is planned in the
-[file-date metadata contract](file-date-metadata-plan.md). Its first executable
-step waits for the confined exact UTC Unix-millisecond
-`file_metadata(...).modified_unix_ms` primitive in sw-MLPL. Once committed and
-rebuilt, probe the runtime contract before implementing pure MLPL
-sorting/UTC formatting and the narrated explicit-path demo. This work does not
-need codec extensions and must not be approximated through an external `stat`
-process.
+The independently requested file-date slice is tracked in the
+[file-date metadata contract](file-date-metadata-plan.md). Pure MLPL exact-ms
+validation, deterministic sorting, UTC conversion/formatting, mlplunit coverage,
+and the narrated synthetic demo are complete. The next step waits for an
+externally rebuilt interpreter exposing committed
+`file_metadata(...).modified_unix_ms`, then probes live confinement and platform
+parity without building a peer repository or approximating through `stat`.

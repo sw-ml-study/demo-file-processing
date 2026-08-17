@@ -1,0 +1,1 @@
+Build a bounded grep-like MLPL literal matcher with explicit byte/text semantics, line numbers, cross-chunk matches and lines, empty pattern policy, CRLF/final-line behavior, output/result budgets, malformed UTF-8 policy, native mlplunit coverage, self-describing outputs, catalog/docs, and full gate. Do not modify or build peer repositories.

@@ -75,7 +75,8 @@ Result output after binary stdout.
 The expanded [compiled process conformance report](compiler-process-conformance.md)
 also verifies `arg/1` lowering and records the remaining semantic defects:
 compiled invalid bytes are now rejected, while runtime write-error acceptance
-remains open and `read_stdin`, `print`, `eprint`, and `exit` are not lowered.
+remains open. `read_stdin`, `print`, `eprint`, and `exit` now lower with the
+measured wrapper behavior.
 Process parity therefore requires shared validation/error behavior as well as
 additional match arms; lowering a call name alone is not acceptance.
 
@@ -221,18 +222,20 @@ only if that representation prevents a concrete operation or compiler parity.
 
 ## Gate: confined file modification time
 
-The demo-extensions model picker needs the same generic timestamp surface as a
-planned file-date demonstration here. The selected interpreter currently has
-no usable `file_metadata(...).modified_unix_ms` operation, so date scanning
-is blocked before any MLPL sorting or formatting can observe real file dates.
+The demo-extensions model picker needs the same generic timestamp surface as
+the date-index library here. Pure MLPL sorting and UTC formatting are now
+delivered; the selected interpreter currently has no usable
+`file_metadata(...).modified_unix_ms` operation, so only live acquisition and
+filesystem parity remain blocked.
 
 The active upstream saga is implementing a confined lookup returning an exact integral
 UTC Unix-millisecond value, with explicit stable errors for unavailable or
 unrepresentable timestamps and unchanged sandbox/traversal/symlink protection.
-This repository will own bounded explicit-path scanning, deterministic sorting
-and ties, pure UTC formatting, unavailable-value presentation, platform parity,
-and mlplunit coverage after the primitive ships. It does not request a model
-picker, directory walker, locale formatter, or external `stat` wrapper.
+This repository owns deterministic sorting/ties, pure UTC formatting,
+unavailable-value presentation, and mlplunit coverage now. It will add bounded
+live-path and platform-parity probes when the rebuilt interpreter arrives. It
+does not request a model picker, directory walker, locale formatter, or
+external `stat` wrapper.
 
 The complete downstream acceptance contract and resume trigger are in the
 [file-date metadata plan](file-date-metadata-plan.md).

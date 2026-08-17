@@ -1,0 +1,20 @@
+include "../../src/files/date_index.mlpl";
+
+paths = ["archive/model-old.bin", "models/zeta.bin", "models/alpha.bin", "offline/missing.bin"];
+timestamps = [0, 1704067200123, 1704067200123, 0];
+available = [1, 1, 1, 0];
+order = u:date_index_order(paths, timestamps, available)?;
+newest_a = take(order, 0, 0); newest_b = take(order, 0, 1); oldest = take(order, 0, 2); missing = take(order, 0, 3);
+
+print("File-date index library demonstration");
+print("Purpose: turn file_metadata.modified_unix_ms values into a stable newest-first index.");
+print("Input: four intentionally shuffled synthetic metadata rows; two timestamps tie and one is unavailable.");
+print("Ownership: MLPL validates, sorts, breaks ties by UTF-8 path, converts Unix milliseconds to UTC, and formats ISO-8601 text.");
+print("Runtime boundary: values model the shipped file_metadata record; live lookup waits for a rebuilt interpreter supplied by the sw-MLPL repository.");
+print("Row 1:", list_get(paths, newest_a)?, u:unix_ms_iso(take(timestamps, 0, newest_a))?);
+print("Row 2:", list_get(paths, newest_b)?, u:unix_ms_iso(take(timestamps, 0, newest_b))?);
+print("Row 3:", list_get(paths, oldest)?, u:unix_ms_iso(take(timestamps, 0, oldest))?);
+print("Row 4:", list_get(paths, missing)?, "timestamp unavailable");
+print("Interpretation: equal timestamps sort alpha before zeta; the unavailable path sorts last; epoch zero renders in UTC rather than local time.");
+print("Complexity: bounded insertion sorting is O(n^2) time and O(n) index storage, appropriate for small picker menus.");
+ok({available: 3, unavailable: 1, newest_unix_ms: 1704067200123})

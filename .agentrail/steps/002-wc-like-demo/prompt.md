@@ -1,0 +1,1 @@
+Build a bounded wc-like MLPL application over whole/range reads. Define exact byte, line, and ASCII word semantics including empty input, final line without newline, CRLF policy, whitespace runs, UTF-8 byte counting, chunk-boundary invariance, budgets, native mlplunit coverage, self-describing outputs, catalog/docs, and full gate. Do not modify or build peer repositories.

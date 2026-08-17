@@ -21,7 +21,7 @@ claims remain accepted independently.
 | Pristine binary stdout | `write_stdout([0,255])` lowers | Fail: generated `main` appends `ok(2)\n` |
 | Byte validation | Interpreter rejects invalid bytes | Pass for probe: compiler emits `err(...)` without binary bytes |
 | Output errors | Interpreter returns errors | Fail: compiled runtime discards write/flush failures |
-| stdin/stderr/exit | Exact interpreter probe passes | Fail: `read_stdin`, `eprint`, and `exit` are not lowered |
+| stdin/stderr/exit | Exact interpreter probe passes | Partial: all lower, but generated return rendering still affects stdin/print/eprint streams |
 | Source loading | Actual applications compile with the repository passed as `--source-dir` | Pass: include graphs expand and reach lowering |
 | User application code | Real expanded and dependency-concatenated demos lower functions, control flow, Results, and records | Partial: both now fail on unsupported `eq/2` |
 | Byte and format I/O | Read/append and bit probes compile and match expected values/bytes | Partial: full application parity still waits on later operations and process semantics |

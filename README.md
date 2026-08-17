@@ -48,7 +48,8 @@ native compiler handles the tested numeric/arithmetic/bit cases, bounded reads,
 file size, append/write output, and partial `args`/`arg`/`write_stdout` lowering.
 Invalid stdout bytes are now rejected, but generated Result text still
 contaminates binary stdout and write-error parity remains unaccepted;
-stdin/stderr/exit support and broader application operations remain tracked.
+`read_stdin`/`print`/`eprint`/`exit` now lower while wrapper stream semantics
+and broader application operations remain tracked.
 
 Native compilation of the actual hexdump and histogram demos is attempted by
 the default gate. With the repository passed as `--source-dir`, both now
@@ -66,11 +67,13 @@ evaluator dynamic dependency. That control is not a standalone file application;
 the intended artifact audit remains blocked until a real byte or format program
 compiles.
 
-A planned file-date index is separately gated on confined
-`file_metadata(path).modified_unix_ms`. After that generic API is committed and
-available in a rebuilt interpreter, this repository will demonstrate bounded
-explicit-path scanning, deterministic date sorting and ties, UTC formatting,
-unavailable timestamps, and macOS/Linux parity; it will not shell out to `stat`.
+`just file-date-index` demonstrates the reusable pure MLPL layer for confined
+metadata consumers: exact Unix-millisecond validation, newest-first ordering,
+UTF-8 path tie-breaking, unavailable-last policy, proleptic-Gregorian UTC
+conversion, and stable ISO-8601 millisecond text. Its synthetic rows match the
+shipped `file_metadata(path).modified_unix_ms` shape. Only the thin live lookup
+adapter awaits a rebuilt interpreter; this repository does not shell out to
+`stat` or build another repository.
 
 The standalone assessment is complete with a **not accepted** verdict. The
 default gate preserves exact expected compiler failures so future upstream

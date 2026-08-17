@@ -15,10 +15,10 @@ the behavior they reproduce.
 | `args()` | Returns arguments after the MLPL separator as language strings | Lowers to a string list; `write_stdout(args())` emits `alpha\nbeta`, then generated `main` appends `ok(10)\n` | Partial |
 | `arg(i)` | Selects one argument with normal language error behavior | `write_stdout(arg(1))` emits `beta`, then generated `main` appends `ok(4)\n` | Partial |
 | `write_stdout(bytes)` | Validates scalar/rank-one integral bytes in `0..=255`, writes exact bytes, returns `Result` count, and preserves stderr separation | Valid bytes are exact but generated `main` appends `ok(count)`. Invalid `[256, -1, 1.5]` now emits a language `err(...)` without binary bytes | Partial |
-| `read_stdin()` | Reads process text stdin | Rejected as `unsupported construct: fncall read_stdin/0` | Missing |
-| `print(value)` | Writes text stdout | Rejected as `unsupported construct: fncall print/1` | Missing |
-| `eprint(value)` | Writes text stderr | Rejected as `unsupported construct: fncall eprint/1` | Missing |
-| `exit(status)` | Terminates with the requested status and prevents REPL result output | Rejected as `unsupported construct: fncall exit/1` | Missing |
+| `read_stdin()` | Reads process text stdin | Lowers and returns exact piped text; generated `main` appends a newline when rendering the returned string | Partial |
+| `print(value)` | Writes text stdout | Lowers; `print("stdout")` writes once for the call and once when generated `main` renders the returned value | Partial |
+| `eprint(value)` | Writes text stderr | Lowers; writes once to stderr, while generated `main` also renders the returned value on stdout | Partial |
+| `exit(status)` | Terminates with the requested status and prevents REPL result output | `exit(7)` produces status 7 with empty stdout/stderr | Pass for probe |
 | Runtime write failure | Returns a language error for the caller to propagate | Compiled runtime discards `write_all`/`flush` errors and returns the requested byte count | Not conformant |
 
 The positive lowering is useful evidence, but it is not usable standalone CLI

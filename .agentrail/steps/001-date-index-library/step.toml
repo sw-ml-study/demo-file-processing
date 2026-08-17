@@ -1,0 +1,9 @@
+number = 1
+slug = "date-index-library"
+status = "in-progress"
+description = "Using native mlplunit TDD, add a reusable pure MLPL file-date library in this..."
+role = "production"
+context_files = []
+created_at = "2026-08-16T17:09:50"
+task_type = "mlpl-library"
+commits = []

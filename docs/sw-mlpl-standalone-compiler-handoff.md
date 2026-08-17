@@ -56,7 +56,8 @@ probes named below are the authority.
 - Invalid `[256,-1,1.5]` is now rejected as `err(...)` without binary bytes.
 - Compiled stdout code discards `write_all`/`flush` failures and returns the
   requested count.
-- `read_stdin`, `print`, `eprint`, and `exit` are rejected as unsupported.
+- `read_stdin`, `print`, `eprint`, and `exit(7)` lower; generated return
+  rendering still affects stdin/print/eprint streams.
 
 See `scripts/check-compiler` and
 [`compiler-process-conformance.md`](compiler-process-conformance.md).

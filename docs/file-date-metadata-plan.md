@@ -2,10 +2,11 @@
 
 ## Status and ownership
 
-**Blocked on one generic sw-MLPL runtime primitive.** The selected interpreter
-does not expose a confined file-modification timestamp, so this repository must
-not simulate one with an external `stat` subprocess or claim a working MLPL
-date scanner yet.
+**Pure library accepted; live adapter blocked on a rebuilt interpreter.** The
+reusable MLPL sorting and UTC-formatting layer is implemented and tested against
+synthetic records matching the shipped primitive. The selected interpreter does
+not yet expose the committed runtime call, so this repository does not simulate
+live lookup with an external `stat` subprocess.
 
 The ownership boundary is:
 
@@ -57,7 +58,7 @@ model-specific behavior belongs in this primitive.
 
 ## Planned MLPL application
 
-The self-describing `file-date-index` demo will:
+The self-describing `file-date-index` demo now:
 
 1. accept a bounded explicit path list and maximum-entry budget;
 2. request modification metadata once per path and retain either the exact
@@ -75,8 +76,9 @@ The demo will show intentionally out-of-order old/new/equal timestamps and an
 unavailable entry. Output must be interesting evidence—not a bare `PASS`—while
 the test suite owns assertions.
 
-Logical work is `O(n log n)` for sorting and `O(n)` retained metadata for the
-bounded path list. It is not a recursive directory walk or a streaming claim.
+Logical work is `O(n^2)` for bounded insertion sorting and `O(n)` retained index
+storage, intentionally matching small picker menus. It is not a recursive
+directory walk or a streaming claim.
 
 ## Acceptance tests
 
@@ -106,12 +108,12 @@ stderr, status, values, and errors in a source-free artifact.
 
 ## Resume trigger and next steps
 
-Resume implementation only after an adjacent development `mlpl-repl` exposes
-the contract above. First add a focused capability probe for exactness,
-errors, confinement, symlinks, and platform units. If it passes, implement the
-pure timestamp record/sort/format library with mlplunit tests, then the narrated
-demo and exact output oracle, and finally update the catalog and capability
-matrix from blocked to accepted.
+The pure timestamp sort/format library, native mlplunit suite, narrated demo,
+output oracle, and catalog entry are complete. Resume the thin live adapter only
+after an adjacent development `mlpl-repl` exposes the contract above. First add
+a focused capability probe for exactness, errors, confinement, symlinks, and
+platform units, then replace synthetic acquisition with real bounded paths
+while retaining the same pure library and output policy.
 
 Until then, the smallest upstream action is to ship the confined metadata
 primitive and provide a rebuilt adjacent development interpreter. No change to

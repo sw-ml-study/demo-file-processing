@@ -46,16 +46,30 @@ cmp "$scratch/arg.expected" "$scratch/arg.actual"
 printf 'err(write_stdout: cell 0 = 256 is not an integer in 0..=255)\n' >"$scratch/invalid-stdout.expected"
 cmp "$scratch/invalid-stdout.expected" "$scratch/invalid-stdout.actual"
 
-for unsupported in read_stdin print eprint exit; do
-  if "$mlpl_build" "$repo_root/probes/compiler_${unsupported}.mlpl" -o "$scratch/compiler-${unsupported}" >"$scratch/${unsupported}.out" 2>"$scratch/${unsupported}.err"; then
-    echo "compiler unexpectedly lowered ${unsupported}" >&2
-    exit 1
-  fi
-done
-grep -Fq 'unsupported construct: fncall read_stdin/0' "$scratch/read_stdin.err"
-grep -Fq 'unsupported construct: fncall print/1' "$scratch/print.err"
-grep -Fq 'unsupported construct: fncall eprint/1' "$scratch/eprint.err"
-grep -Fq 'unsupported construct: fncall exit/1' "$scratch/exit.err"
+"$mlpl_build" "$repo_root/probes/compiler_read_stdin.mlpl" -o "$scratch/compiler-read-stdin" >/dev/null
+printf 'alpha\nbeta\n' | "$scratch/compiler-read-stdin" >"$scratch/read-stdin.actual" 2>"$scratch/read-stdin.err"
+printf 'alpha\nbeta\n\n' >"$scratch/read-stdin.expected"
+cmp "$scratch/read-stdin.expected" "$scratch/read-stdin.actual"
+[ ! -s "$scratch/read-stdin.err" ]
+
+"$mlpl_build" "$repo_root/probes/compiler_print.mlpl" -o "$scratch/compiler-print" >/dev/null
+"$scratch/compiler-print" >"$scratch/print.actual" 2>"$scratch/print.err"
+printf 'stdout\nstdout\n' >"$scratch/print.expected"
+cmp "$scratch/print.expected" "$scratch/print.actual"
+[ ! -s "$scratch/print.err" ]
+
+"$mlpl_build" "$repo_root/probes/compiler_eprint.mlpl" -o "$scratch/compiler-eprint" >/dev/null
+"$scratch/compiler-eprint" >"$scratch/eprint.out" 2>"$scratch/eprint.actual"
+printf 'stderr\n' >"$scratch/eprint.expected"
+cmp "$scratch/eprint.expected" "$scratch/eprint.out"
+cmp "$scratch/eprint.expected" "$scratch/eprint.actual"
+
+"$mlpl_build" "$repo_root/probes/compiler_exit.mlpl" -o "$scratch/compiler-exit" >/dev/null 2>"$scratch/exit.build.err"
+exit_status=0
+"$scratch/compiler-exit" >"$scratch/exit.out" 2>"$scratch/exit.err" || exit_status=$?
+[ "$exit_status" -eq 7 ]
+[ ! -s "$scratch/exit.out" ]
+[ ! -s "$scratch/exit.err" ]
 
 bits_interpreted=$("$mlpl" "$repo_root/probes/compiler_bits.mlpl")
 "$mlpl_build" "$repo_root/probes/compiler_bits.mlpl" -o "$scratch/compiler-bits" >/dev/null

@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+output=$("$repo_root/scripts/run-date-index-demo")
+
+printf '%s\n' "$output" | grep -Fq 'File-date index library demonstration'
+printf '%s\n' "$output" | grep -Fq 'Row 1: models/alpha.bin 2024-01-01T00:00:00.123Z'
+printf '%s\n' "$output" | grep -Fq 'Row 2: models/zeta.bin 2024-01-01T00:00:00.123Z'
+printf '%s\n' "$output" | grep -Fq 'Row 3: archive/model-old.bin 1970-01-01T00:00:00.000Z'
+printf '%s\n' "$output" | grep -Fq 'Row 4: offline/missing.bin timestamp unavailable'
+printf '%s\n' "$output" | grep -Fq 'Complexity: bounded insertion sorting is O(n^2) time and O(n) index storage'
+
+echo "PASS self-describing synthetic file-date index demo"

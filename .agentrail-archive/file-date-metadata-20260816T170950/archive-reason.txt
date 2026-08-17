@@ -1,0 +1,1 @@
+file-date metadata contract completed; begin pure reusable library implementation while live primitive binary remains external

@@ -1,0 +1,9 @@
+number = 3
+slug = "grep-like-demo"
+status = "pending"
+description = "Build a bounded grep-like MLPL literal matcher with explicit byte/text semant..."
+role = "production"
+context_files = []
+created_at = "2026-08-16T17:48:47"
+task_type = "mlpl-application"
+commits = []

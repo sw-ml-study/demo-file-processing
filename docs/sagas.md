@@ -139,9 +139,9 @@ canonical copy and unsigned-8-bit inversion with exact artifact verification.
 
 ## Saga 9 — `file-date-metadata`
 
-Status: contract recorded; implementation blocked on the confined sw-MLPL
-`file_metadata(path).modified_unix_ms` primitive. Upstream implementation is in
-progress but the selected interpreters do not expose it yet. See the
+Status: pure library and synthetic demonstration accepted; live acquisition is
+blocked until a rebuilt interpreter exposes the committed confined
+`file_metadata(path).modified_unix_ms` primitive. See the
 [file-date metadata plan](file-date-metadata-plan.md).
 
 1. Probe exact UTC Unix-millisecond units, errors, sandboxing, symlinks, and
@@ -153,6 +153,9 @@ progress but the selected interpreters do not expose it yet. See the
 4. Verify macOS/Linux parity and document precision/resolution limitations.
 5. Add compiled artifact parity only after the generic compiler surface lowers
    both the application and metadata operation.
+
+Steps 2–3 are complete. Step 1 is the next resume point; steps 4–5 remain
+downstream acceptance work after live acquisition is available.
 
 ## Cross-saga rules
 

@@ -155,6 +155,10 @@ media-doctor:
 wav-transform source="fixtures/wav/minimal-mono8.wav" destination=".wav-tool-output.wav" mode="invert_u8" chunk_size="2":
     ./scripts/run-wav-transform "{{source}}" "{{destination}}" "{{mode}}" "{{chunk_size}}"
 
+# Demonstrate deterministic Unix-ms sorting and UTC formatting over metadata-shaped values.
+file-date-index:
+    ./scripts/run-date-index-demo
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

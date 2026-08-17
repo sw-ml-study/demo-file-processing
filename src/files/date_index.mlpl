@@ -1,0 +1,49 @@
+def u:date_exact_ms(value) { "Return one for a scalar exact integer inside MLPL's f64-safe domain.";
+  if equal(type_of(value), "array") { eq(rank(value), 0) * eq(value, floor(value)) * (1 - gt(value, 9007199254740991)) * (1 - lt(value, 0 - 9007199254740991)) } else { 0 }
+}
+
+def u:unix_ms_utc(value) { "Convert an exact Unix-millisecond value to proleptic-Gregorian UTC components.";
+  if 1 - u:date_exact_ms(value) { err({kind: "timestamp", message: "Unix milliseconds must be an exact integer inside the f64-safe domain"}) } else {
+    seconds = floor(value / 1000); millisecond = value - seconds * 1000; days = floor(seconds / 86400); day_seconds = seconds - days * 86400;
+    z = days + 719468; era = floor(z / 146097); doe = z - era * 146097; yoe = floor((doe - floor(doe / 1460) + floor(doe / 36524) - floor(doe / 146096)) / 365); year0 = yoe + era * 400; doy = doe - (365 * yoe + floor(yoe / 4) - floor(yoe / 100)); mp = floor((5 * doy + 2) / 153); day = doy - floor((153 * mp + 2) / 5) + 1; month = mp + if lt(mp, 10) { 3 } else { 0 - 9 }; year = year0 + if (1 - gt(month, 2)) { 1 } else { 0 };
+    hour = floor(day_seconds / 3600); minute = floor((day_seconds - hour * 3600) / 60); second = day_seconds - hour * 3600 - minute * 60;
+    ok({year: year, month: month, day: day, hour: hour, minute: minute, second: second, millisecond: millisecond})
+  }
+}
+
+def u:date_pad(value, width) { "Render a non-negative integer with a fixed minimum digit width.";
+  text = to_string(value); zeros = ""; count = str_len(text); while lt(count, width) { zeros = str_concat(zeros, "0"); count = count + 1 }; str_concat(zeros, text)
+}
+
+def u:unix_ms_iso(value) { "Render exact Unix milliseconds as YYYY-MM-DDTHH:MM:SS.mmmZ for years 0000..9999.";
+  utc = u:unix_ms_utc(value)?;
+  if lt(utc.year, 0) + gt(utc.year, 9999) { err({kind: "year", message: "ISO rendering supports UTC years 0000 through 9999"}) } else {
+    ok(str_join([u:date_pad(utc.year, 4), "-", u:date_pad(utc.month, 2), "-", u:date_pad(utc.day, 2), "T", u:date_pad(utc.hour, 2), ":", u:date_pad(utc.minute, 2), ":", u:date_pad(utc.second, 2), ".", u:date_pad(utc.millisecond, 3), "Z"], ""))
+  }
+}
+
+def u:utf8_lt_from(left, right, index) { "Lexicographically compare UTF-8 byte vectors from one index.";
+  if eq(index, tally(left)) { lt(index, tally(right)) } else { if eq(index, tally(right)) { 0 } else { a = take(left, 0, index); b = take(right, 0, index); if lt(a, b) { 1 } else { if gt(a, b) { 0 } else { u:utf8_lt_from(left, right, index + 1) } } } }
+}
+
+def u:utf8_string_lt(left, right) { "Return one when the left string sorts before the right by UTF-8 bytes."; u:utf8_lt_from(tokenize_bytes(left), tokenize_bytes(right), 0) }
+
+def u:date_values_valid(timestamps, available, index) { "Validate exact available timestamps and binary availability flags.";
+  if eq(index, tally(available)) { 1 } else { flag = take(available, 0, index); stamp = take(timestamps, 0, index); eq(flag, floor(flag)) * (eq(flag, 0) + eq(flag, 1)) * (if eq(flag, 1) { u:date_exact_ms(stamp) } else { 1 }) * u:date_values_valid(timestamps, available, index + 1) }
+}
+
+def u:date_candidate_before(paths, timestamps, available, candidate, existing) { "Order available newest-first, breaking equal/unavailable ties by UTF-8 path.";
+  candidate_available = take(available, 0, candidate); existing_available = take(available, 0, existing);
+  if gt(candidate_available, existing_available) { 1 } else { if lt(candidate_available, existing_available) { 0 } else { if eq(candidate_available, 0) { u:utf8_string_lt(list_get(paths, candidate)?, list_get(paths, existing)?) } else { candidate_ms = take(timestamps, 0, candidate); existing_ms = take(timestamps, 0, existing); if gt(candidate_ms, existing_ms) { 1 } else { if lt(candidate_ms, existing_ms) { 0 } else { u:utf8_string_lt(list_get(paths, candidate)?, list_get(paths, existing)?) } } } } }
+}
+
+def u:date_append(values, value) { "Append one scalar without relying on concat's empty-shape inference."; if eq(tally(values), 0) { [value] } else { concat(values, [value]) } }
+
+def u:date_insert(order, candidate, paths, timestamps, available) { "Insert one source index into an already ordered numeric permutation.";
+  position = 0; searching = 1; while searching { if eq(position, tally(order)) { searching = 0 } else { if u:date_candidate_before(paths, timestamps, available, candidate, take(order, 0, position)) { searching = 0 } else { position = position + 1 } } };
+  next = []; index = 0; while lt(index, tally(order)) { if eq(index, position) { next = u:date_append(next, candidate) }; next = u:date_append(next, take(order, 0, index)); index = index + 1 }; if eq(position, tally(order)) { next = u:date_append(next, candidate) }; next
+}
+
+def u:date_index_order(paths, timestamps, available) { "Return source indices sorted by availability, descending time, and UTF-8 path.";
+  if equal(type_of(paths), "array") { if eq(tally(paths), 0) * equal(type_of(timestamps), "array") * equal(type_of(available), "array") * eq(tally(timestamps), 0) * eq(tally(available), 0) { ok([]) } else { err({kind: "shape", message: "paths must be a string-list and timestamp/availability values must be arrays"}) } } else { if (1 - equal(type_of(paths), "string-list")) + (1 - equal(type_of(timestamps), "array")) + (1 - equal(type_of(available), "array")) { err({kind: "shape", message: "paths must be a string-list and timestamp/availability values must be arrays"}) } else { if (1 - eq(rank(timestamps), 1)) + (1 - eq(rank(available), 1)) + (1 - eq(list_len(paths), tally(timestamps))) + (1 - eq(tally(timestamps), tally(available))) { err({kind: "shape", message: "paths, timestamps, and availability must be parallel vectors"}) } else { if 1 - u:date_values_valid(timestamps, available, 0) { err({kind: "metadata", message: "available timestamps must be exact Unix milliseconds and availability must contain only zero or one"}) } else { order = []; index = 0; while lt(index, tally(available)) { order = u:date_insert(order, index, paths, timestamps, available); index = index + 1 }; ok(order) } } } }
+}
