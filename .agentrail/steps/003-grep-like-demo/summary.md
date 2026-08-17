@@ -1,0 +1,1 @@
+Added and accepted a bounded, byte-oriented grep-like application with deterministic matching-line output, 1/7/65536 chunk invariance, CRLF and malformed-UTF-8 policy, explicit file/line/match budgets, native mlplunit coverage, narrated demo output, catalog and documentation updates, and refreshed compiler effect-output probes. Full just check passes.
