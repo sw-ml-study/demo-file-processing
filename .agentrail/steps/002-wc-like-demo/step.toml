@@ -1,6 +1,6 @@
 number = 2
 slug = "wc-like-demo"
-status = "pending"
+status = "in-progress"
 description = "Build a bounded wc-like MLPL application over whole/range reads. Define exact..."
 role = "production"
 context_files = []

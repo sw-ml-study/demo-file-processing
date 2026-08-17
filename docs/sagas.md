@@ -157,6 +157,18 @@ blocked until a rebuilt interpreter exposes the committed confined
 Steps 2–3 are complete. Step 1 is the next resume point; steps 4–5 remain
 downstream acceptance work after live acquisition is available.
 
+## Saga 10 — `unix-like-file-tools`
+
+1. `wc-like-demo` — bounded byte/LF-line/logical-line/ASCII-word counting with
+   chunk invariance and explicit UTF-8 policy. **Accepted.** See
+   [the wc-like report](wc-like.md).
+2. `grep-like-demo` — bounded literal matching with cross-chunk lines/matches,
+   line numbers, budgets, and explicit text policy.
+3. `du-like-demo` — confined traversal and logical byte totals with root,
+   entry, depth, and sum budgets; do not claim allocated filesystem blocks.
+4. `ls-like-demo` — deterministic kind/size/date rows reusing the date-index
+   library once a rebuilt interpreter exposes live metadata.
+
 ## Cross-saga rules
 
 - Work and publish directly on `main` using only named `git add`, detailed

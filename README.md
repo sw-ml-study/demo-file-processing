@@ -75,6 +75,11 @@ shipped `file_metadata(path).modified_unix_ms` shape. Only the thin live lookup
 adapter awaits a rebuilt interpreter; this repository does not shell out to
 `stat` or build another repository.
 
+`just wc-like` is a bounded, MLPL-owned byte/line/word counter. Its narrated
+cases distinguish LF terminators from logical final lines, define CRLF and
+ASCII whitespace policy, show UTF-8 byte counts, and prove the same semantic
+answer across one-byte through oversized range-read chunks.
+
 The standalone assessment is complete with a **not accepted** verdict. The
 default gate preserves exact expected compiler failures so future upstream
 support triggers positive parity work; it does not disguise an interpreter

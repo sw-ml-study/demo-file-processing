@@ -278,3 +278,9 @@ and the narrated synthetic demo are complete. The next step waits for an
 externally rebuilt interpreter exposing committed
 `file_metadata(...).modified_unix_ms`, then probes live confinement and platform
 parity without building a peer repository or approximating through `stat`.
+
+The Unix-like application sequence begins with the accepted
+[bounded wc-like counter](wc-like.md), then proceeds to grep-like literal
+matching, logical-size du-like traversal, and finally ls-like metadata display.
+This order establishes chunked text state before traversal and leaves the
+live-date consumer until the rebuilt metadata interpreter is available.

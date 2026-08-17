@@ -1,0 +1,20 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/io/range_reader.mlpl";
+include "../../src/files/wc.mlpl";
+
+path = ".wc-demo-input.txt"; bytes = tokenize_bytes("alpha beta\r\ngamma\t delta\nfinal café"); write_bytes(path, bytes)?;
+one = u:wc_file(path, 1, 4096)?; seven = u:wc_file(path, 7, 4096)?; sixty_four = u:wc_file(path, 64, 4096)?; remove_path(path);
+empty = u:wc_bytes([])?; utf8 = u:wc_bytes(tokenize_bytes("café tea"))?;
+
+print("Bounded wc-like file demonstration");
+print("Purpose: count bytes, LF-terminated lines, logical lines, and ASCII-delimited words without retaining the whole file.");
+print("Input A: mixed spaces, tab, CRLF, LF, an unterminated final line, and UTF-8 café text.");
+print("Output A: bytes", one.bytes, "; LF lines", one.lines, "; logical lines", one.logical_lines, "; words", one.words, ".");
+print("Chunk evidence: chunk sizes 1, 7, and 64 produce identical counts; calls used", one.chunks, ",", seven.chunks, ", and", sixty_four.chunks, "chunks.");
+print("Output B — empty: bytes", empty.bytes, "; LF lines", empty.lines, "; logical lines", empty.logical_lines, "; words", empty.words, ".");
+print("Output C — café tea: bytes", utf8.bytes, "; words", utf8.words, ".");
+print("Interpretation: wc-style lines count LF bytes, so CRLF is one line and the final unterminated text is reported separately as a logical line.");
+print("Word policy: only ASCII TAB/LF/VT/FF/CR/SPACE delimit words; UTF-8 bytes are content and byte counts are not character counts.");
+print("Ownership: MLPL validates budgets, drives bounded range reads, carries cross-chunk word state, and computes every count; the runtime only returns requested byte ranges.");
+print("Complexity: O(file bytes) time and O(chunk_size) live payload; max_bytes is checked against file_size before the first range read.");
+ok({bytes: one.bytes, lines: one.lines, logical_lines: one.logical_lines, words: one.words, chunk_invariant: equal([one.bytes,one.lines,one.logical_lines,one.words], [seven.bytes,seven.lines,seven.logical_lines,seven.words]) * equal([one.bytes,one.lines,one.logical_lines,one.words], [sixty_four.bytes,sixty_four.lines,sixty_four.logical_lines,sixty_four.words])})

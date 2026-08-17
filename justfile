@@ -159,6 +159,10 @@ wav-transform source="fixtures/wav/minimal-mono8.wav" destination=".wav-tool-out
 file-date-index:
     ./scripts/run-date-index-demo
 
+# Count bytes, LF lines, logical lines, and ASCII-delimited words with bounded reads.
+wc-like:
+    ./scripts/run-wc-demo
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

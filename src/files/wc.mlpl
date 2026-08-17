@@ -1,0 +1,26 @@
+def u:wc_state() { "Create an empty byte, LF-line, ASCII-word counter state.";
+  {bytes: 0, lines: 0, words: 0, in_word: 0, last_byte: 0 - 1, chunks: 0}
+}
+
+def u:wc_ascii_space(byte) { "Recognize the six ASCII whitespace bytes used for word boundaries.";
+  eq(byte, 9) + eq(byte, 10) + eq(byte, 11) + eq(byte, 12) + eq(byte, 13) + eq(byte, 32)
+}
+
+def u:wc_fold(bytes, state) { "Fold one validated byte chunk without retaining any earlier chunk.";
+  next = state; index = 0;
+  while lt(index, tally(bytes)) { byte = take(bytes, 0, index); whitespace = u:wc_ascii_space(byte); starts_word = (1 - whitespace) * (1 - next.in_word); next = {bytes: next.bytes + 1, lines: next.lines + eq(byte, 10), words: next.words + starts_word, in_word: 1 - whitespace, last_byte: byte, chunks: next.chunks}; index = index + 1 };
+  next
+}
+
+def u:wc_finish(state) { "Expose wc LF-line counts and an explicit logical final-line count.";
+  final_line = if eq(state.bytes, 0) + eq(state.last_byte, 10) { 0 } else { 1 };
+  {bytes: state.bytes, lines: state.lines, logical_lines: state.lines + final_line, words: state.words, chunks: state.chunks}
+}
+
+def u:wc_bytes(bytes) { "Count one validated in-memory byte vector using ASCII word boundaries.";
+  if 1 - u:bytes_valid(bytes) { err({kind: "bytes", message: "wc input must be a rank-one vector of logical bytes"}) } else { ok(u:wc_finish(u:wc_fold(bytes, u:wc_state()))) }
+}
+
+def u:wc_file(path, chunk_size, max_bytes) { "Count a file through caller-bounded range reads with a preflight byte budget.";
+  if (1 - u:range_exact_nonnegative(chunk_size)) + eq(chunk_size, 0) { err({kind: "chunk_size", message: "wc chunk_size must be a positive exact integer"}) } else { if 1 - u:range_exact_nonnegative(max_bytes) { err({kind: "budget", message: "wc max_bytes must be an exact non-negative integer"}) } else { size = file_size(path)?; if gt(size, max_bytes) { err({kind: "budget", message: "wc file size exceeds max_bytes before reading"}) } else { state = u:wc_state(); offset = 0; while lt(offset, size) { remaining = size - offset; width = if lt(remaining, chunk_size) { remaining } else { chunk_size }; chunk = read_bytes(path, offset, width)?; if 1 - eq(tally(chunk), width) { return err({kind: "short_read", message: "wc range read returned fewer bytes than requested"}) }; state = u:wc_fold(chunk, state); state = {bytes: state.bytes, lines: state.lines, words: state.words, in_word: state.in_word, last_byte: state.last_byte, chunks: state.chunks + 1}; offset = offset + width }; ok(u:wc_finish(state)) } } }
+}

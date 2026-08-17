@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+output=$("$repo_root/scripts/run-wc-demo")
+
+printf '%s\n' "$output" | grep -Fqx 'Bounded wc-like file demonstration'
+printf '%s\n' "$output" | grep -Fqx 'Output A: bytes 36 ; LF lines 2 ; logical lines 3 ; words 6 .'
+printf '%s\n' "$output" | grep -Fqx 'Chunk evidence: chunk sizes 1, 7, and 64 produce identical counts; calls used 36 , 6 , and 1 chunks.'
+printf '%s\n' "$output" | grep -Fqx 'Output B — empty: bytes 0 ; LF lines 0 ; logical lines 0 ; words 0 .'
+printf '%s\n' "$output" | grep -Fqx 'Output C — café tea: bytes 9 ; words 2 .'
+printf '%s\n' "$output" | grep -Fqx 'Complexity: O(file bytes) time and O(chunk_size) live payload; max_bytes is checked against file_size before the first range read.'
+[ ! -e "$repo_root/.wc-demo-input.txt" ]
+
+echo "PASS self-describing bounded wc-like demo"
