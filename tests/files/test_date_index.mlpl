@@ -1,7 +1,11 @@
 include "src/files/date_index.mlpl";
 
 @test {name: "Unix milliseconds convert to exact UTC boundaries", tags: ["files", "dates", "utc"]}
-def u:test_unix_ms_utc_boundaries() { "Check epoch, negative-floor, and Gregorian leap-day component conversion."; epoch = u:unix_ms_utc(0)?; before = u:unix_ms_utc(0 - 1)?; leap = u:unix_ms_utc(951782400000)?;
+def u:test_unix_ms_utc_boundaries() {
+  "Check epoch, negative-floor, and Gregorian leap-day component conversion.";
+  epoch = u:unix_ms_utc(0)?;
+  before = u:unix_ms_utc(0 - 1)?;
+  leap = u:unix_ms_utc(951782400000)?;
   u:assert_eq([epoch.year, epoch.month, epoch.day, epoch.hour, epoch.minute, epoch.second, epoch.millisecond], [1970,1,1,0,0,0,0], "epoch components")?;
   u:assert_eq([before.year, before.month, before.day, before.hour, before.minute, before.second, before.millisecond], [1969,12,31,23,59,59,999], "negative millisecond uses floor division")?;
   u:assert_eq([leap.year, leap.month, leap.day], [2000,2,29], "Gregorian leap day")
@@ -18,7 +22,11 @@ def u:test_unix_ms_iso() {
 }
 
 @test {name: "Date index orders newest then UTF-8 path and unavailable last", tags: ["files", "dates", "sort"]}
-def u:test_date_index_order() { "Check newest-first ordering, UTF-8 tie-breaking, and unavailable placement."; paths = ["z.bin", "b.bin", "a.bin", "missing.bin"]; timestamps = [1000,2000,2000,0]; available = [1,1,1,0];
+def u:test_date_index_order() {
+  "Check newest-first ordering, UTF-8 tie-breaking, and unavailable placement.";
+  paths = ["z.bin", "b.bin", "a.bin", "missing.bin"];
+  timestamps = [1000,2000,2000,0];
+  available = [1,1,1,0];
   u:assert_eq(u:date_index_order(paths, timestamps, available), ok([2,1,0,3]), "timestamp and path ordering")?;
   u:assert_eq(u:date_index_order([], [], []), ok([]), "empty index")?;
   u:assert_eq(u:date_index_order(["only"], [7], [1]), ok([0]), "singleton index")

@@ -5,4 +5,7 @@ last = write_stdout([66, 67])?;
 if eq(first, 5) * eq(scalar, 1) * eq(empty, 0) * eq(last, 2) {
   eprint("write_stdout probe: 8 binary bytes, four ordered calls, exact counts");
   exit(0)
-} else { eprint("write_stdout probe count mismatch"); exit(1) }
+} else {
+  eprint("write_stdout probe count mismatch");
+  exit(1)
+}

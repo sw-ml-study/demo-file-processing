@@ -1,5 +1,6 @@
 @test {name: "fixed-width bit operations match golden values", tags: ["capability", "bits"]}
-def u:test_bit_operations() { "Verify the interpreter's current exact-integer bit surface.";
+def u:test_bit_operations() {
+  "Verify the interpreter's current exact-integer bit surface.";
   u:assert_eq(band(12, 10), 8, "AND");
   u:assert_eq(bor(12, 10), 14, "OR");
   u:assert_eq(bxor(12, 10), 6, "XOR");
@@ -11,13 +12,15 @@ def u:test_bit_operations() { "Verify the interpreter's current exact-integer bi
 }
 
 @test {name: "numeric storage exposes the f64 exact-integer boundary", tags: ["capability", "integer", "representation"]}
-def u:test_exact_integer_boundary() { "Record that adjacent mathematical integers collapse at and above 2^53.";
+def u:test_exact_integer_boundary() {
+  "Record that adjacent mathematical integers collapse at and above 2^53.";
   u:assert_eq(9007199254740991, 9007199254740991, "2^53-1 remains exact");
   u:assert_eq(9007199254740992, 9007199254740993, "2^53 and 2^53+1 share one f64 value")
 }
 
 @test {name: "script argument collection is available", tags: ["capability", "process", "args"]}
-def u:test_empty_test_args() { "Verify args returns a string-list value in a no-argument test process.";
+def u:test_empty_test_args() {
+  "Verify args returns a string-list value in a no-argument test process.";
   u:assert_eq(list_len(args()), 0, "mlplunit supplies no script arguments")
 }
 

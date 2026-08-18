@@ -2,47 +2,95 @@ include "src/bytes/validate.mlpl";
 include "src/binary/endian_encode.mlpl";
 include "src/ogg/packets.mlpl";
 
-def u:ogg_packet_test_page(flags, serial, sequence, lacing) { "Build one structurally valid page with deterministic zero payload and checksum placeholder.";
-  body_bytes = u:ogg_lacing_summary(lacing).body_bytes; header = concat(concat(concat(concat(concat(concat(concat([79, 103, 103, 83, 0, flags], fill(8, 0)), u:encode_uint(serial, 4, "le")?), u:encode_uint(sequence, 4, "le")?), fill(4, 0)), [tally(lacing)]), lacing), fill(body_bytes, 0)); ok(header)
+def u:ogg_packet_test_page(flags, serial, sequence, lacing) {
+  "Build one structurally valid page with deterministic zero payload and checksum placeholder.";
+  body_bytes = u:ogg_lacing_summary(lacing).body_bytes;
+  header = concat(concat(concat(concat(concat(concat(concat([79, 103, 103, 83, 0, flags], fill(8, 0)), u:encode_uint(serial, 4, "le")?), u:encode_uint(sequence, 4, "le")?), fill(4, 0)), [tally(lacing)]), lacing), fill(body_bytes, 0));
+  ok(header)
 }
 
-def u:ogg_packet_fixture(path) { "Write three pages with one spanning packet, ordinary packets, a zero packet, BOS, continuation, and EOS.";
-  first = u:ogg_packet_test_page(2, 99, 10, [255])?; second = u:ogg_packet_test_page(1, 99, 11, [10, 3, 0])?; third = u:ogg_packet_test_page(4, 99, 12, [2])?; bytes = concat(concat(first, second), third); write_bytes(path, bytes)?; ok(bytes)
+def u:ogg_packet_fixture(path) {
+  "Write three pages with one spanning packet, ordinary packets, a zero packet, BOS, continuation, and EOS.";
+  first = u:ogg_packet_test_page(2, 99, 10, [255])?;
+  second = u:ogg_packet_test_page(1, 99, 11, [10, 3, 0])?;
+  third = u:ogg_packet_test_page(4, 99, 12, [2])?;
+  bytes = concat(concat(first, second), third);
+  write_bytes(path, bytes)?;
+  ok(bytes)
 }
 
 @test {name: "Ogg packet reconstruction is chunk invariant across pages", tags: ["ogg", "packet", "continuation", "chunks"]}
-def u:test_ogg_packets_chunks() { "Aggregate packet boundaries without retaining the 255+10 byte spanning payload.";
-  path = "tmp/ogg-packets.bin"; bytes = u:ogg_packet_fixture(path)?; size = tally(bytes);
-  one = u:inspect_ogg_packets(path, 1, 0, size, size, 3, 512, 8, 300, 8, 300)?; seven = u:inspect_ogg_packets(path, 7, 0, size, size, 3, 512, 8, 300, 8, 300)?; sixty_four = u:inspect_ogg_packets(path, 64, 0, size, size, 3, 512, 8, 300, 8, 300)?; large = u:inspect_ogg_packets(path, 65536, 0, size, size, 3, 512, 8, 300, 8, 300)?;
-  u:assert_eq(one, seven, "one and seven byte packet scans agree")?; u:assert_eq(one, sixty_four, "one and 64 byte packet scans agree")?; u:assert_eq(one, large, "one and oversized packet scans agree")?;
+def u:test_ogg_packets_chunks() {
+  "Aggregate packet boundaries without retaining the 255+10 byte spanning payload.";
+  path = "tmp/ogg-packets.bin";
+  bytes = u:ogg_packet_fixture(path)?;
+  size = tally(bytes);
+  one = u:inspect_ogg_packets(path, 1, 0, size, size, 3, 512, 8, 300, 8, 300)?;
+  seven = u:inspect_ogg_packets(path, 7, 0, size, size, 3, 512, 8, 300, 8, 300)?;
+  sixty_four = u:inspect_ogg_packets(path, 64, 0, size, size, 3, 512, 8, 300, 8, 300)?;
+  large = u:inspect_ogg_packets(path, 65536, 0, size, size, 3, 512, 8, 300, 8, 300)?;
+  u:assert_eq(one, seven, "one and seven byte packet scans agree")?;
+  u:assert_eq(one, sixty_four, "one and 64 byte packet scans agree")?;
+  u:assert_eq(one, large, "one and oversized packet scans agree")?;
   u:assert_eq([one.serial, one.first_sequence, one.last_sequence, one.pages, one.packets], [99, 10, 12, 3, 4], "logical stream identity and counts")?;
   u:assert_eq([one.continued_pages, one.spanning_packets, one.zero_packets, one.total_segments], [1, 1, 1, 5], "continuation and lacing facts")?;
   u:assert_eq([one.total_body_bytes, one.total_packet_bytes, one.min_packet_bytes, one.max_packet_bytes, one.average_packet_bytes], [270, 270, 0, 265, 67.5], "packet size statistics")
 }
 
 @test {name: "Ogg packet reconstruction rejects continuation and identity errors", tags: ["ogg", "packet", "invalid", "sequence"]}
-def u:test_ogg_packet_state_errors() { "Reject missing/unexpected continuation, sequence gaps, serial changes, repeated BOS, premature/missing EOS, and unfinished packets.";
-  path = "tmp/ogg-packet-invalid.bin"; first_open = u:ogg_packet_test_page(2, 7, 0, [255])?; first_done = u:ogg_packet_test_page(2, 7, 0, [1])?; continued = u:ogg_packet_test_page(1, 7, 1, [1])?; plain = u:ogg_packet_test_page(0, 7, 1, [1])?; eos = u:ogg_packet_test_page(4, 7, 1, [1])?;
-  bytes = concat(first_open, plain); write_bytes(path, bytes)?; u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 2, 512, 8, 300, 8, 300), "missing continued flag")?;
-  bytes = concat(first_done, continued); write_bytes(path, bytes)?; u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 2, 512, 8, 300, 8, 300), "unexpected continued flag")?;
-  bad_sequence = u:ogg_packet_test_page(4, 7, 2, [1])?; bytes = concat(first_done, bad_sequence); write_bytes(path, bytes)?; u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 2, 512, 8, 300, 8, 300), "sequence gap")?;
-  bad_serial = u:ogg_packet_test_page(4, 8, 1, [1])?; bytes = concat(first_done, bad_serial); write_bytes(path, bytes)?; u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 2, 512, 8, 300, 8, 300), "serial change")?;
-  repeated_bos = u:ogg_packet_test_page(6, 7, 1, [1])?; bytes = concat(first_done, repeated_bos); write_bytes(path, bytes)?; u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 2, 512, 8, 300, 8, 300), "repeated BOS")?;
-  write_bytes(path, first_done)?; u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(first_done), tally(first_done), 1, 512, 8, 300, 8, 300), "missing EOS")?;
-  unfinished_eos = u:ogg_packet_test_page(6, 7, 0, [255])?; write_bytes(path, unfinished_eos)?; u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(unfinished_eos), tally(unfinished_eos), 1, 512, 8, 300, 8, 300), "unfinished EOS packet")?;
-  after_eos = u:ogg_packet_test_page(0, 7, 2, [1])?; bytes = concat(concat(first_done, eos), after_eos); write_bytes(path, bytes)?; u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 3, 512, 8, 300, 8, 300), "page after EOS")
+def u:test_ogg_packet_state_errors() {
+  "Reject missing/unexpected continuation, sequence gaps, serial changes, repeated BOS, premature/missing EOS, and unfinished packets.";
+  path = "tmp/ogg-packet-invalid.bin";
+  first_open = u:ogg_packet_test_page(2, 7, 0, [255])?;
+  first_done = u:ogg_packet_test_page(2, 7, 0, [1])?;
+  continued = u:ogg_packet_test_page(1, 7, 1, [1])?;
+  plain = u:ogg_packet_test_page(0, 7, 1, [1])?;
+  eos = u:ogg_packet_test_page(4, 7, 1, [1])?;
+  bytes = concat(first_open, plain);
+  write_bytes(path, bytes)?;
+  u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 2, 512, 8, 300, 8, 300), "missing continued flag")?;
+  bytes = concat(first_done, continued);
+  write_bytes(path, bytes)?;
+  u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 2, 512, 8, 300, 8, 300), "unexpected continued flag")?;
+  bad_sequence = u:ogg_packet_test_page(4, 7, 2, [1])?;
+  bytes = concat(first_done, bad_sequence);
+  write_bytes(path, bytes)?;
+  u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 2, 512, 8, 300, 8, 300), "sequence gap")?;
+  bad_serial = u:ogg_packet_test_page(4, 8, 1, [1])?;
+  bytes = concat(first_done, bad_serial);
+  write_bytes(path, bytes)?;
+  u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 2, 512, 8, 300, 8, 300), "serial change")?;
+  repeated_bos = u:ogg_packet_test_page(6, 7, 1, [1])?;
+  bytes = concat(first_done, repeated_bos);
+  write_bytes(path, bytes)?;
+  u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 2, 512, 8, 300, 8, 300), "repeated BOS")?;
+  write_bytes(path, first_done)?;
+  u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(first_done), tally(first_done), 1, 512, 8, 300, 8, 300), "missing EOS")?;
+  unfinished_eos = u:ogg_packet_test_page(6, 7, 0, [255])?;
+  write_bytes(path, unfinished_eos)?;
+  u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(unfinished_eos), tally(unfinished_eos), 1, 512, 8, 300, 8, 300), "unfinished EOS packet")?;
+  after_eos = u:ogg_packet_test_page(0, 7, 2, [1])?;
+  bytes = concat(concat(first_done, eos), after_eos);
+  write_bytes(path, bytes)?;
+  u:assert_err(u:inspect_ogg_packets(path, 7, 0, tally(bytes), tally(bytes), 3, 512, 8, 300, 8, 300), "page after EOS")
 }
 
 @test {name: "Ogg packet reconstruction enforces stream and packet budgets", tags: ["ogg", "packet", "budget", "boundary"]}
-def u:test_ogg_packet_budgets() { "Reject stream span, page count, packet count, packet length, and requested-range truncation before unbounded work.";
-  path = "tmp/ogg-packet-budget.bin"; bytes = u:ogg_packet_fixture(path)?; size = tally(bytes);
+def u:test_ogg_packet_budgets() {
+  "Reject stream span, page count, packet count, packet length, and requested-range truncation before unbounded work.";
+  path = "tmp/ogg-packet-budget.bin";
+  bytes = u:ogg_packet_fixture(path)?;
+  size = tally(bytes);
   u:assert_err(u:inspect_ogg_packets(path, 7, 0, size, size - 1, 3, 512, 8, 300, 8, 300), "stream byte budget")?;
   u:assert_err(u:inspect_ogg_packets(path, 7, 0, size, size, 2, 512, 8, 300, 8, 300), "page budget")?;
   u:assert_err(u:inspect_ogg_packets(path, 7, 0, size, size, 3, 512, 8, 300, 3, 300), "packet count budget")?;
   u:assert_err(u:inspect_ogg_packets(path, 7, 0, size, size, 3, 512, 8, 300, 8, 264), "packet byte budget")?;
   u:assert_err(u:inspect_ogg_packets(path, 7, 0, size - 1, size, 3, 512, 8, 300, 8, 300), "range truncates final page")?;
   u:assert_err(u:inspect_ogg_packets(path, 7, 0, 0, 1, 1, 27, 0, 0, 1, 0), "empty stream range")?;
-  empty_page = u:ogg_packet_test_page(6, 4, 0, [])?; write_bytes(path, empty_page)?; empty = u:inspect_ogg_packets(path, 1, 0, tally(empty_page), tally(empty_page), 1, 27, 0, 0, 1, 0)?; u:assert_eq([empty.pages, empty.packets, empty.average_packet_bytes], [1, 0, 0], "empty logical stream statistics")
+  empty_page = u:ogg_packet_test_page(6, 4, 0, [])?;
+  write_bytes(path, empty_page)?;
+  empty = u:inspect_ogg_packets(path, 1, 0, tally(empty_page), tally(empty_page), 1, 27, 0, 0, 1, 0)?;
+  u:assert_eq([empty.pages, empty.packets, empty.average_packet_bytes], [1, 0, 0], "empty logical stream statistics")
 }
 
 u:run_registered_tests()

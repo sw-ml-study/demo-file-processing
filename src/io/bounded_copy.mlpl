@@ -1,27 +1,84 @@
 include "range_reader.mlpl";
 
-def u:bounded_copy_abort(destination, cleanup_partial, failure) { "Apply the caller-selected partial-output policy and preserve the original Result error when cleanup succeeds.";
-  if cleanup_partial { removed = remove_path(destination); if is_err(removed) { err({kind: "cleanup", message: "bounded copy failed and partial destination cleanup also failed"}) } else { failure } } else { failure }
+def u:bounded_copy_abort(destination, cleanup_partial, failure) {
+  "Apply the caller-selected partial-output policy and preserve the original Result error when cleanup succeeds.";
+  if cleanup_partial {
+    removed = remove_path(destination);
+    if is_err(removed) {
+      err({kind: "cleanup", message: "bounded copy failed and partial destination cleanup also failed"})
+    } else {
+      failure
+    }
+  } else {
+    failure
+  }
 }
 
-def u:bounded_copy_range(source, destination, start_offset, length, chunk_size, max_total_bytes, cleanup_partial) { "Copy one exact source range to a new sandboxed file through bounded reads and append calls.";
-  if (1 - equal(type_of(source), "string")) + (1 - equal(type_of(destination), "string")) { err({kind: "path", message: "bounded copy source and destination must be strings"}) } else {
-    if (1 - u:range_exact_nonnegative(start_offset)) + (1 - u:range_exact_nonnegative(length)) + (1 - u:range_exact_nonnegative(chunk_size)) + (1 - u:range_exact_nonnegative(max_total_bytes)) { err({kind: "budget", message: "copy range and budgets must be exact non-negative integers"}) } else {
-      if eq(chunk_size, 0) { err({kind: "budget", message: "bounded copy chunk_size must be positive"}) } else {
-        if gt(length, max_total_bytes) { err({kind: "budget", message: "copy length exceeds max_total_bytes"}) } else {
+def u:bounded_copy_range(source, destination, start_offset, length, chunk_size, max_total_bytes, cleanup_partial) {
+  "Copy one exact source range to a new sandboxed file through bounded reads and append calls.";
+  if (1 - equal(type_of(source), "string")) + (1 - equal(type_of(destination), "string")) {
+    err({kind: "path", message: "bounded copy source and destination must be strings"})
+  } else {
+    if (1 - u:range_exact_nonnegative(start_offset)) + (1 - u:range_exact_nonnegative(length)) + (1 - u:range_exact_nonnegative(chunk_size)) + (1 - u:range_exact_nonnegative(max_total_bytes)) {
+      err({kind: "budget", message: "copy range and budgets must be exact non-negative integers"})
+    } else {
+      if eq(chunk_size, 0) {
+        err({kind: "budget", message: "bounded copy chunk_size must be positive"})
+      } else {
+        if gt(length, max_total_bytes) {
+          err({kind: "budget", message: "copy length exceeds max_total_bytes"})
+        } else {
           reader = u:range_reader(source, chunk_size)?;
-          if gt(length, 9007199254740991 - start_offset) { err({kind: "overflow", message: "copy range exceeds the exact f64 offset domain"}) } else {
-            if gt(start_offset + length, reader.size) { err({kind: "range", message: "copy range exceeds the source snapshot"}) } else {
-              if is_ok(file_size(destination)) { err({kind: "exists", message: "bounded copy destination must not already exist"}) } else {
-                created = append_bytes(destination, []); if is_err(created) { created } else {
-                  cursor = 0; chunks = 0; last_chunk_bytes = 0;
+          if gt(length, 9007199254740991 - start_offset) {
+            err({kind: "overflow", message: "copy range exceeds the exact f64 offset domain"})
+          } else {
+            if gt(start_offset + length, reader.size) {
+              err({kind: "range", message: "copy range exceeds the source snapshot"})
+            } else {
+              if is_ok(file_size(destination)) {
+                err({kind: "exists", message: "bounded copy destination must not already exist"})
+              } else {
+                created = append_bytes(destination, []);
+                if is_err(created) {
+                  created
+                } else {
+                  cursor = 0;
+                  chunks = 0;
+                  last_chunk_bytes = 0;
                   while lt(cursor, length) {
-                    remaining = length - cursor; width = if lt(remaining, chunk_size) { remaining } else { chunk_size }; read_result = u:range_read_at(reader, start_offset + cursor, width);
-                    if is_err(read_result) { return u:bounded_copy_abort(destination, cleanup_partial, read_result) } else { 0 }; bytes = unwrap(read_result);
-                    if 1 - eq(tally(bytes), width) { return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_read", message: "source changed during bounded copy"})) } else { 0 };
-                    append_result = append_bytes(destination, bytes); if is_err(append_result) { return u:bounded_copy_abort(destination, cleanup_partial, append_result) } else { 0 }; appended = unwrap(append_result);
-                    if 1 - eq(appended, width) { return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_write", message: "append_bytes count differs from supplied chunk"})) } else { 0 };
-                    cursor = cursor + width; chunks = chunks + 1; last_chunk_bytes = width
+                    remaining = length - cursor;
+                    width = if lt(remaining, chunk_size) {
+                      remaining
+                    } else {
+                      chunk_size
+                    };
+                    read_result = u:range_read_at(reader, start_offset + cursor, width);
+                    if is_err(read_result) {
+                      return u:bounded_copy_abort(destination, cleanup_partial, read_result)
+                    } else {
+                      0
+                    };
+                    bytes = unwrap(read_result);
+                    if 1 - eq(tally(bytes), width) {
+                      return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_read", message: "source changed during bounded copy"}))
+                    } else {
+                      0
+                    };
+                    append_result = append_bytes(destination, bytes);
+                    if is_err(append_result) {
+                      return u:bounded_copy_abort(destination, cleanup_partial, append_result)
+                    } else {
+                      0
+                    };
+                    appended = unwrap(append_result);
+                    if 1 - eq(appended, width) {
+                      return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_write", message: "append_bytes count differs from supplied chunk"}))
+                    } else {
+                      0
+                    };
+                    cursor = cursor + width;
+                    chunks = chunks + 1;
+                    last_chunk_bytes = width
                   };
                   ok({source_offset: start_offset, bytes_copied: length, chunks: chunks, chunk_size: chunk_size, last_chunk_bytes: last_chunk_bytes, destination_size: file_size(destination)?})
                 }
@@ -34,6 +91,8 @@ def u:bounded_copy_range(source, destination, start_offset, length, chunk_size, 
   }
 }
 
-def u:bounded_copy_file(source, destination, chunk_size, max_total_bytes, cleanup_partial) { "Copy one entire metadata-snapshotted file to a new destination with O(chunk_size) payload state.";
-  reader = u:range_reader(source, chunk_size)?; u:bounded_copy_range(source, destination, 0, reader.size, chunk_size, max_total_bytes, cleanup_partial)
+def u:bounded_copy_file(source, destination, chunk_size, max_total_bytes, cleanup_partial) {
+  "Copy one entire metadata-snapshotted file to a new destination with O(chunk_size) payload state.";
+  reader = u:range_reader(source, chunk_size)?;
+  u:bounded_copy_range(source, destination, 0, reader.size, chunk_size, max_total_bytes, cleanup_partial)
 }

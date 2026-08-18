@@ -14,28 +14,52 @@ include "src/apps/media_inspector.mlpl";
 include "src/apps/media_doctor.mlpl";
 
 @test {name: "media doctor accepts structurally healthy WAV Ogg and MP3", tags: ["apps", "doctor", "healthy", "formats"]}
-def u:test_media_doctor_healthy() { "Require positive evidence across all supported formats without claiming codec validity.";
-  wav = u:doctor_media("fixtures/wav/minimal-mono8.wav", 7)?; ogg = u:doctor_media("fixtures/ogg/structural-cross-page.ogg", 7)?; mp3 = u:doctor_media("fixtures/mp3/synthetic-vbr-id3.mp3", 7)?;
-  u:assert_eq(wav.status, "healthy", "healthy WAV")?; u:assert_eq(ogg.status, "healthy", "healthy Ogg")?; u:assert_eq(mp3.status, "healthy", "healthy MP3")?; u:assert_eq([ogg.recovered_frames, mp3.recovered_frames], [4, 3], "packet/frame evidence")
+def u:test_media_doctor_healthy() {
+  "Require positive evidence across all supported formats without claiming codec validity.";
+  wav = u:doctor_media("fixtures/wav/minimal-mono8.wav", 7)?;
+  ogg = u:doctor_media("fixtures/ogg/structural-cross-page.ogg", 7)?;
+  mp3 = u:doctor_media("fixtures/mp3/synthetic-vbr-id3.mp3", 7)?;
+  u:assert_eq(wav.status, "healthy", "healthy WAV")?;
+  u:assert_eq(ogg.status, "healthy", "healthy Ogg")?;
+  u:assert_eq(mp3.status, "healthy", "healthy MP3")?;
+  u:assert_eq([ogg.recovered_frames, mp3.recovered_frames], [4, 3], "packet/frame evidence")
 }
 
 @test {name: "media doctor explains normalization and recovery warnings", tags: ["apps", "doctor", "warning", "recovery"]}
-def u:test_media_doctor_warnings() { "Separate valid ancillary-data loss from damaged MPEG gap recovery.";
-  wav = u:doctor_media("fixtures/wav/odd-unknown-mono8.wav", 7)?; mp3 = u:doctor_media("fixtures/mp3/resync-gap.mp3", 7)?;
-  u:assert_eq(wav.status, "warning", "WAV ancillary warning")?; u:assert_eq([wav.issues, mp3.issues, mp3.recovered_frames, mp3.resyncs], [1, 2, 4, 1], "warning evidence")?; u:assert_eq(mp3.status, "warning", "MP3 recovery warning")
+def u:test_media_doctor_warnings() {
+  "Separate valid ancillary-data loss from damaged MPEG gap recovery.";
+  wav = u:doctor_media("fixtures/wav/odd-unknown-mono8.wav", 7)?;
+  mp3 = u:doctor_media("fixtures/mp3/resync-gap.mp3", 7)?;
+  u:assert_eq(wav.status, "warning", "WAV ancillary warning")?;
+  u:assert_eq([wav.issues, mp3.issues, mp3.recovered_frames, mp3.resyncs], [1, 2, 4, 1], "warning evidence")?;
+  u:assert_eq(mp3.status, "warning", "MP3 recovery warning")
 }
 
 @test {name: "media doctor rejects malformed unsupported and missing inputs", tags: ["apps", "doctor", "rejected", "errors"]}
-def u:test_media_doctor_rejected() { "Convert parser/runtime errors into stable diagnoses without recommending transformation.";
-  unsupported = ".media-doctor-unsupported-id3.mp3"; write_bytes(unsupported, [73, 68, 51, 3, 0, 128, 0, 0, 0, 0])?;
-  continuation = u:doctor_media("fixtures/ogg/malformed-continuation.ogg", 7)?; crc = u:doctor_media("fixtures/ogg/malformed-crc.ogg", 7)?; id3 = u:doctor_media(unsupported, 7)?; missing = u:doctor_media("fixtures/bytes/missing.bin", 7)?;
-  u:assert_eq(continuation.status, "rejected", "Ogg continuation rejection")?; u:assert_eq(crc.status, "rejected", "Ogg CRC rejection")?; u:assert_eq(id3.status, "rejected", "unsupported ID3 rejection")?; u:assert_eq(missing.status, "rejected", "missing path rejection")?; remove_path(unsupported); ok(1)
+def u:test_media_doctor_rejected() {
+  "Convert parser/runtime errors into stable diagnoses without recommending transformation.";
+  unsupported = ".media-doctor-unsupported-id3.mp3";
+  write_bytes(unsupported, [73, 68, 51, 3, 0, 128, 0, 0, 0, 0])?;
+  continuation = u:doctor_media("fixtures/ogg/malformed-continuation.ogg", 7)?;
+  crc = u:doctor_media("fixtures/ogg/malformed-crc.ogg", 7)?;
+  id3 = u:doctor_media(unsupported, 7)?;
+  missing = u:doctor_media("fixtures/bytes/missing.bin", 7)?;
+  u:assert_eq(continuation.status, "rejected", "Ogg continuation rejection")?;
+  u:assert_eq(crc.status, "rejected", "Ogg CRC rejection")?;
+  u:assert_eq(id3.status, "rejected", "unsupported ID3 rejection")?;
+  u:assert_eq(missing.status, "rejected", "missing path rejection")?;
+  remove_path(unsupported);
+  ok(1)
 }
 
 @test {name: "media doctor preserves unknown and chunk-invariant classifications", tags: ["apps", "doctor", "unknown", "chunks"]}
-def u:test_media_doctor_unknown_chunks() { "Avoid extension guessing and require classification invariance across read budgets.";
-  unknown = u:doctor_media("fixtures/bytes/boundary-17.bin", 7)?; small = u:doctor_media("fixtures/mp3/resync-gap.mp3", 1)?; large = u:doctor_media("fixtures/mp3/resync-gap.mp3", 65536)?;
-  u:assert_eq(unknown.status, "unknown", "unknown classification")?; u:assert_eq([small.issues, small.recovered_frames, small.resyncs], [large.issues, large.recovered_frames, large.resyncs], "warning evidence chunk invariance")
+def u:test_media_doctor_unknown_chunks() {
+  "Avoid extension guessing and require classification invariance across read budgets.";
+  unknown = u:doctor_media("fixtures/bytes/boundary-17.bin", 7)?;
+  small = u:doctor_media("fixtures/mp3/resync-gap.mp3", 1)?;
+  large = u:doctor_media("fixtures/mp3/resync-gap.mp3", 65536)?;
+  u:assert_eq(unknown.status, "unknown", "unknown classification")?;
+  u:assert_eq([small.issues, small.recovered_frames, small.resyncs], [large.issues, large.recovered_frames, large.resyncs], "warning evidence chunk invariance")
 }
 
 u:run_registered_tests()

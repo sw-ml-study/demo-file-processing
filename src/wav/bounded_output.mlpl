@@ -1,37 +1,106 @@
 include "../io/bounded_copy.mlpl";
 
-def u:wav_canonical_header(wav) { "Encode the fixed canonical PCM RIFF/fmt/data header without retaining sample payloads.";
-  padding = mod(wav.data_bytes, 2); riff_size = 36 + wav.data_bytes + padding;
+def u:wav_canonical_header(wav) {
+  "Encode the fixed canonical PCM RIFF/fmt/data header without retaining sample payloads.";
+  padding = mod(wav.data_bytes, 2);
+  riff_size = 36 + wav.data_bytes + padding;
   format = concat(u:encode_uint(1, 2, "le")?, concat(u:encode_uint(wav.channels, 2, "le")?, concat(u:encode_uint(wav.sample_rate, 4, "le")?, concat(u:encode_uint(wav.byte_rate, 4, "le")?, concat(u:encode_uint(wav.block_align, 2, "le")?, u:encode_uint(wav.bits_per_sample, 2, "le")?)))));
   ok(concat([82, 73, 70, 70], concat(u:encode_uint(riff_size, 4, "le")?, concat([87, 65, 86, 69, 102, 109, 116, 32, 16, 0, 0, 0], concat(format, concat([100, 97, 116, 97], u:encode_uint(wav.data_bytes, 4, "le")?))))))
 }
 
-def u:wav_invert_u8(bytes) { "Invert one bounded unsigned 8-bit PCM chunk around its midpoint.";
-  output = fill(tally(bytes), 0); index = 0;
-  while lt(index, tally(bytes)) { output = scatter(output, index, 255 - take(bytes, 0, index)); index = index + 1 };
+def u:wav_invert_u8(bytes) {
+  "Invert one bounded unsigned 8-bit PCM chunk around its midpoint.";
+  output = fill(tally(bytes), 0);
+  index = 0;
+  while lt(index, tally(bytes)) {
+    output = scatter(output, index, 255 - take(bytes, 0, index));
+    index = index + 1
+  };
   output
 }
 
-def u:bounded_wav_output(source, destination, mode, chunk_size, max_output_bytes, max_chunks, cleanup_partial) { "Write a canonical PCM WAV copy or unsigned 8-bit inversion with O(chunk_size) sample state.";
-  if (1 - equal(mode, "copy")) * (1 - equal(mode, "invert_u8")) { err({kind: "mode", message: "WAV output mode must be copy or invert_u8"}) } else {
-    wav = u:inspect_wav_ranges(source, chunk_size, max_chunks)?; padding = mod(wav.data_bytes, 2); output_bytes = 44 + wav.data_bytes + padding;
-    if equal(mode, "invert_u8") * (1 - eq(wav.bits_per_sample, 8)) { err({kind: "format", message: "invert_u8 requires unsigned 8-bit PCM"}) } else {
-      if (1 - u:range_exact_nonnegative(max_output_bytes)) + lt(max_output_bytes, output_bytes) { err({kind: "budget", message: "canonical WAV exceeds max_output_bytes"}) } else {
-        existing = file_size(destination); if is_ok(existing) { err({kind: "destination", message: "bounded WAV output requires a new destination"}) } else {
-          header = u:wav_canonical_header(wav)?; opened = append_bytes(destination, header); if is_err(opened) { opened } else {
+def u:bounded_wav_output(source, destination, mode, chunk_size, max_output_bytes, max_chunks, cleanup_partial) {
+  "Write a canonical PCM WAV copy or unsigned 8-bit inversion with O(chunk_size) sample state.";
+  if (1 - equal(mode, "copy")) * (1 - equal(mode, "invert_u8")) {
+    err({kind: "mode", message: "WAV output mode must be copy or invert_u8"})
+  } else {
+    wav = u:inspect_wav_ranges(source, chunk_size, max_chunks)?;
+    padding = mod(wav.data_bytes, 2);
+    output_bytes = 44 + wav.data_bytes + padding;
+    if equal(mode, "invert_u8") * (1 - eq(wav.bits_per_sample, 8)) {
+      err({kind: "format", message: "invert_u8 requires unsigned 8-bit PCM"})
+    } else {
+      if (1 - u:range_exact_nonnegative(max_output_bytes)) + lt(max_output_bytes, output_bytes) {
+        err({kind: "budget", message: "canonical WAV exceeds max_output_bytes"})
+      } else {
+        existing = file_size(destination);
+        if is_ok(existing) {
+          err({kind: "destination", message: "bounded WAV output requires a new destination"})
+        } else {
+          header = u:wav_canonical_header(wav)?;
+          opened = append_bytes(destination, header);
+          if is_err(opened) {
+            opened
+          } else {
             if 1 - eq(unwrap(opened), 44) { u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_write", message: "canonical WAV header append count differs"})) } else {
-              offset = 0; chunks = 0; last_chunk_bytes = 0;
+              offset = 0;
+              chunks = 0;
+              last_chunk_bytes = 0;
               while lt(offset, wav.data_bytes) {
-                remaining = wav.data_bytes - offset; width = if lt(remaining, chunk_size) { remaining } else { chunk_size }; read_result = read_bytes(source, wav.data_offset + offset, width);
-                if is_err(read_result) { return u:bounded_copy_abort(destination, cleanup_partial, read_result) } else { 0 }; input = unwrap(read_result);
-                if 1 - eq(tally(input), width) { return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_read", message: "WAV source changed during output"})) } else { 0 };
-                output = if equal(mode, "copy") { input } else { u:wav_invert_u8(input) }; appended = append_bytes(destination, output);
-                if is_err(appended) { return u:bounded_copy_abort(destination, cleanup_partial, appended) } else { 0 };
-                if 1 - eq(unwrap(appended), width) { return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_write", message: "WAV sample append count differs"})) } else { 0 };
-                offset = offset + width; chunks = chunks + 1; last_chunk_bytes = width
+                remaining = wav.data_bytes - offset;
+                width = if lt(remaining, chunk_size) {
+                  remaining
+                } else {
+                  chunk_size
+                };
+                read_result = read_bytes(source, wav.data_offset + offset, width);
+                if is_err(read_result) {
+                  return u:bounded_copy_abort(destination, cleanup_partial, read_result)
+                } else {
+                  0
+                };
+                input = unwrap(read_result);
+                if 1 - eq(tally(input), width) {
+                  return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_read", message: "WAV source changed during output"}))
+                } else {
+                  0
+                };
+                output = if equal(mode, "copy") {
+                  input
+                } else { u:wav_invert_u8(input) };
+                appended = append_bytes(destination, output);
+                if is_err(appended) {
+                  return u:bounded_copy_abort(destination, cleanup_partial, appended)
+                } else {
+                  0
+                };
+                if 1 - eq(unwrap(appended), width) {
+                  return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_write", message: "WAV sample append count differs"}))
+                } else {
+                  0
+                };
+                offset = offset + width;
+                chunks = chunks + 1;
+                last_chunk_bytes = width
               };
-              if eq(padding, 1) { pad = append_bytes(destination, [0]); if is_err(pad) { return u:bounded_copy_abort(destination, cleanup_partial, pad) } else { if 1 - eq(unwrap(pad), 1) { return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_write", message: "WAV pad append count differs"})) } else { 0 } } } else { 0 };
-              size = file_size(destination)?; if 1 - eq(size, output_bytes) { u:bounded_copy_abort(destination, cleanup_partial, err({kind: "size", message: "canonical WAV output length differs"})) } else { ok({mode: mode, input_data_offset: wav.data_offset, data_bytes: wav.data_bytes, output_bytes: size, chunks: chunks, chunk_size: chunk_size, last_chunk_bytes: last_chunk_bytes, padding_bytes: padding, frames: wav.frames, sample_rate: wav.sample_rate, bits_per_sample: wav.bits_per_sample, unknown_chunks_removed: wav.unknown_chunks}) }
+              if eq(padding, 1) {
+                pad = append_bytes(destination, [0]);
+                if is_err(pad) {
+                  return u:bounded_copy_abort(destination, cleanup_partial, pad)
+                } else {
+                  if 1 - eq(unwrap(pad), 1) {
+                    return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_write", message: "WAV pad append count differs"}))
+                  } else {
+                    0
+                  }
+                }
+              } else {
+                0
+              };
+              size = file_size(destination)?;
+              if 1 - eq(size, output_bytes) { u:bounded_copy_abort(destination, cleanup_partial, err({kind: "size", message: "canonical WAV output length differs"})) } else {
+                ok({mode: mode, input_data_offset: wav.data_offset, data_bytes: wav.data_bytes, output_bytes: size, chunks: chunks, chunk_size: chunk_size, last_chunk_bytes: last_chunk_bytes, padding_bytes: padding, frames: wav.frames, sample_rate: wav.sample_rate, bits_per_sample: wav.bits_per_sample, unknown_chunks_removed: wav.unknown_chunks})
+              }
             }
           }
         }

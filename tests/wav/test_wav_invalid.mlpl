@@ -8,7 +8,8 @@ include "src/wav/parse.mlpl";
 include "src/wav/encode.mlpl";
 
 @test {name: "WAV rejects truncation and inconsistent lengths", tags: ["wav", "invalid", "truncated"]}
-def u:test_wav_lengths() { "Verify header, chunk payload, RIFF size, and frame alignment checks.";
+def u:test_wav_lengths() {
+  "Verify header, chunk payload, RIFF size, and frame alignment checks.";
   valid = read_bytes("fixtures/wav/minimal-mono8.wav")?;
   u:assert_err(u:parse_wav(u:byte_slice(valid, 0, 10)?, 1024, 8), "truncated RIFF header")?;
   without_pad = scatter(u:byte_slice(valid, 0, tally(valid) - 1)?, 4, 39);
@@ -21,7 +22,8 @@ def u:test_wav_lengths() { "Verify header, chunk payload, RIFF size, and frame a
 }
 
 @test {name: "WAV rejects signatures and missing required chunks", tags: ["wav", "invalid", "structure"]}
-def u:test_wav_structure() { "Verify RIFF/WAVE identity and required fmt/data chunks.";
+def u:test_wav_structure() {
+  "Verify RIFF/WAVE identity and required fmt/data chunks.";
   valid = read_bytes("fixtures/wav/empty-mono8.wav")?;
   u:assert_err(u:parse_wav(scatter(valid, 0, 0), 1024, 8), "bad RIFF signature")?;
   header_only = scatter(u:byte_slice(valid, 0, 12)?, 4, 4);
@@ -29,7 +31,8 @@ def u:test_wav_structure() { "Verify RIFF/WAVE identity and required fmt/data ch
 }
 
 @test {name: "WAV rejects unsupported PCM variants", tags: ["wav", "invalid", "format"]}
-def u:test_wav_unsupported() { "Verify encoding, channel-count, sample-width, and derived-rate policies.";
+def u:test_wav_unsupported() {
+  "Verify encoding, channel-count, sample-width, and derived-rate policies.";
   valid = read_bytes("fixtures/wav/empty-mono8.wav")?;
   u:assert_err(u:parse_wav(scatter(valid, 20, 3), 1024, 8), "non-PCM encoding")?;
   u:assert_err(u:parse_wav(scatter(valid, 22, 3), 1024, 8), "three channels")?;
@@ -39,7 +42,8 @@ def u:test_wav_unsupported() { "Verify encoding, channel-count, sample-width, an
 }
 
 @test {name: "WAV enforces byte and chunk budgets", tags: ["wav", "invalid", "budget"]}
-def u:test_wav_budgets() { "Verify allocation/iteration budgets reject before unbounded work.";
+def u:test_wav_budgets() {
+  "Verify allocation/iteration budgets reject before unbounded work.";
   valid = read_bytes("fixtures/wav/odd-unknown-mono8.wav")?;
   u:assert_err(u:parse_wav(valid, 32, 8), "max_bytes")?;
   u:assert_err(u:parse_wav(valid, 1024, 2), "max_chunks")

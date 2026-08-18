@@ -1,23 +1,50 @@
 @test {name: "append_bytes creates and grows sandboxed files with exact counts", tags: ["capability", "append", "bytes", "sink"]}
-def u:test_append_bytes_growth() { "Verify create, vector/scalar/empty append, implicit per-call flush, and exact readback.";
-  path = ".capability-append-growth.bin"; remove_path(path); first = append_bytes(path, [1, 2, 3])?; second = append_bytes(path, 4)?; empty = append_bytes(path, [])?;
-  u:assert_eq([first, second, empty], [3, 1, 0], "appended byte counts")?; u:assert_eq(file_size(path), ok(4), "file size grows by counts")?; u:assert_eq(read_bytes(path), ok([1, 2, 3, 4]), "append order and flush visibility")?; remove_path(path); ok(1)
+def u:test_append_bytes_growth() {
+  "Verify create, vector/scalar/empty append, implicit per-call flush, and exact readback.";
+  path = ".capability-append-growth.bin";
+  remove_path(path);
+  first = append_bytes(path, [1, 2, 3])?;
+  second = append_bytes(path, 4)?;
+  empty = append_bytes(path, [])?;
+  u:assert_eq([first, second, empty], [3, 1, 0], "appended byte counts")?;
+  u:assert_eq(file_size(path), ok(4), "file size grows by counts")?;
+  u:assert_eq(read_bytes(path), ok([1, 2, 3, 4]), "append order and flush visibility")?;
+  remove_path(path);
+  ok(1)
 }
 
 @test {name: "append_bytes creates an empty file on an empty first append", tags: ["capability", "append", "empty"]}
-def u:test_append_bytes_empty_create() { "Record that open/create occurs even when the validated byte vector is empty.";
-  path = ".capability-append-empty.bin"; remove_path(path); count = append_bytes(path, [])?; u:assert_eq(count, 0, "empty append count")?; u:assert_eq(file_size(path), ok(0), "empty append creates zero-byte file")?; remove_path(path); ok(1)
+def u:test_append_bytes_empty_create() {
+  "Record that open/create occurs even when the validated byte vector is empty.";
+  path = ".capability-append-empty.bin";
+  remove_path(path);
+  count = append_bytes(path, [])?;
+  u:assert_eq(count, 0, "empty append count")?;
+  u:assert_eq(file_size(path), ok(0), "empty append creates zero-byte file")?;
+  remove_path(path);
+  ok(1)
 }
 
 @test {name: "append_bytes validation errors preserve existing contents", tags: ["capability", "append", "invalid", "preservation"]}
-def u:test_append_bytes_validation_preserves() { "Reject invalid byte domains and value kinds before opening the destination.";
-  path = ".capability-append-preserve.bin"; write_bytes(path, [9, 8])?;
-  u:assert_err(append_bytes(path, [256]), "out-of-range byte")?; u:assert_err(append_bytes(path, [-1]), "negative byte")?; u:assert_err(append_bytes(path, [1.5]), "fractional byte")?; u:assert_err(append_bytes(path, "bytes"), "non-array bytes")?; u:assert_eq(read_bytes(path), ok([9, 8]), "validation failures leave prior file unchanged")?; remove_path(path); ok(1)
+def u:test_append_bytes_validation_preserves() {
+  "Reject invalid byte domains and value kinds before opening the destination.";
+  path = ".capability-append-preserve.bin";
+  write_bytes(path, [9, 8])?;
+  u:assert_err(append_bytes(path, [256]), "out-of-range byte")?;
+  u:assert_err(append_bytes(path, [-1]), "negative byte")?;
+  u:assert_err(append_bytes(path, [1.5]), "fractional byte")?;
+  u:assert_err(append_bytes(path, "bytes"), "non-array bytes")?;
+  u:assert_eq(read_bytes(path), ok([9, 8]), "validation failures leave prior file unchanged")?;
+  remove_path(path);
+  ok(1)
 }
 
 @test {name: "append_bytes preserves sandbox and filesystem Result errors", tags: ["capability", "append", "sandbox", "errors"]}
-def u:test_append_bytes_path_errors() { "Reject traversal, missing parents, and directory destinations without escaping the test process.";
-  u:assert_err(append_bytes("../append-escape.bin", [1]), "sandbox traversal")?; u:assert_err(append_bytes("tmp/append-missing-parent/file.bin", [1]), "missing parent")?; u:assert_err(append_bytes("fixtures", [1]), "directory destination")
+def u:test_append_bytes_path_errors() {
+  "Reject traversal, missing parents, and directory destinations without escaping the test process.";
+  u:assert_err(append_bytes("../append-escape.bin", [1]), "sandbox traversal")?;
+  u:assert_err(append_bytes("tmp/append-missing-parent/file.bin", [1]), "missing parent")?;
+  u:assert_err(append_bytes("fixtures", [1]), "directory destination")
 }
 
 u:run_registered_tests()

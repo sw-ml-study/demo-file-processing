@@ -4,7 +4,10 @@ include "src/files/date_index.mlpl";
 include "src/files/du.mlpl";
 
 @test {name: "du-like summary totals logical bytes in deterministic path order", tags: ["files", "du", "summary"]}
-def u:test_du_summary() { "Check deterministic entry, logical-byte, and maximum-depth aggregation."; paths = ["tree/a.txt", "tree/sub/b.bin", "tree/sub/empty"]; sizes = [5,7,0];
+def u:test_du_summary() {
+  "Check deterministic entry, logical-byte, and maximum-depth aggregation.";
+  paths = ["tree/a.txt", "tree/sub/b.bin", "tree/sub/empty"];
+  sizes = [5,7,0];
   result = u:du_summarize(paths, sizes, "tree", 8, 2, 20)?;
   u:assert_eq([result.entries, result.logical_bytes, result.max_depth_seen], [3,12,2], "logical totals and depth")?;
   u:assert_eq(result.paths, paths, "lexical path order is preserved")

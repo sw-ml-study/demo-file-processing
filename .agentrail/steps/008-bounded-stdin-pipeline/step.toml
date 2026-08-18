@@ -1,4 +1,4 @@
-number = 7
+number = 8
 slug = "bounded-stdin-pipeline"
 status = "in-progress"
 description = "After upstream ships an interpreter-and-compiler-parity byte-oriented increme..."

@@ -1,8 +1,10 @@
-def u:mp3_fixture_frame(header, length, payload_byte) { "Build structural MPEG frame evidence with a non-sync payload.";
+def u:mp3_fixture_frame(header, length, payload_byte) {
+  "Build structural MPEG frame evidence with a non-sync payload.";
   concat(header, fill(length - 4, payload_byte))
 }
 
-def u:id3v23_fixture_frame(id, payload) { "Build one small ID3v2.3 frame.";
+def u:id3v23_fixture_frame(id, payload) {
+  "Build one small ID3v2.3 frame.";
   concat(concat(concat(id, [0, 0, 0, tally(payload)]), [0, 0]), payload)
 }
 

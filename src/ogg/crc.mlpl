@@ -1,36 +1,90 @@
 include "page.mlpl";
 
-def u:ogg_crc_byte(crc, byte) { "Fold one byte through the non-reflected Ogg CRC-32 polynomial 0x04C11DB7.";
-  value = bxor(crc, shl(byte, 24, 32)); bit = 0; while lt(bit, 8) { value = if gt(band(value, 2147483648), 0) { bxor(shl(value, 1, 32), 79764919) } else { shl(value, 1, 32) }; bit = bit + 1 }; value
+def u:ogg_crc_byte(crc, byte) {
+  "Fold one byte through the non-reflected Ogg CRC-32 polynomial 0x04C11DB7.";
+  value = bxor(crc, shl(byte, 24, 32));
+  bit = 0;
+  while lt(bit, 8) {
+    value = if gt(band(value, 2147483648), 0) {
+      bxor(shl(value, 1, 32), 79764919)
+    } else {
+      shl(value, 1, 32)
+    };
+    bit = bit + 1
+  };
+  value
 }
 
-def u:ogg_crc_bytes_from(bytes, index, crc) { "Fold validated bytes from one index with initial zero and no final xor.";
-  if eq(index, tally(bytes)) { crc } else { u:ogg_crc_bytes_from(bytes, index + 1, u:ogg_crc_byte(crc, take(bytes, 0, index))) }
+def u:ogg_crc_bytes_from(bytes, index, crc) {
+  "Fold validated bytes from one index with initial zero and no final xor.";
+  if eq(index, tally(bytes)) {
+    crc
+  } else { u:ogg_crc_bytes_from(bytes, index + 1, u:ogg_crc_byte(crc, take(bytes, 0, index))) }
 }
 
-def u:ogg_crc_bytes(bytes) { "Calculate the Ogg CRC-32 of one bounded byte vector.";
-  if 1 - u:bytes_valid(bytes) { err({kind: "bytes", message: "Ogg CRC input must be a byte vector"}) } else { ok(u:ogg_crc_bytes_from(bytes, 0, 0)) }
+def u:ogg_crc_bytes(bytes) {
+  "Calculate the Ogg CRC-32 of one bounded byte vector.";
+  if 1 - u:bytes_valid(bytes) {
+    err({kind: "bytes", message: "Ogg CRC input must be a byte vector"})
+  } else {
+    ok(u:ogg_crc_bytes_from(bytes, 0, 0))
+  }
 }
 
-def u:ogg_page_crc(reader, page, max_crc_bytes, crc_chunk_size) { "Calculate one page CRC through bounded reads while logically zeroing the stored checksum field.";
-  if (1 - u:range_exact_nonnegative(max_crc_bytes)) + (1 - u:range_exact_nonnegative(crc_chunk_size)) { err({kind: "budget", message: "Ogg CRC budgets must be exact non-negative integers"}) } else {
-    if eq(crc_chunk_size, 0) { err({kind: "budget", message: "crc_chunk_size must be positive"}) } else {
-      if gt(page.page_bytes, max_crc_bytes) { err({kind: "budget", message: "Ogg page exceeds max_crc_bytes"}) } else {
-        cursor = 0; crc = 0; while lt(cursor, page.page_bytes) {
-          remaining = page.page_bytes - cursor; width = if lt(remaining, crc_chunk_size) { remaining } else { crc_chunk_size }; bytes = u:range_window(reader, page.offset + cursor, width, width)?; index = 0;
-          while lt(index, tally(bytes)) { relative = cursor + index; byte = if gt(relative, 21) * lt(relative, 26) { 0 } else { take(bytes, 0, index) }; crc = u:ogg_crc_byte(crc, byte); index = index + 1 };
+def u:ogg_page_crc(reader, page, max_crc_bytes, crc_chunk_size) {
+  "Calculate one page CRC through bounded reads while logically zeroing the stored checksum field.";
+  if (1 - u:range_exact_nonnegative(max_crc_bytes)) + (1 - u:range_exact_nonnegative(crc_chunk_size)) {
+    err({kind: "budget", message: "Ogg CRC budgets must be exact non-negative integers"})
+  } else {
+    if eq(crc_chunk_size, 0) {
+      err({kind: "budget", message: "crc_chunk_size must be positive"})
+    } else {
+      if gt(page.page_bytes, max_crc_bytes) {
+        err({kind: "budget", message: "Ogg page exceeds max_crc_bytes"})
+      } else {
+        cursor = 0;
+        crc = 0;
+        while lt(cursor, page.page_bytes) {
+          remaining = page.page_bytes - cursor;
+          width = if lt(remaining, crc_chunk_size) {
+            remaining
+          } else {
+            crc_chunk_size
+          };
+          bytes = u:range_window(reader, page.offset + cursor, width, width)?;
+          index = 0;
+          while lt(index, tally(bytes)) {
+            relative = cursor + index;
+            byte = if gt(relative, 21) * lt(relative, 26) {
+              0
+            } else {
+              take(bytes, 0, index)
+            };
+            crc = u:ogg_crc_byte(crc, byte);
+            index = index + 1
+          };
           cursor = cursor + width
-        }; ok(crc)
+        };
+        ok(crc)
       }
     }
   }
 }
 
-def u:inspect_ogg_page_crc(path, chunk_size, offset, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size) { "Return stored/computed CRC evidence for one structurally valid bounded Ogg page.";
-  reader = u:range_reader(path, chunk_size)?; page = u:read_ogg_page(reader, offset, max_page_bytes, max_segments, max_body_bytes)?; computed = u:ogg_page_crc(reader, page, max_crc_bytes, crc_chunk_size)?; ok({page: page, stored: page.checksum, computed: computed, valid: eq(page.checksum, computed)})
+def u:inspect_ogg_page_crc(path, chunk_size, offset, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size) {
+  "Return stored/computed CRC evidence for one structurally valid bounded Ogg page.";
+  reader = u:range_reader(path, chunk_size)?;
+  page = u:read_ogg_page(reader, offset, max_page_bytes, max_segments, max_body_bytes)?;
+  computed = u:ogg_page_crc(reader, page, max_crc_bytes, crc_chunk_size)?;
+  ok({page: page, stored: page.checksum, computed: computed, valid: eq(page.checksum, computed)})
 }
 
-def u:verify_ogg_page_crc(path, chunk_size, offset, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size) { "Require one structurally valid Ogg page to match its stored checksum.";
+def u:verify_ogg_page_crc(path, chunk_size, offset, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size) {
+  "Require one structurally valid Ogg page to match its stored checksum.";
   evidence = u:inspect_ogg_page_crc(path, chunk_size, offset, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size)?;
-  if evidence.valid { ok(evidence) } else { err({kind: "checksum", message: "stored Ogg page checksum does not match MLPL calculation", stored: evidence.stored, computed: evidence.computed}) }
+  if evidence.valid {
+    ok(evidence)
+  } else {
+    err({kind: "checksum", message: "stored Ogg page checksum does not match MLPL calculation", stored: evidence.stored, computed: evidence.computed})
+  }
 }

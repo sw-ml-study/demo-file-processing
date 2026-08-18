@@ -1,9 +1,26 @@
-def u:wav_transform_application(source, destination, mode, chunk_size) { "Create and boundedly verify one canonical WAV copy or unsigned-8-bit inversion.";
-  source_size = file_size(source)?; source_wav = u:inspect_wav_ranges(source, chunk_size, 4096)?; output = u:bounded_wav_output(source, destination, mode, chunk_size, source_size + 44, 4096, 1)?; verified = u:inspect_wav_ranges(destination, chunk_size, 4096)?;
+def u:wav_transform_application(source, destination, mode, chunk_size) {
+  "Create and boundedly verify one canonical WAV copy or unsigned-8-bit inversion.";
+  source_size = file_size(source)?;
+  source_wav = u:inspect_wav_ranges(source, chunk_size, 4096)?;
+  output = u:bounded_wav_output(source, destination, mode, chunk_size, source_size + 44, 4096, 1)?;
+  verified = u:inspect_wav_ranges(destination, chunk_size, 4096)?;
   same_geometry = eq(source_wav.channels, verified.channels) * eq(source_wav.sample_rate, verified.sample_rate) * eq(source_wav.bits_per_sample, verified.bits_per_sample) * eq(source_wav.frames, verified.frames) * eq(source_wav.data_bytes, verified.data_bytes);
-  if 1 - same_geometry { err({kind: "verification", message: "transformed WAV geometry differs from the validated source"}) } else {
-    preview_bytes = if lt(source_wav.data_bytes, 8) { source_wav.data_bytes } else { 8 }; before = read_bytes(source, source_wav.data_offset, preview_bytes)?; after = read_bytes(destination, verified.data_offset, preview_bytes)?; expected = if equal(mode, "copy") { before } else { u:wav_invert_u8(before) };
-    if 1 - equal(after, expected) { err({kind: "verification", message: "transformed WAV sample preview differs from the selected mode"}) } else {
+  if 1 - same_geometry {
+    err({kind: "verification", message: "transformed WAV geometry differs from the validated source"})
+  } else {
+    preview_bytes = if lt(source_wav.data_bytes, 8) {
+      source_wav.data_bytes
+    } else {
+      8
+    };
+    before = read_bytes(source, source_wav.data_offset, preview_bytes)?;
+    after = read_bytes(destination, verified.data_offset, preview_bytes)?;
+    expected = if equal(mode, "copy") {
+      before
+    } else { u:wav_invert_u8(before) };
+    if 1 - equal(after, expected) {
+      err({kind: "verification", message: "transformed WAV sample preview differs from the selected mode"})
+    } else {
       ok({source: source, destination: destination, mode: mode, source_bytes: source_size, output_bytes: output.output_bytes, data_bytes: output.data_bytes, frames: output.frames, channels: verified.channels, sample_rate: output.sample_rate, bits_per_sample: output.bits_per_sample, chunks: output.chunks, chunk_size: output.chunk_size, last_chunk_bytes: output.last_chunk_bytes, padding_bytes: output.padding_bytes, unknown_chunks_removed: output.unknown_chunks_removed, preview_before: before, preview_after: after})
     }
   }

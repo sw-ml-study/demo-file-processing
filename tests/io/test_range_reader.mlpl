@@ -1,26 +1,35 @@
 include "src/io/range_reader.mlpl";
 
 @test {name: "range reader advances with required chunk sizes", tags: ["io", "range", "chunks"]}
-def u:test_range_reader_chunks() { "Verify immutable state, exact chunks, EOF, and oversized final budgets.";
-  one = u:range_reader("fixtures/bytes/boundary-17.bin", 1)?; one_first = u:range_next(one)?;
+def u:test_range_reader_chunks() {
+  "Verify immutable state, exact chunks, EOF, and oversized final budgets.";
+  one = u:range_reader("fixtures/bytes/boundary-17.bin", 1)?;
+  one_first = u:range_next(one)?;
   u:assert_eq(one_first.bytes, [0], "one-byte chunk")?;
   u:assert_eq(one.offset, 0, "input state remains immutable")?;
   u:assert_eq(one_first.reader.offset, 1, "next state advances")?;
-  seven = u:range_reader("fixtures/bytes/boundary-17.bin", 7)?; seven_first = u:range_next(seven)?; seven_second = u:range_next(seven_first.reader)?;
+  seven = u:range_reader("fixtures/bytes/boundary-17.bin", 7)?;
+  seven_first = u:range_next(seven)?;
+  seven_second = u:range_next(seven_first.reader)?;
   u:assert_eq(tally(seven_first.bytes), 7, "seven-byte first chunk")?;
   u:assert_eq(tally(seven_second.bytes), 7, "seven-byte second chunk")?;
-  sixty_four = u:range_reader("fixtures/bytes/boundary-17.bin", 64)?; all64 = u:range_next(sixty_four)?;
+  sixty_four = u:range_reader("fixtures/bytes/boundary-17.bin", 64)?;
+  all64 = u:range_next(sixty_four)?;
   u:assert_eq(tally(all64.bytes), 17, "64-byte budget clamps to file")?;
   u:assert_true(all64.eof, "clamped chunk reaches EOF")?;
-  large = u:range_reader("fixtures/bytes/boundary-17.bin", 65536)?; all_large = u:range_next(large)?; after = u:range_next(all_large.reader)?;
+  large = u:range_reader("fixtures/bytes/boundary-17.bin", 65536)?;
+  all_large = u:range_next(large)?;
+  after = u:range_next(all_large.reader)?;
   u:assert_eq(all_large.bytes, unwrap(read_bytes("fixtures/bytes/boundary-17.bin")), "large budget preserves bytes")?;
   u:assert_eq(after.bytes, [], "read after EOF is empty")?;
   u:assert_true(after.eof, "read after EOF stays at EOF")
 }
 
 @test {name: "range reader handles empty and direct EOF ranges", tags: ["io", "range", "boundary"]}
-def u:test_range_reader_boundaries() { "Verify empty files, zero length, EOF clamping, and beyond-EOF reads.";
-  empty = u:range_reader("fixtures/bytes/empty.bin", 7)?; empty_next = u:range_next(empty)?;
+def u:test_range_reader_boundaries() {
+  "Verify empty files, zero length, EOF clamping, and beyond-EOF reads.";
+  empty = u:range_reader("fixtures/bytes/empty.bin", 7)?;
+  empty_next = u:range_next(empty)?;
   u:assert_eq(empty_next.bytes, [], "empty file produces no bytes")?;
   u:assert_true(empty_next.eof, "empty file begins at EOF")?;
   reader = u:range_reader("fixtures/bytes/boundary-17.bin", 7)?;
@@ -31,7 +40,8 @@ def u:test_range_reader_boundaries() { "Verify empty files, zero length, EOF cla
 }
 
 @test {name: "range reader rejects invalid exact-domain inputs", tags: ["io", "range", "invalid", "overflow"]}
-def u:test_range_reader_invalid_inputs() { "Reject invalid budgets, offsets, lengths, types, and exact-domain addition overflow before I/O.";
+def u:test_range_reader_invalid_inputs() {
+  "Reject invalid budgets, offsets, lengths, types, and exact-domain addition overflow before I/O.";
   path = "fixtures/bytes/boundary-17.bin";
   u:assert_err(u:range_reader(path, 0), "zero chunk")?;
   u:assert_err(u:range_reader(path, -1), "negative chunk")?;
@@ -52,7 +62,8 @@ def u:test_range_reader_invalid_inputs() { "Reject invalid budgets, offsets, len
 }
 
 @test {name: "range reader preserves filesystem Result errors", tags: ["io", "range", "errors", "sandbox"]}
-def u:test_range_reader_filesystem_errors() { "Verify missing, non-file, and sandbox-traversal errors remain explicit Results.";
+def u:test_range_reader_filesystem_errors() {
+  "Verify missing, non-file, and sandbox-traversal errors remain explicit Results.";
   u:assert_err(u:range_reader("fixtures/bytes/does-not-exist.bin", 7), "missing path")?;
   directory = u:range_reader("fixtures/bytes", 7)?;
   u:assert_err(u:range_next(directory), "directory metadata succeeds but byte read is denied")?;

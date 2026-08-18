@@ -1,32 +1,130 @@
-def u:du_root_valid(root) { "Accept one non-empty relative root without parent traversal.";
+def u:du_root_valid(root) {
+  "Accept one non-empty relative root without parent traversal.";
   equal(type_of(root), "string") * gt(str_len(root), 0) * (1 - equal(str_slice(root, 0, 1), "/")) * eq(str_find(root, ".."), 0 - 1)
 }
 
-def u:du_path_within(path, root) { "Return one when a reported path is the root or lies below it.";
-  prefix = str_concat(root, "/"); equal(path, root) + equal(str_slice(path, 0, str_len(prefix)), prefix)
+def u:du_path_within(path, root) {
+  "Return one when a reported path is the root or lies below it.";
+  prefix = str_concat(root, "/");
+  equal(path, root) + equal(str_slice(path, 0, str_len(prefix)), prefix)
 }
 
-def u:du_relative_depth(path, root) { "Count path components below the selected root.";
+def u:du_relative_depth(path, root) {
+  "Count path components below the selected root.";
   list_len(str_split(path, "/")) - list_len(str_split(root, "/"))
 }
 
-def u:du_size_valid(value) { "Accept an exact non-negative logical byte size."; u:range_exact_nonnegative(value) }
+def u:du_size_valid(value) {
+  "Accept an exact non-negative logical byte size.";
+  u:range_exact_nonnegative(value)
+}
 
-def u:du_budgets_valid(max_entries, max_depth, max_bytes) { "Validate exact non-negative du budgets.";
+def u:du_budgets_valid(max_entries, max_depth, max_bytes) {
+  "Validate exact non-negative du budgets.";
   u:range_exact_nonnegative(max_entries) * u:range_exact_nonnegative(max_depth) * u:range_exact_nonnegative(max_bytes)
 }
 
-def u:du_paths_lexical(paths, index) { "Require strictly increasing UTF-8 path order.";
-  if (1 - gt(index, 0)) + (1 - lt(index, list_len(paths))) { 1 } else { left = list_get(paths, index - 1)?; right = list_get(paths, index)?; u:utf8_string_lt(left, right) * u:du_paths_lexical(paths, index + 1) }
+def u:du_paths_lexical(paths, index) {
+  "Require strictly increasing UTF-8 path order.";
+  if (1 - gt(index, 0)) + (1 - lt(index, list_len(paths))) {
+    1
+  } else {
+    left = list_get(paths, index - 1)?;
+    right = list_get(paths, index)?;
+    u:utf8_string_lt(left, right) * u:du_paths_lexical(paths, index + 1)
+  }
 }
 
-def u:du_summarize(paths, sizes, root, max_entries, max_depth, max_bytes) { "Validate deterministic file rows and total logical bytes within explicit budgets.";
-  if 1 - u:du_root_valid(root) { err({kind: "root", message: "du root must be a non-empty confined relative path without parent traversal"}) } else { if 1 - u:du_budgets_valid(max_entries, max_depth, max_bytes) { err({kind: "budget", message: "du budgets must be exact non-negative integers"}) } else { empty = if equal(type_of(paths), "array") { equal(type_of(sizes), "array") * eq(tally(paths), 0) * eq(tally(sizes), 0) } else { 0 }; parallel = if equal(type_of(paths), "string-list") { equal(type_of(sizes), "array") * eq(rank(sizes), 1) * eq(list_len(paths), tally(sizes)) } else { 0 }; if 1 - (empty + parallel) { err({kind: "shape", message: "du paths and sizes must be parallel string and numeric vectors"}) } else { count = if empty { 0 } else { list_len(paths) }; if gt(count, max_entries) { err({kind: "entries", message: "du entries exceed max_entries"}) } else { if (1 - empty) * (1 - u:du_paths_lexical(paths, 1)) { err({kind: "order", message: "du paths must be in strict UTF-8 lexical order"}) } else {
-    index = 0; total = 0; deepest = 0; while lt(index, count) { path = list_get(paths, index)?; size = take(sizes, 0, index); if 1 - u:du_path_within(path, root) { return err({kind: "root", message: "du path lies outside the selected root label"}) }; if 1 - u:du_size_valid(size) { return err({kind: "size", message: "du logical sizes must be exact non-negative integers"}) }; depth = u:du_relative_depth(path, root); if gt(depth, max_depth) { return err({kind: "depth", message: "du path exceeds max_depth"}) }; if gt(total, max_bytes - size) { return err({kind: "bytes", message: "du logical byte sum exceeds max_bytes"}) }; total = total + size; if gt(depth, deepest) { deepest = depth }; index = index + 1 };
-    ok({root: root, paths: paths, sizes: sizes, entries: count, logical_bytes: total, max_depth_seen: deepest, allocated_blocks: "not measured"})
-  } } } } }
+def u:du_summarize(paths, sizes, root, max_entries, max_depth, max_bytes) {
+  "Validate deterministic file rows and total logical bytes within explicit budgets.";
+  if 1 - u:du_root_valid(root) {
+    err({kind: "root", message: "du root must be a non-empty confined relative path without parent traversal"})
+  } else {
+    if 1 - u:du_budgets_valid(max_entries, max_depth, max_bytes) {
+      err({kind: "budget", message: "du budgets must be exact non-negative integers"})
+    } else {
+      empty = if equal(type_of(paths), "array") {
+        equal(type_of(sizes), "array") * eq(tally(paths), 0) * eq(tally(sizes), 0)
+      } else {
+        0
+      };
+      parallel = if equal(type_of(paths), "string-list") {
+        equal(type_of(sizes), "array") * eq(rank(sizes), 1) * eq(list_len(paths), tally(sizes))
+      } else {
+        0
+      };
+      if 1 - (empty + parallel) {
+        err({kind: "shape", message: "du paths and sizes must be parallel string and numeric vectors"})
+      } else {
+        count = if empty {
+          0
+        } else {
+          list_len(paths)
+        };
+        if gt(count, max_entries) {
+          err({kind: "entries", message: "du entries exceed max_entries"})
+        } else {
+          if (1 - empty) * (1 - u:du_paths_lexical(paths, 1)) {
+            err({kind: "order", message: "du paths must be in strict UTF-8 lexical order"})
+          } else {
+            index = 0;
+            total = 0;
+            deepest = 0;
+            while lt(index, count) {
+              path = list_get(paths, index)?;
+              size = take(sizes, 0, index);
+              if 1 - u:du_path_within(path, root) {
+                return err({kind: "root", message: "du path lies outside the selected root label"})
+              };
+              if 1 - u:du_size_valid(size) {
+                return err({kind: "size", message: "du logical sizes must be exact non-negative integers"})
+              };
+              depth = u:du_relative_depth(path, root);
+              if gt(depth, max_depth) {
+                return err({kind: "depth", message: "du path exceeds max_depth"})
+              };
+              if gt(total, max_bytes - size) {
+                return err({kind: "bytes", message: "du logical byte sum exceeds max_bytes"})
+              };
+              total = total + size;
+              if gt(depth, deepest) {
+                deepest = depth
+              };
+              index = index + 1
+            };
+            ok({root: root, paths: paths, sizes: sizes, entries: count, logical_bytes: total, max_depth_seen: deepest, allocated_blocks: "not measured"})
+          }
+        }
+      }
+    }
+  }
 }
 
-def u:du_walk(root, max_entries, max_depth, max_bytes) { "Walk confined regular files, then validate and sum their logical sizes.";
-  if 1 - u:du_root_valid(root) { err({kind: "root", message: "du root must be a non-empty confined relative path without parent traversal"}) } else { if 1 - u:du_budgets_valid(max_entries, max_depth, max_bytes) { err({kind: "budget", message: "du budgets must be exact non-negative integers"}) } else { paths = fs_walk(root, {recursive: 1, kind: "file", pattern: "*"})?; if gt(list_len(paths), max_entries) { err({kind: "entries", message: "du discovery returned more than max_entries"}) } else { sizes = []; index = 0; while lt(index, list_len(paths)) { size = file_size(list_get(paths, index)?)?; sizes = if eq(tally(sizes), 0) { [size] } else { concat(sizes, [size]) }; index = index + 1 }; u:du_summarize(paths, sizes, root, max_entries, max_depth, max_bytes) } } }
+def u:du_walk(root, max_entries, max_depth, max_bytes) {
+  "Walk confined regular files, then validate and sum their logical sizes.";
+  if 1 - u:du_root_valid(root) {
+    err({kind: "root", message: "du root must be a non-empty confined relative path without parent traversal"})
+  } else {
+    if 1 - u:du_budgets_valid(max_entries, max_depth, max_bytes) {
+      err({kind: "budget", message: "du budgets must be exact non-negative integers"})
+    } else {
+      paths = fs_walk(root, {recursive: 1, kind: "file", pattern: "*"})?;
+      if gt(list_len(paths), max_entries) {
+        err({kind: "entries", message: "du discovery returned more than max_entries"})
+      } else {
+        sizes = [];
+        index = 0;
+        while lt(index, list_len(paths)) {
+          size = file_size(list_get(paths, index)?)?;
+          sizes = if eq(tally(sizes), 0) {
+            [size]
+          } else {
+            concat(sizes, [size])
+          };
+          index = index + 1
+        };
+        u:du_summarize(paths, sizes, root, max_entries, max_depth, max_bytes)
+      }
+    }
+  }
 }

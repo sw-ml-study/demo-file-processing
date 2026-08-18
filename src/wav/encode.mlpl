@@ -1,19 +1,33 @@
-def u:wav_chunk(id, payload) { "Encode one RIFF chunk with a zero odd-byte pad.";
+def u:wav_chunk(id, payload) {
+  "Encode one RIFF chunk with a zero odd-byte pad.";
   size = u:encode_uint(tally(payload), 4, "le")?;
-  ok(concat(id, concat(size, concat(payload, if eq(mod(tally(payload), 2), 1) { [0] } else { [] }))))
+  ok(concat(id, concat(size, concat(payload, if eq(mod(tally(payload), 2), 1) {
+            [0]
+          } else {
+            []
+          }))))
 }
 
-def u:wav_format_payload(wav) { "Encode the canonical 16-byte PCM fmt payload.";
-  a = u:encode_uint(1, 2, "le")?; c = u:encode_uint(wav.channels, 2, "le")?; r = u:encode_uint(wav.sample_rate, 4, "le")?;
-  br = u:encode_uint(wav.byte_rate, 4, "le")?; ba = u:encode_uint(wav.block_align, 2, "le")?; bits = u:encode_uint(wav.bits_per_sample, 2, "le")?;
+def u:wav_format_payload(wav) {
+  "Encode the canonical 16-byte PCM fmt payload.";
+  a = u:encode_uint(1, 2, "le")?;
+  c = u:encode_uint(wav.channels, 2, "le")?;
+  r = u:encode_uint(wav.sample_rate, 4, "le")?;
+  br = u:encode_uint(wav.byte_rate, 4, "le")?;
+  ba = u:encode_uint(wav.block_align, 2, "le")?;
+  bits = u:encode_uint(wav.bits_per_sample, 2, "le")?;
   ok(concat(a, concat(c, concat(r, concat(br, concat(ba, bits))))))
 }
 
-def u:encode_wav(wav) { "Encode a validated semantic WAV record canonically as fmt then data.";
+def u:encode_wav(wav) {
+  "Encode a validated semantic WAV record canonically as fmt then data.";
   state = {audio_format: 1, channels: wav.channels, sample_rate: wav.sample_rate, byte_rate: wav.byte_rate, block_align: wav.block_align, bits_per_sample: wav.bits_per_sample};
   u:wav_validate_format(state)?;
-  if (1 - u:bytes_valid(wav.data)) + (1 - eq(mod(tally(wav.data), wav.block_align), 0)) { err({kind: "data", message: "canonical WAV data must contain whole validated frames"}) } else {
-    format_chunk = u:wav_chunk([102, 109, 116, 32], u:wav_format_payload(wav)?)?; data_chunk = u:wav_chunk([100, 97, 116, 97], wav.data)?;
+  if (1 - u:bytes_valid(wav.data)) + (1 - eq(mod(tally(wav.data), wav.block_align), 0)) {
+    err({kind: "data", message: "canonical WAV data must contain whole validated frames"})
+  } else {
+    format_chunk = u:wav_chunk([102, 109, 116, 32], u:wav_format_payload(wav)?)?;
+    data_chunk = u:wav_chunk([100, 97, 116, 97], wav.data)?;
     body = concat([87, 65, 86, 69], concat(format_chunk, data_chunk));
     ok(concat([82, 73, 70, 70], concat(u:encode_uint(tally(body), 4, "le")?, body)))
   }

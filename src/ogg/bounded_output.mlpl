@@ -2,46 +2,134 @@ include "../io/bounded_copy.mlpl";
 include "../binary/endian_encode.mlpl";
 include "crc.mlpl";
 
-def u:ogg_u32(value) { "Return one when value is an exact unsigned 32-bit scalar.";
+def u:ogg_u32(value) {
+  "Return one when value is an exact unsigned 32-bit scalar.";
   u:range_exact_nonnegative(value) * (1 - gt(value, 4294967295))
 }
 
-def u:ogg_rewrite_crc(reader, page, sequence_bytes, crc_chunk_size, max_crc_bytes) { "Compute page CRC while virtually replacing sequence and zeroing stored checksum bytes.";
-  if (1 - u:range_exact_nonnegative(crc_chunk_size)) + eq(crc_chunk_size, 0) { err({kind: "budget", message: "rewrite CRC chunk size must be positive"}) } else {
-    if gt(page.page_bytes, max_crc_bytes) { err({kind: "budget", message: "rewritten Ogg page exceeds max_crc_bytes"}) } else {
-      cursor = 0; crc = 0; while lt(cursor, page.page_bytes) {
-        remaining = page.page_bytes - cursor; width = if lt(remaining, crc_chunk_size) { remaining } else { crc_chunk_size }; bytes = u:range_window(reader, page.offset + cursor, width, width)?; index = 0;
-        while lt(index, tally(bytes)) { relative = cursor + index; byte = if gt(relative, 17) * lt(relative, 22) { take(sequence_bytes, 0, relative - 18) } else { if gt(relative, 21) * lt(relative, 26) { 0 } else { take(bytes, 0, index) } }; crc = u:ogg_crc_byte(crc, byte); index = index + 1 };
+def u:ogg_rewrite_crc(reader, page, sequence_bytes, crc_chunk_size, max_crc_bytes) {
+  "Compute page CRC while virtually replacing sequence and zeroing stored checksum bytes.";
+  if (1 - u:range_exact_nonnegative(crc_chunk_size)) + eq(crc_chunk_size, 0) {
+    err({kind: "budget", message: "rewrite CRC chunk size must be positive"})
+  } else {
+    if gt(page.page_bytes, max_crc_bytes) {
+      err({kind: "budget", message: "rewritten Ogg page exceeds max_crc_bytes"})
+    } else {
+      cursor = 0;
+      crc = 0;
+      while lt(cursor, page.page_bytes) {
+        remaining = page.page_bytes - cursor;
+        width = if lt(remaining, crc_chunk_size) {
+          remaining
+        } else {
+          crc_chunk_size
+        };
+        bytes = u:range_window(reader, page.offset + cursor, width, width)?;
+        index = 0;
+        while lt(index, tally(bytes)) {
+          relative = cursor + index;
+          byte = if gt(relative, 17) * lt(relative, 22) {
+            take(sequence_bytes, 0, relative - 18)
+          } else {
+            if gt(relative, 21) * lt(relative, 26) {
+              0
+            } else {
+              take(bytes, 0, index)
+            }
+          };
+          crc = u:ogg_crc_byte(crc, byte);
+          index = index + 1
+        };
         cursor = cursor + width
-      }; ok(crc)
+      };
+      ok(crc)
     }
   }
 }
 
-def u:copy_ogg_page(source, destination, chunk_size, offset, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size, max_output_bytes, cleanup_partial) { "Verify and copy one accepted Ogg page descriptor byte-for-byte to a new file.";
+def u:copy_ogg_page(source, destination, chunk_size, offset, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size, max_output_bytes, cleanup_partial) {
+  "Verify and copy one accepted Ogg page descriptor byte-for-byte to a new file.";
   evidence = u:verify_ogg_page_crc(source, chunk_size, offset, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size)?;
   copied = u:bounded_copy_range(source, destination, evidence.page.offset, evidence.page.page_bytes, chunk_size, max_output_bytes, cleanup_partial)?;
   ok({source_offset: evidence.page.offset, page_bytes: copied.bytes_copied, chunks: copied.chunks, chunk_size: copied.chunk_size, last_chunk_bytes: copied.last_chunk_bytes, sequence: evidence.page.sequence, checksum: evidence.page.checksum, output_bytes: copied.destination_size})
 }
 
-def u:rewrite_ogg_page_sequence(source, destination, chunk_size, offset, new_sequence, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size, max_output_bytes, cleanup_partial) { "Rewrite one accepted page sequence and CRC through bounded reads and append writes.";
-  if 1 - u:ogg_u32(new_sequence) { err({kind: "sequence", message: "Ogg sequence must be an exact u32"}) } else {
-    original = u:verify_ogg_page_crc(source, chunk_size, offset, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size)?; page = original.page;
-    if (1 - u:range_exact_nonnegative(max_output_bytes)) + lt(max_output_bytes, page.page_bytes) { err({kind: "budget", message: "rewritten Ogg page exceeds max_output_bytes"}) } else {
-      if is_ok(file_size(destination)) { err({kind: "destination", message: "Ogg rewrite requires a new destination"}) } else {
-        reader = u:range_reader(source, chunk_size)?; sequence_bytes = u:encode_uint(new_sequence, 4, "le")?; checksum = u:ogg_rewrite_crc(reader, page, sequence_bytes, crc_chunk_size, max_crc_bytes)?; checksum_bytes = u:encode_uint(checksum, 4, "le")?;
-        opened = append_bytes(destination, []); if is_err(opened) { opened } else {
-          cursor = 0; chunks = 0; last_chunk_bytes = 0;
+def u:rewrite_ogg_page_sequence(source, destination, chunk_size, offset, new_sequence, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size, max_output_bytes, cleanup_partial) {
+  "Rewrite one accepted page sequence and CRC through bounded reads and append writes.";
+  if 1 - u:ogg_u32(new_sequence) {
+    err({kind: "sequence", message: "Ogg sequence must be an exact u32"})
+  } else {
+    original = u:verify_ogg_page_crc(source, chunk_size, offset, max_page_bytes, max_segments, max_body_bytes, max_crc_bytes, crc_chunk_size)?;
+    page = original.page;
+    if (1 - u:range_exact_nonnegative(max_output_bytes)) + lt(max_output_bytes, page.page_bytes) {
+      err({kind: "budget", message: "rewritten Ogg page exceeds max_output_bytes"})
+    } else {
+      if is_ok(file_size(destination)) {
+        err({kind: "destination", message: "Ogg rewrite requires a new destination"})
+      } else {
+        reader = u:range_reader(source, chunk_size)?;
+        sequence_bytes = u:encode_uint(new_sequence, 4, "le")?;
+        checksum = u:ogg_rewrite_crc(reader, page, sequence_bytes, crc_chunk_size, max_crc_bytes)?;
+        checksum_bytes = u:encode_uint(checksum, 4, "le")?;
+        opened = append_bytes(destination, []);
+        if is_err(opened) {
+          opened
+        } else {
+          cursor = 0;
+          chunks = 0;
+          last_chunk_bytes = 0;
           while lt(cursor, page.page_bytes) {
-            remaining = page.page_bytes - cursor; width = if lt(remaining, chunk_size) { remaining } else { chunk_size }; read_result = read_bytes(source, page.offset + cursor, width);
-            if is_err(read_result) { return u:bounded_copy_abort(destination, cleanup_partial, read_result) } else { 0 }; output = unwrap(read_result);
-            if 1 - eq(tally(output), width) { return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_read", message: "Ogg source changed during rewrite"})) } else { 0 };
-            index = 0; while lt(index, width) { relative = cursor + index; if gt(relative, 17) * lt(relative, 22) { output = scatter(output, index, take(sequence_bytes, 0, relative - 18)) } else { if gt(relative, 21) * lt(relative, 26) { output = scatter(output, index, take(checksum_bytes, 0, relative - 22)) } else { 0 } }; index = index + 1 };
-            write_result = append_bytes(destination, output); if is_err(write_result) { return u:bounded_copy_abort(destination, cleanup_partial, write_result) } else { 0 };
-            if 1 - eq(unwrap(write_result), width) { return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_write", message: "Ogg rewrite append count differs"})) } else { 0 };
-            cursor = cursor + width; chunks = chunks + 1; last_chunk_bytes = width
+            remaining = page.page_bytes - cursor;
+            width = if lt(remaining, chunk_size) {
+              remaining
+            } else {
+              chunk_size
+            };
+            read_result = read_bytes(source, page.offset + cursor, width);
+            if is_err(read_result) {
+              return u:bounded_copy_abort(destination, cleanup_partial, read_result)
+            } else {
+              0
+            };
+            output = unwrap(read_result);
+            if 1 - eq(tally(output), width) {
+              return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_read", message: "Ogg source changed during rewrite"}))
+            } else {
+              0
+            };
+            index = 0;
+            while lt(index, width) {
+              relative = cursor + index;
+              if gt(relative, 17) * lt(relative, 22) {
+                output = scatter(output, index, take(sequence_bytes, 0, relative - 18))
+              } else {
+                if gt(relative, 21) * lt(relative, 26) {
+                  output = scatter(output, index, take(checksum_bytes, 0, relative - 22))
+                } else {
+                  0
+                }
+              };
+              index = index + 1
+            };
+            write_result = append_bytes(destination, output);
+            if is_err(write_result) {
+              return u:bounded_copy_abort(destination, cleanup_partial, write_result)
+            } else {
+              0
+            };
+            if 1 - eq(unwrap(write_result), width) {
+              return u:bounded_copy_abort(destination, cleanup_partial, err({kind: "short_write", message: "Ogg rewrite append count differs"}))
+            } else {
+              0
+            };
+            cursor = cursor + width;
+            chunks = chunks + 1;
+            last_chunk_bytes = width
           };
-          size = file_size(destination)?; if 1 - eq(size, page.page_bytes) { u:bounded_copy_abort(destination, cleanup_partial, err({kind: "size", message: "rewritten Ogg page length differs"})) } else { ok({page_bytes: size, chunks: chunks, chunk_size: chunk_size, last_chunk_bytes: last_chunk_bytes, old_sequence: page.sequence, new_sequence: new_sequence, old_checksum: page.checksum, new_checksum: checksum, body_bytes: page.body_bytes}) }
+          size = file_size(destination)?;
+          if 1 - eq(size, page.page_bytes) { u:bounded_copy_abort(destination, cleanup_partial, err({kind: "size", message: "rewritten Ogg page length differs"})) } else {
+            ok({page_bytes: size, chunks: chunks, chunk_size: chunk_size, last_chunk_bytes: last_chunk_bytes, old_sequence: page.sequence, new_sequence: new_sequence, old_checksum: page.checksum, new_checksum: checksum, body_bytes: page.body_bytes})
+          }
         }
       }
     }

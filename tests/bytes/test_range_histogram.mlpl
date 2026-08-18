@@ -2,15 +2,19 @@ include "src/bytes/validate.mlpl";
 include "src/bytes/histogram.mlpl";
 include "src/bytes/range_histogram.mlpl";
 
-def u:verify_range_histogram(path, chunk_size, message) { "Compare one bounded reduction with the test-only whole-buffer oracle.";
-  expected_bytes = read_bytes(path)?; expected = u:byte_histogram(expected_bytes)?; actual = u:range_byte_histogram(path, chunk_size)?;
+def u:verify_range_histogram(path, chunk_size, message) {
+  "Compare one bounded reduction with the test-only whole-buffer oracle.";
+  expected_bytes = read_bytes(path)?;
+  expected = u:byte_histogram(expected_bytes)?;
+  actual = u:range_byte_histogram(path, chunk_size)?;
   u:assert_eq(actual.counts, expected, message)?;
   u:assert_eq(actual.bytes, tally(expected_bytes), "bounded byte total matches file size")?;
   u:assert_eq(reduce_add(actual.counts), actual.bytes, "histogram total matches bounded bytes")
 }
 
 @test {name: "bounded histogram is invariant across required chunk sizes", tags: ["bytes", "histogram", "range", "chunks"]}
-def u:test_range_histogram_chunks() { "Compare chunk sizes 1, 7, 64, and 65,536 with the whole-buffer all-byte oracle.";
+def u:test_range_histogram_chunks() {
+  "Compare chunk sizes 1, 7, 64, and 65,536 with the whole-buffer all-byte oracle.";
   path = "fixtures/bytes/all-bytes.bin";
   u:verify_range_histogram(path, 1, "one-byte ranges")?;
   u:verify_range_histogram(path, 7, "seven-byte ranges")?;
@@ -19,7 +23,8 @@ def u:test_range_histogram_chunks() { "Compare chunk sizes 1, 7, 64, and 65,536 
 }
 
 @test {name: "bounded histogram matches contrasting fixtures", tags: ["bytes", "histogram", "range", "fixtures"]}
-def u:test_range_histogram_fixtures() { "Compare empty, repeated, and boundary inputs at non-dividing chunk boundaries.";
+def u:test_range_histogram_fixtures() {
+  "Compare empty, repeated, and boundary inputs at non-dividing chunk boundaries.";
   empty = u:range_byte_histogram("fixtures/bytes/empty.bin", 7)?;
   repeated = u:range_byte_histogram("fixtures/bytes/repeated-7.bin", 7)?;
   boundary = u:range_byte_histogram("fixtures/bytes/boundary-17.bin", 7)?;
@@ -31,7 +36,8 @@ def u:test_range_histogram_fixtures() { "Compare empty, repeated, and boundary i
 }
 
 @test {name: "bounded histogram preserves reader validation errors", tags: ["bytes", "histogram", "range", "errors"]}
-def u:test_range_histogram_errors() { "Verify invalid budgets and filesystem failures remain Results.";
+def u:test_range_histogram_errors() {
+  "Verify invalid budgets and filesystem failures remain Results.";
   u:assert_err(u:range_byte_histogram("fixtures/bytes/all-bytes.bin", 0), "zero chunk")?;
   u:assert_err(u:range_byte_histogram("fixtures/bytes/all-bytes.bin", 1.5), "fractional chunk")?;
   u:assert_err(u:range_byte_histogram("fixtures/bytes/missing.bin", 7), "missing file")?;

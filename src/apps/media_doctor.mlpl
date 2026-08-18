@@ -1,29 +1,70 @@
-def u:doctor_result(path, format, status, reason, next_action, file_bytes, issues, recovered_frames, resyncs) { "Build one stable structural-health diagnosis.";
+def u:doctor_result(path, format, status, reason, next_action, file_bytes, issues, recovered_frames, resyncs) {
+  "Build one stable structural-health diagnosis.";
   {path: path, format: format, status: status, reason: reason, next_action: next_action, file_bytes: file_bytes, issues: issues, recovered_frames: recovered_frames, resyncs: resyncs}
 }
 
-def u:doctor_error_reason(result) { "Extract a readable message from an Err payload while retaining non-record compatibility.";
-  failure = err_message(result); if equal(type_of(failure), "record") { failure.message } else { "runtime or parser rejected the input" }
+def u:doctor_error_reason(result) {
+  "Extract a readable message from an Err payload while retaining non-record compatibility.";
+  failure = err_message(result);
+  if equal(type_of(failure), "record") {
+    failure.message
+  } else {
+    "runtime or parser rejected the input"
+  }
 }
 
-def u:doctor_rejected(path, format, size, result) { "Convert a parser Result failure into a stable rejected diagnosis.";
+def u:doctor_rejected(path, format, size, result) {
+  "Convert a parser Result failure into a stable rejected diagnosis.";
   ok(u:doctor_result(path, format, "rejected", u:doctor_error_reason(result), "Do not transform this file; inspect or repair the reported structural error first.", size, 1, 0, 0))
 }
 
-def u:doctor_media(path, chunk_size) { "Classify structural health and recommend only operations supported by validated bounded evidence.";
-  size_result = file_size(path); if is_err(size_result) { return u:doctor_rejected(path, "unknown", 0, size_result) } else { 0 }; size = unwrap(size_result);
-  kind_result = u:media_kind(path); if is_err(kind_result) { return u:doctor_rejected(path, "unknown", size, kind_result) } else { 0 }; kind = unwrap(kind_result);
-  if equal(kind, "unknown") { ok(u:doctor_result(path, "unknown", "unknown", "No supported RIFF, OggS, ID3, or MPEG Layer III signature was found.", "Keep the file unchanged and identify it with an authoritative format-specific tool before processing.", size, 1, 0, 0)) } else {
-    inspected_result = u:inspect_media(path, chunk_size); if is_err(inspected_result) { return u:doctor_rejected(path, kind, size, inspected_result) } else { 0 }; inspected = unwrap(inspected_result);
+def u:doctor_media(path, chunk_size) {
+  "Classify structural health and recommend only operations supported by validated bounded evidence.";
+  size_result = file_size(path);
+  if is_err(size_result) {
+    return u:doctor_rejected(path, "unknown", 0, size_result)
+  } else {
+    0
+  };
+  size = unwrap(size_result);
+  kind_result = u:media_kind(path);
+  if is_err(kind_result) {
+    return u:doctor_rejected(path, "unknown", size, kind_result)
+  } else {
+    0
+  };
+  kind = unwrap(kind_result);
+  if equal(kind, "unknown") {
+    ok(u:doctor_result(path, "unknown", "unknown", "No supported RIFF, OggS, ID3, or MPEG Layer III signature was found.", "Keep the file unchanged and identify it with an authoritative format-specific tool before processing.", size, 1, 0, 0))
+  } else {
+    inspected_result = u:inspect_media(path, chunk_size);
+    if is_err(inspected_result) {
+      return u:doctor_rejected(path, kind, size, inspected_result)
+    } else {
+      0
+    };
+    inspected = unwrap(inspected_result);
     if equal(kind, "wav") {
-      if gt(inspected.unknown_chunks, 0) { ok(u:doctor_result(path, kind, "warning", "PCM structure is valid, but ancillary chunks would be removed by canonical output.", "Use bounded WAV canonicalization only if dropping unknown chunks is intended; preserve the source.", size, inspected.unknown_chunks, 0, 0)) } else { ok(u:doctor_result(path, kind, "healthy", "PCM geometry, RIFF extent, frame alignment, and required chunks are valid.", "Safe for bounded inspection or a byte-preserving/canonical operation with an explicit destination.", size, 0, 0, 0)) }
+      if gt(inspected.unknown_chunks, 0) {
+        ok(u:doctor_result(path, kind, "warning", "PCM structure is valid, but ancillary chunks would be removed by canonical output.", "Use bounded WAV canonicalization only if dropping unknown chunks is intended; preserve the source.", size, inspected.unknown_chunks, 0, 0))
+      } else {
+        ok(u:doctor_result(path, kind, "healthy", "PCM geometry, RIFF extent, frame alignment, and required chunks are valid.", "Safe for bounded inspection or a byte-preserving/canonical operation with an explicit destination.", size, 0, 0, 0))
+      }
     } else {
       if equal(kind, "ogg") {
         packets_result = u:inspect_ogg_packets(path, chunk_size, 0, size, size, 4096, 1048576, 255, 1048576, 65536, 1048576);
-        if is_err(packets_result) { u:doctor_rejected(path, kind, size, packets_result) } else { packets = unwrap(packets_result); ok(u:doctor_result(path, kind, "healthy", "Ogg page CRC, sequence, continuation, lacing, packet boundaries, BOS, and EOS are consistent.", "Safe for bounded structural inspection or validated page copying; this does not establish codec decodability.", size, 0, packets.packets, 0)) }
+        if is_err(packets_result) { u:doctor_rejected(path, kind, size, packets_result) } else {
+          packets = unwrap(packets_result);
+          ok(u:doctor_result(path, kind, "healthy", "Ogg page CRC, sequence, continuation, lacing, packet boundaries, BOS, and EOS are consistent.", "Safe for bounded structural inspection or validated page copying; this does not establish codec decodability.", size, 0, packets.packets, 0))
+        }
       } else {
-        tag = u:inspect_id3v2(path, chunk_size, 1048576, 4096, 65536)?; scan = u:scan_mpeg_layer3(path, chunk_size, tag.audio_offset, size, tag.audio_bytes, 4096)?;
-        if gt(scan.skipped_bytes, 0) + gt(scan.resyncs, 0) { ok(u:doctor_result(path, kind, "warning", "Confirmed Layer III frames were recovered around damaged or non-frame bytes.", "Preserve the source; bounded extraction may copy only confirmed frames and exclude damaged gaps.", size, scan.skipped_bytes, scan.frames, scan.resyncs)) } else { ok(u:doctor_result(path, kind, "healthy", "ID3 bounds and synchronized Layer III frame geometry are structurally consistent.", "Safe for bounded metadata inspection or confirmed-frame extraction; synthetic structure does not prove audio decodability.", size, 0, scan.frames, 0)) }
+        tag = u:inspect_id3v2(path, chunk_size, 1048576, 4096, 65536)?;
+        scan = u:scan_mpeg_layer3(path, chunk_size, tag.audio_offset, size, tag.audio_bytes, 4096)?;
+        if gt(scan.skipped_bytes, 0) + gt(scan.resyncs, 0) {
+          ok(u:doctor_result(path, kind, "warning", "Confirmed Layer III frames were recovered around damaged or non-frame bytes.", "Preserve the source; bounded extraction may copy only confirmed frames and exclude damaged gaps.", size, scan.skipped_bytes, scan.frames, scan.resyncs))
+        } else {
+          ok(u:doctor_result(path, kind, "healthy", "ID3 bounds and synchronized Layer III frame geometry are structurally consistent.", "Safe for bounded metadata inspection or confirmed-frame extraction; synthetic structure does not prove audio decodability.", size, 0, scan.frames, 0))
+        }
       }
     }
   }

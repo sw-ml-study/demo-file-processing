@@ -1,22 +1,41 @@
-def u:encode_be_steps(value, width, position) { "Emit one unsigned integer as big-endian byte cells.";
-  if eq(position, width) { [] } else {
+def u:encode_be_steps(value, width, position) {
+  "Emit one unsigned integer as big-endian byte cells.";
+  if eq(position, width) {
+    []
+  } else {
     divisor = pow(256, width - position - 1);
     concat(floor(mod(value / divisor, 256)), u:encode_be_steps(value, width, position + 1))
   }
 }
 
-def u:encode_le_steps(value, width, position) { "Emit one unsigned integer as little-endian byte cells.";
-  if eq(position, width) { [] } else { concat(floor(mod(value / pow(256, position), 256)), u:encode_le_steps(value, width, position + 1)) }
+def u:encode_le_steps(value, width, position) {
+  "Emit one unsigned integer as little-endian byte cells.";
+  if eq(position, width) {
+    []
+  } else {
+    concat(floor(mod(value / pow(256, position), 256)), u:encode_le_steps(value, width, position + 1))
+  }
 }
 
-def u:encode_uint(value, width, endian) { "Encode an exact unsigned integer into 1..6 bytes in the requested order.";
+def u:encode_uint(value, width, endian) {
+  "Encode an exact unsigned integer into 1..6 bytes in the requested order.";
   if equal(type_of(value), "array") * equal(type_of(width), "array") {
     shapes_ok = eq(rank(value), 0) * eq(rank(width), 0);
     valid = shapes_ok * eq(value, floor(value)) * (1 - lt(value, 0)) * eq(width, floor(width)) * gt(width, 0) * (1 - gt(width, 6));
     if valid * lt(value, pow(256, width)) {
-      if equal(endian, "be") { ok(u:encode_be_steps(value, width, 0)) } else {
-        if equal(endian, "le") { ok(u:encode_le_steps(value, width, 0)) } else { err({kind: "endian", message: "endian must be be or le"}) }
+      if equal(endian, "be") {
+        ok(u:encode_be_steps(value, width, 0))
+      } else {
+        if equal(endian, "le") {
+          ok(u:encode_le_steps(value, width, 0))
+        } else {
+          err({kind: "endian", message: "endian must be be or le"})
+        }
       }
-    } else { err({kind: "range", message: "value must fit exactly in an integral width of 1..6 bytes"}) }
-  } else { err({kind: "input", message: "encode_uint expects numeric scalar value and width"}) }
+    } else {
+      err({kind: "range", message: "value must fit exactly in an integral width of 1..6 bytes"})
+    }
+  } else {
+    err({kind: "input", message: "encode_uint expects numeric scalar value and width"})
+  }
 }

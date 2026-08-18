@@ -1,15 +1,19 @@
-def u:wav_state() { "Create empty RIFF chunk-scan state.";
+def u:wav_state() {
+  "Create empty RIFF chunk-scan state.";
   {fmt_found: 0, data_found: 0, audio_format: 0, channels: 0, sample_rate: 0, byte_rate: 0, block_align: 0, bits_per_sample: 0, data: [], unknown_chunks: 0, chunks: 0}
 }
 
-def u:wav_with_format(state, audio_format, channels, sample_rate, byte_rate, block_align, bits_per_sample) { "Return scan state with one decoded fmt chunk.";
+def u:wav_with_format(state, audio_format, channels, sample_rate, byte_rate, block_align, bits_per_sample) {
+  "Return scan state with one decoded fmt chunk.";
   {fmt_found: 1, data_found: state.data_found, audio_format: audio_format, channels: channels, sample_rate: sample_rate, byte_rate: byte_rate, block_align: block_align, bits_per_sample: bits_per_sample, data: state.data, unknown_chunks: state.unknown_chunks, chunks: state.chunks + 1}
 }
 
-def u:wav_with_data(state, data) { "Return scan state with one copied data chunk.";
+def u:wav_with_data(state, data) {
+  "Return scan state with one copied data chunk.";
   {fmt_found: state.fmt_found, data_found: 1, audio_format: state.audio_format, channels: state.channels, sample_rate: state.sample_rate, byte_rate: state.byte_rate, block_align: state.block_align, bits_per_sample: state.bits_per_sample, data: data, unknown_chunks: state.unknown_chunks, chunks: state.chunks + 1}
 }
 
-def u:wav_with_unknown(state) { "Return scan state after skipping one unknown chunk.";
+def u:wav_with_unknown(state) {
+  "Return scan state after skipping one unknown chunk.";
   {fmt_found: state.fmt_found, data_found: state.data_found, audio_format: state.audio_format, channels: state.channels, sample_rate: state.sample_rate, byte_rate: state.byte_rate, block_align: state.block_align, bits_per_sample: state.bits_per_sample, data: state.data, unknown_chunks: state.unknown_chunks + 1, chunks: state.chunks + 1}
 }

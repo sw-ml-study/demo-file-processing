@@ -3,7 +3,8 @@ include "src/binary/endian_decode.mlpl";
 include "src/binary/bit_fields.mlpl";
 
 @test {name: "data-described fields cross byte boundaries", tags: ["binary", "fields", "boundary"]}
-def u:test_cross_byte_fields() { "Verify MSB-first widths split a two-byte word independently of byte boundaries.";
+def u:test_cross_byte_fields() {
+  "Verify MSB-first widths split a two-byte word independently of byte boundaries.";
   fields = u:unpack_fields([214, 57], [3, 5, 4, 4])?;
   u:assert_eq(fields.values, [6, 22, 3, 9], "cross-byte values");
   u:assert_eq(fields.offsets, [0, 3, 8, 12], "MSB offsets");
@@ -12,7 +13,8 @@ def u:test_cross_byte_fields() { "Verify MSB-first widths split a two-byte word 
 }
 
 @test {name: "MPEG audio header fields match a golden word", tags: ["binary", "fields", "mpeg", "golden"]}
-def u:test_mpeg_header_fields() { "Decode FF FB 90 64 using the MPEG audio header width description.";
+def u:test_mpeg_header_fields() {
+  "Decode FF FB 90 64 using the MPEG audio header width description.";
   widths = [11, 2, 2, 1, 4, 2, 1, 1, 2, 2, 1, 1, 2];
   fields = u:unpack_fields([255, 251, 144, 100], widths)?;
   u:assert_eq(fields.values, [2047, 3, 1, 1, 9, 0, 0, 0, 1, 2, 0, 1, 0], "MPEG-1 Layer III header fields");
@@ -20,7 +22,8 @@ def u:test_mpeg_header_fields() { "Decode FF FB 90 64 using the MPEG audio heade
 }
 
 @test {name: "field layouts reject invalid descriptions", tags: ["binary", "fields", "invalid"]}
-def u:test_invalid_field_layouts() { "Verify widths are positive, integral, vector-shaped, exact, and within six bytes.";
+def u:test_invalid_field_layouts() {
+  "Verify widths are positive, integral, vector-shaped, exact, and within six bytes.";
   u:assert_err(u:unpack_fields([255], [4, 3]), "layout leaves one bit");
   u:assert_err(u:unpack_fields([255], [4, 5]), "layout exceeds bytes");
   u:assert_err(u:unpack_fields([255], [4, 0, 4]), "zero field width");

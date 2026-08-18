@@ -168,6 +168,16 @@ as its single instruction target; do not create a duplicate `CLAUDE.md`.
 - Use mlplunit for all executable MLPL tests: root `mlplunit.conf`,
   `test_*.mlpl` discovery, native `@test` registration, shared assertions, and
   `u:run_registered_tests()`. Do not replace it with ad hoc interpreter tests.
+- Every user-defined function in every `.mlpl` file—including library,
+  application, demo, fixture, probe, and test helpers—must begin with a
+  meaningful string doc string as its first body expression. Describe the
+  function's purpose or contract and any important state, limits, side effects,
+  or edge-case policy; comments and generic boilerplate do not substitute for
+  the function doc string.
+- Before every commit and again before every push, format all repository
+  `.mlpl` files with `../sw-mlpl/scripts/mlpl-fmt.sh` and verify idempotence with
+  `../sw-mlpl/scripts/mlpl-fmt.sh --check`. Never commit or push MLPL source
+  that fails the formatter check.
 - Use a root `justfile` as the preferred entry point once executable checks
   exist. Keep recipes thin and delegate portable behavior to `scripts/`.
 - Keep MLPL functions small, pure, and single-purpose. Separate decisions from

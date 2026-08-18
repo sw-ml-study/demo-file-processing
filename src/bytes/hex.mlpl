@@ -1,30 +1,57 @@
-def u:hex_digit_ascii(value) { "Map one nibble to its uppercase hexadecimal ASCII byte.";
-  if lt(value, 10) { 48 + value } else { 55 + value }
+def u:hex_digit_ascii(value) {
+  "Map one nibble to its uppercase hexadecimal ASCII byte.";
+  if lt(value, 10) {
+    48 + value
+  } else {
+    55 + value
+  }
 }
 
-def u:hex_fixed_from(value, digits, position) { "Encode a nonnegative integer as a fixed-width hexadecimal ASCII vector.";
-  if eq(position, digits) { [] } else {
+def u:hex_fixed_from(value, digits, position) {
+  "Encode a nonnegative integer as a fixed-width hexadecimal ASCII vector.";
+  if eq(position, digits) {
+    []
+  } else {
     place = pow(16, digits - position - 1);
     digit = floor(mod(value / place, 16));
     concat(u:hex_digit_ascii(digit), u:hex_fixed_from(value, digits, position + 1))
   }
 }
 
-def u:hex_byte(value) { "Encode one validated byte as two uppercase hexadecimal ASCII bytes.";
+def u:hex_byte(value) {
+  "Encode one validated byte as two uppercase hexadecimal ASCII bytes.";
   u:hex_fixed_from(value, 2, 0)
 }
 
-def u:hexdump_ascii_from(bytes, width, index) { "Build offset-prefixed hexadecimal ASCII rows from validated bytes.";
-  if eq(index, tally(bytes)) { [] } else {
-    prefix = if eq(mod(index, width), 0) { concat(u:hex_fixed_from(index, 8, 0), [32, 32]) } else { [] };
+def u:hexdump_ascii_from(bytes, width, index) {
+  "Build offset-prefixed hexadecimal ASCII rows from validated bytes.";
+  if eq(index, tally(bytes)) {
+    []
+  } else {
+    prefix = if eq(mod(index, width), 0) {
+      concat(u:hex_fixed_from(index, 8, 0), [32, 32])
+    } else {
+      []
+    };
     encoded = concat(prefix, u:hex_byte(take(bytes, 0, index)));
-    separator = if eq(index + 1, tally(bytes)) { [] } else { if eq(mod(index + 1, width), 0) { [10] } else { [32] } };
+    separator = if eq(index + 1, tally(bytes)) {
+      []
+    } else {
+      if eq(mod(index + 1, width), 0) {
+        [10]
+      } else {
+        [32]
+      }
+    };
     concat(encoded, concat(separator, u:hexdump_ascii_from(bytes, width, index + 1)))
   }
 }
 
-def u:hexdump(bytes, width) { "Return uppercase offset-prefixed hexadecimal text for validated bytes and a positive line width.";
+def u:hexdump(bytes, width) {
+  "Return uppercase offset-prefixed hexadecimal text for validated bytes and a positive line width.";
   if u:bytes_valid(bytes) * eq(rank(width), 0) * eq(width, floor(width)) * gt(width, 0) {
     ok(decode_bytes(u:hexdump_ascii_from(bytes, width, 0)))
-  } else { err({kind: "bytes", message: "hexdump expects a byte vector and positive integer width"}) }
+  } else {
+    err({kind: "bytes", message: "hexdump expects a byte vector and positive integer width"})
+  }
 }

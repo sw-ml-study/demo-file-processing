@@ -8,7 +8,8 @@ include "src/wav/parse.mlpl";
 include "src/wav/encode.mlpl";
 
 @test {name: "empty and minimal PCM WAV files parse semantically", tags: ["wav", "pcm", "valid"]}
-def u:test_wav_valid() { "Verify empty audio and a three-frame mono fixture.";
+def u:test_wav_valid() {
+  "Verify empty audio and a three-frame mono fixture.";
   empty = u:parse_wav(read_bytes("fixtures/wav/empty-mono8.wav")?, 1024, 8)?;
   minimal = u:parse_wav(read_bytes("fixtures/wav/minimal-mono8.wav")?, 1024, 8)?;
   u:assert_eq([empty.channels, empty.sample_rate, empty.bits_per_sample, empty.data_bytes, empty.frames], [1, 8000, 8, 0, 0], "empty PCM metadata")?;
@@ -17,14 +18,17 @@ def u:test_wav_valid() { "Verify empty audio and a three-frame mono fixture.";
 }
 
 @test {name: "canonical WAV fixtures round trip byte-identically", tags: ["wav", "round-trip", "canonical"]}
-def u:test_wav_byte_round_trip() { "Verify decode/encode reproduces canonical empty and odd-data files.";
-  empty_bytes = read_bytes("fixtures/wav/empty-mono8.wav")?; minimal_bytes = read_bytes("fixtures/wav/minimal-mono8.wav")?;
+def u:test_wav_byte_round_trip() {
+  "Verify decode/encode reproduces canonical empty and odd-data files.";
+  empty_bytes = read_bytes("fixtures/wav/empty-mono8.wav")?;
+  minimal_bytes = read_bytes("fixtures/wav/minimal-mono8.wav")?;
   u:assert_eq(u:encode_wav(u:parse_wav(empty_bytes, 1024, 8)?), ok(empty_bytes), "empty canonical bytes")?;
   u:assert_eq(u:encode_wav(u:parse_wav(minimal_bytes, 1024, 8)?), ok(minimal_bytes), "odd data padding canonical bytes")
 }
 
 @test {name: "odd unknown chunks are skipped with padding", tags: ["wav", "chunks", "padding", "unknown"]}
-def u:test_wav_unknown_chunk() { "Verify a three-byte JUNK chunk consumes its pad and preserves following data semantics.";
+def u:test_wav_unknown_chunk() {
+  "Verify a three-byte JUNK chunk consumes its pad and preserves following data semantics.";
   wav = u:parse_wav(read_bytes("fixtures/wav/odd-unknown-mono8.wav")?, 1024, 8)?;
   u:assert_eq([wav.unknown_chunks, wav.chunks, wav.frames], [1, 3, 1], "unknown chunk accounting")?;
   u:assert_eq(wav.data, [9], "data after padded unknown chunk")?;

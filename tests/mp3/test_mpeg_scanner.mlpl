@@ -3,11 +3,13 @@ include "src/binary/endian_decode.mlpl";
 include "src/binary/bit_fields.mlpl";
 include "src/mp3/scanner.mlpl";
 
-def u:mpeg_test_frame(header, length, payload_byte) { "Build a deterministic synthetic frame whose payload cannot be mistaken for sync.";
+def u:mpeg_test_frame(header, length, payload_byte) {
+  "Build a deterministic synthetic frame whose payload cannot be mistaken for sync.";
   concat(header, fill(length - 4, payload_byte))
 }
 
-def u:scanner_fixture(path) { "Write junk, one isolated false header, and a three-frame variable-bitrate stream.";
+def u:scanner_fixture(path) {
+  "Write junk, one isolated false header, and a three-frame variable-bitrate stream.";
   false_frame = u:mpeg_test_frame([255, 251, 144, 100], 417, 17);
   frame128a = u:mpeg_test_frame([255, 251, 144, 100], 417, 23);
   frame160 = u:mpeg_test_frame([255, 251, 160, 100], 522, 29);
@@ -18,8 +20,11 @@ def u:scanner_fixture(path) { "Write junk, one isolated false header, and a thre
 }
 
 @test {name: "bounded MPEG scanner is chunk invariant and rejects isolated sync", tags: ["mp3", "scanner", "chunks", "resync"]}
-def u:test_mpeg_scanner_chunks() { "Run the same adversarial range through one-byte through oversized read budgets.";
-  path = "tmp/mpeg-scanner-chunks.bin"; fixture = u:scanner_fixture(path)?; expected = 3;
+def u:test_mpeg_scanner_chunks() {
+  "Run the same adversarial range through one-byte through oversized read budgets.";
+  path = "tmp/mpeg-scanner-chunks.bin";
+  fixture = u:scanner_fixture(path)?;
+  expected = 3;
   one = u:scan_mpeg_layer3(path, 1, 0, fixture.stream_end, fixture.stream_end, 8)?;
   seven = u:scan_mpeg_layer3(path, 7, 0, fixture.stream_end, fixture.stream_end, 8)?;
   sixty_four = u:scan_mpeg_layer3(path, 64, 0, fixture.stream_end, fixture.stream_end, 8)?;
@@ -31,12 +36,18 @@ def u:test_mpeg_scanner_chunks() { "Run the same adversarial range through one-b
   u:assert_eq([one.min_frame_length, one.max_frame_length, one.average_frame_length], [417, 522, 452], "frame-length statistics")?;
   u:assert_eq(one.bitrate_histogram, [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0], "bitrate-index distribution")?;
   u:assert_eq(one.channel_mode_histogram, [0, 3, 0, 0], "channel-mode distribution")?;
-  u:assert_eq(one, seven, "one and seven byte scans agree")?; u:assert_eq(one, sixty_four, "one and 64 byte scans agree")?; u:assert_eq(one, large, "one and oversized scans agree")
+  u:assert_eq(one, seven, "one and seven byte scans agree")?;
+  u:assert_eq(one, sixty_four, "one and 64 byte scans agree")?;
+  u:assert_eq(one, large, "one and oversized scans agree")
 }
 
 @test {name: "bounded MPEG scanner reports constant bitrate and exact duration", tags: ["mp3", "scanner", "statistics"]}
-def u:test_mpeg_scanner_cbr() { "Scan two contiguous MPEG-1 frames and derive stable rate and sample duration.";
-  path = "tmp/mpeg-scanner-cbr.bin"; frame = u:mpeg_test_frame([255, 251, 144, 100], 417, 0); bytes = concat(frame, frame); write_bytes(path, bytes)?;
+def u:test_mpeg_scanner_cbr() {
+  "Scan two contiguous MPEG-1 frames and derive stable rate and sample duration.";
+  path = "tmp/mpeg-scanner-cbr.bin";
+  frame = u:mpeg_test_frame([255, 251, 144, 100], 417, 0);
+  bytes = concat(frame, frame);
+  write_bytes(path, bytes)?;
   scan = u:scan_mpeg_layer3(path, 7, 0, tally(bytes), tally(bytes), 2)?;
   u:assert_eq([scan.frames, scan.first_offset, scan.audio_end, scan.skipped_bytes, scan.resyncs], [2, 0, 834, 0, 0], "contiguous frame range")?;
   u:assert_eq([scan.min_bitrate_kbps, scan.max_bitrate_kbps, scan.average_bitrate_kbps, scan.bitrate_changes, scan.constant_bitrate], [128, 128, 128, 0, 1], "constant-bitrate statistics")?;
@@ -46,22 +57,31 @@ def u:test_mpeg_scanner_cbr() { "Scan two contiguous MPEG-1 frames and derive st
 }
 
 @test {name: "bounded MPEG scanner reacquires after damaged bytes", tags: ["mp3", "scanner", "resync", "damage"]}
-def u:test_mpeg_scanner_reacquires() { "Lose synchronization at a two-byte gap, then require two compatible frames before reacquiring.";
-  path = "tmp/mpeg-scanner-resync.bin"; frame = u:mpeg_test_frame([255, 251, 144, 100], 417, 41); bytes = concat(concat(concat(concat(frame, frame), [1, 2]), frame), frame); write_bytes(path, bytes)?;
+def u:test_mpeg_scanner_reacquires() {
+  "Lose synchronization at a two-byte gap, then require two compatible frames before reacquiring.";
+  path = "tmp/mpeg-scanner-resync.bin";
+  frame = u:mpeg_test_frame([255, 251, 144, 100], 417, 41);
+  bytes = concat(concat(concat(concat(frame, frame), [1, 2]), frame), frame);
+  write_bytes(path, bytes)?;
   scan = u:scan_mpeg_layer3(path, 7, 0, tally(bytes), tally(bytes), 4)?;
   u:assert_eq([scan.frames, scan.skipped_bytes, scan.resyncs, scan.total_frame_bytes], [4, 2, 1, 1668], "damaged gap is skipped and synchronization is reacquired")?;
   u:assert_eq(scan.audio_end, tally(bytes), "reacquired stream reaches the exact range ending")
 }
 
 @test {name: "bounded MPEG scanner enforces ranges and work budgets", tags: ["mp3", "scanner", "budget", "invalid"]}
-def u:test_mpeg_scanner_budgets() { "Reject invalid bounds, insufficient byte/frame budgets, empty evidence, and synchronized truncation.";
-  path = "tmp/mpeg-scanner-budget.bin"; frame = u:mpeg_test_frame([255, 251, 144, 100], 417, 0); bytes = concat(frame, frame); write_bytes(path, bytes)?;
+def u:test_mpeg_scanner_budgets() {
+  "Reject invalid bounds, insufficient byte/frame budgets, empty evidence, and synchronized truncation.";
+  path = "tmp/mpeg-scanner-budget.bin";
+  frame = u:mpeg_test_frame([255, 251, 144, 100], 417, 0);
+  bytes = concat(frame, frame);
+  write_bytes(path, bytes)?;
   u:assert_err(u:scan_mpeg_layer3(path, 7, 0, 834, 833, 2), "scan-byte budget")?;
   u:assert_err(u:scan_mpeg_layer3(path, 7, 0, 834, 834, 1), "frame-count budget")?;
   u:assert_err(u:scan_mpeg_layer3(path, 7, 835, 834, 834, 2), "reversed range")?;
   u:assert_err(u:scan_mpeg_layer3(path, 7, 0, 835, 835, 2), "range beyond snapshot")?;
   u:assert_err(u:scan_mpeg_layer3(path, 7, 0, 3, 3, 2), "no confirmed frame")?;
-  truncated = concat(frame, take(frame, 0, 100)); write_bytes(path, truncated)?;
+  truncated = concat(frame, take(frame, 0, 100));
+  write_bytes(path, truncated)?;
   u:assert_err(u:scan_mpeg_layer3(path, 7, 0, tally(truncated), tally(truncated), 2), "synchronized truncated second frame")
 }
 

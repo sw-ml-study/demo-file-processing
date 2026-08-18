@@ -2,7 +2,8 @@ include "src/io/range_reader.mlpl";
 include "src/io/range_window.mlpl";
 
 @test {name: "bounded windows assemble exact bytes across chunks", tags: ["io", "range", "window"]}
-def u:test_range_window_exact() { "Verify small windows split at every internal position and preserve reader state.";
+def u:test_range_window_exact() {
+  "Verify small windows split at every internal position and preserve reader state.";
   chunk_size = 1;
   while lt(chunk_size, 17) {
     reader = u:range_reader("fixtures/bytes/boundary-17.bin", chunk_size)?;
@@ -13,7 +14,8 @@ def u:test_range_window_exact() { "Verify small windows split at every internal 
 }
 
 @test {name: "bounded windows reject budgets and truncation", tags: ["io", "range", "window", "invalid"]}
-def u:test_range_window_invalid() { "Verify allocation budget, exact-domain, and metadata bounds reject before assembly.";
+def u:test_range_window_invalid() {
+  "Verify allocation budget, exact-domain, and metadata bounds reject before assembly.";
   reader = u:range_reader("fixtures/bytes/boundary-17.bin", 7)?;
   u:assert_err(u:range_window(reader, 0, 17, 16), "window budget")?;
   u:assert_err(u:range_window(reader, 16, 2, 16), "window exceeds file")?;

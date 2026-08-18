@@ -2,61 +2,175 @@ include "../io/range_reader.mlpl";
 include "../io/range_window.mlpl";
 include "header.mlpl";
 
-def u:mpeg_stream_compatible(left, right) { "Require invariant Layer III stream geometry while permitting variable bitrate and channel mode.";
+def u:mpeg_stream_compatible(left, right) {
+  "Require invariant Layer III stream geometry while permitting variable bitrate and channel mode.";
   eq(left.version_id, right.version_id) * eq(left.layer_id, right.layer_id) * eq(left.sample_rate_hz, right.sample_rate_hz)
 }
 
-def u:mpeg_header_at(reader, offset) { "Read and parse exactly one MPEG header through the configured bounded reader.";
+def u:mpeg_header_at(reader, offset) {
+  "Read and parse exactly one MPEG header through the configured bounded reader.";
   bytes = u:range_window(reader, offset, 4, 4)?;
   u:parse_mpeg_layer3_header(bytes)
 }
 
-def u:mpeg_acquisition_confirmed(reader, offset, ending, limit, header) { "Confirm a new synchronization point with the next compatible header or an exact range ending.";
-  if eq(ending, limit) { 1 } else {
-    if gt(ending + 4, limit) { 0 } else {
+def u:mpeg_acquisition_confirmed(reader, offset, ending, limit, header) {
+  "Confirm a new synchronization point with the next compatible header or an exact range ending.";
+  if eq(ending, limit) {
+    1
+  } else {
+    if gt(ending + 4, limit) {
+      0
+    } else {
       next_result = u:mpeg_header_at(reader, ending);
-      if is_ok(next_result) { next = unwrap(next_result); u:mpeg_stream_compatible(header, next) * (1 - gt(ending + next.frame_length, limit)) } else { 0 }
+      if is_ok(next_result) {
+        next = unwrap(next_result);
+        u:mpeg_stream_compatible(header, next) * (1 - gt(ending + next.frame_length, limit))
+      } else {
+        0
+      }
     }
   }
 }
 
-def u:scan_mpeg_layer3(path, chunk_size, start_offset, end_offset, max_scan_bytes, max_frames) { "Scan one bounded byte range for MPEG Layer III frames without retaining compressed payloads.";
-  if (1 - u:range_exact_nonnegative(start_offset)) + (1 - u:range_exact_nonnegative(end_offset)) + (1 - u:range_exact_nonnegative(max_scan_bytes)) + (1 - u:range_exact_nonnegative(max_frames)) { err({kind: "budget", message: "scan offsets and budgets must be exact non-negative integers"}) } else {
-    if eq(max_scan_bytes, 0) + eq(max_frames, 0) { err({kind: "budget", message: "max_scan_bytes and max_frames must be positive"}) } else {
+def u:scan_mpeg_layer3(path, chunk_size, start_offset, end_offset, max_scan_bytes, max_frames) {
+  "Scan one bounded byte range for MPEG Layer III frames without retaining compressed payloads.";
+  if (1 - u:range_exact_nonnegative(start_offset)) + (1 - u:range_exact_nonnegative(end_offset)) + (1 - u:range_exact_nonnegative(max_scan_bytes)) + (1 - u:range_exact_nonnegative(max_frames)) {
+    err({kind: "budget", message: "scan offsets and budgets must be exact non-negative integers"})
+  } else {
+    if eq(max_scan_bytes, 0) + eq(max_frames, 0) {
+      err({kind: "budget", message: "max_scan_bytes and max_frames must be positive"})
+    } else {
       reader = u:range_reader(path, chunk_size)?;
-      if gt(start_offset, end_offset) + gt(end_offset, reader.size) { err({kind: "range", message: "scan range must be ordered and contained in the file snapshot"}) } else {
+      if gt(start_offset, end_offset) + gt(end_offset, reader.size) {
+        err({kind: "range", message: "scan range must be ordered and contained in the file snapshot"})
+      } else {
         span = end_offset - start_offset;
-        if gt(span, max_scan_bytes) { err({kind: "budget", message: "scan range exceeds max_scan_bytes before any payload is read"}) } else {
-          cursor = start_offset; frames = 0; first_offset = 0; audio_end = 0; skipped_bytes = 0; resyncs = 0; synchronized = 0; skipped_since_sync = 0; total_frame_bytes = 0; total_samples = 0; bitrate_sum = 0; min_bitrate = 0; max_bitrate = 0; bitrate_changes = 0; last_bitrate = 0; min_frame_length = 0; max_frame_length = 0; bitrate_histogram = fill(15, 0); channel_mode_histogram = fill(4, 0); version_id = 0; sample_rate_hz = 0;
+        if gt(span, max_scan_bytes) {
+          err({kind: "budget", message: "scan range exceeds max_scan_bytes before any payload is read"})
+        } else {
+          cursor = start_offset;
+          frames = 0;
+          first_offset = 0;
+          audio_end = 0;
+          skipped_bytes = 0;
+          resyncs = 0;
+          synchronized = 0;
+          skipped_since_sync = 0;
+          total_frame_bytes = 0;
+          total_samples = 0;
+          bitrate_sum = 0;
+          min_bitrate = 0;
+          max_bitrate = 0;
+          bitrate_changes = 0;
+          last_bitrate = 0;
+          min_frame_length = 0;
+          max_frame_length = 0;
+          bitrate_histogram = fill(15, 0);
+          channel_mode_histogram = fill(4, 0);
+          version_id = 0;
+          sample_rate_hz = 0;
           while lt(cursor, end_offset) {
-            if gt(cursor + 4, end_offset) { skipped_bytes = skipped_bytes + end_offset - cursor; skipped_since_sync = 1; synchronized = 0; cursor = end_offset } else {
+            if gt(cursor + 4, end_offset) {
+              skipped_bytes = skipped_bytes + end_offset - cursor;
+              skipped_since_sync = 1;
+              synchronized = 0;
+              cursor = end_offset
+            } else {
               parsed = u:mpeg_header_at(reader, cursor);
               if is_err(parsed) {
-                cursor = cursor + 1; skipped_bytes = skipped_bytes + 1; skipped_since_sync = 1; synchronized = 0
+                cursor = cursor + 1;
+                skipped_bytes = skipped_bytes + 1;
+                skipped_since_sync = 1;
+                synchronized = 0
               } else {
-                header = unwrap(parsed); ending = cursor + header.frame_length; compatible = if eq(frames, 0) { 1 } else { eq(version_id, header.version_id) * eq(sample_rate_hz, header.sample_rate_hz) };
+                header = unwrap(parsed);
+                ending = cursor + header.frame_length;
+                compatible = if eq(frames, 0) {
+                  1
+                } else {
+                  eq(version_id, header.version_id) * eq(sample_rate_hz, header.sample_rate_hz)
+                };
                 if gt(ending, end_offset) {
-                  if synchronized * compatible { return err({kind: "truncated", message: "synchronized MPEG frame extends beyond the scan range"}) } else { cursor = cursor + 1; skipped_bytes = skipped_bytes + 1; skipped_since_sync = 1; synchronized = 0 }
+                  if synchronized * compatible {
+                    return err({kind: "truncated", message: "synchronized MPEG frame extends beyond the scan range"})
+                  } else {
+                    cursor = cursor + 1;
+                    skipped_bytes = skipped_bytes + 1;
+                    skipped_since_sync = 1;
+                    synchronized = 0
+                  }
                 } else {
                   confirmed = synchronized * compatible + (1 - synchronized) * compatible * u:mpeg_acquisition_confirmed(reader, cursor, ending, end_offset, header);
                   if confirmed {
-                    if gt(frames + 1, max_frames) { return err({kind: "budget", message: "MPEG frame count exceeds max_frames"}) } else { 0 };
-                    if skipped_since_sync { resyncs = resyncs + 1 } else { 0 };
-                    if eq(frames, 0) { first_offset = cursor; min_bitrate = header.bitrate_kbps; max_bitrate = header.bitrate_kbps; min_frame_length = header.frame_length; max_frame_length = header.frame_length; version_id = header.version_id; sample_rate_hz = header.sample_rate_hz } else {
-                      if 1 - eq(last_bitrate, header.bitrate_kbps) { bitrate_changes = bitrate_changes + 1 } else { 0 };
-                      if lt(header.bitrate_kbps, min_bitrate) { min_bitrate = header.bitrate_kbps } else { 0 };
-                      if gt(header.bitrate_kbps, max_bitrate) { max_bitrate = header.bitrate_kbps } else { 0 };
-                      if lt(header.frame_length, min_frame_length) { min_frame_length = header.frame_length } else { 0 };
-                      if gt(header.frame_length, max_frame_length) { max_frame_length = header.frame_length } else { 0 }
+                    if gt(frames + 1, max_frames) {
+                      return err({kind: "budget", message: "MPEG frame count exceeds max_frames"})
+                    } else {
+                      0
                     };
-                    bitrate_histogram = scatter(bitrate_histogram, header.bitrate_index, take(bitrate_histogram, 0, header.bitrate_index) + 1); channel_mode_histogram = scatter(channel_mode_histogram, header.channel_mode_id, take(channel_mode_histogram, 0, header.channel_mode_id) + 1);
-                    frames = frames + 1; audio_end = ending; total_frame_bytes = total_frame_bytes + header.frame_length; total_samples = total_samples + header.frame_samples; bitrate_sum = bitrate_sum + header.bitrate_kbps; last_bitrate = header.bitrate_kbps; cursor = ending; synchronized = 1; skipped_since_sync = 0
-                  } else { cursor = cursor + 1; skipped_bytes = skipped_bytes + 1; skipped_since_sync = 1; synchronized = 0 }
+                    if skipped_since_sync {
+                      resyncs = resyncs + 1
+                    } else {
+                      0
+                    };
+                    if eq(frames, 0) {
+                      first_offset = cursor;
+                      min_bitrate = header.bitrate_kbps;
+                      max_bitrate = header.bitrate_kbps;
+                      min_frame_length = header.frame_length;
+                      max_frame_length = header.frame_length;
+                      version_id = header.version_id;
+                      sample_rate_hz = header.sample_rate_hz
+                    } else {
+                      if 1 - eq(last_bitrate, header.bitrate_kbps) {
+                        bitrate_changes = bitrate_changes + 1
+                      } else {
+                        0
+                      };
+                      if lt(header.bitrate_kbps, min_bitrate) {
+                        min_bitrate = header.bitrate_kbps
+                      } else {
+                        0
+                      };
+                      if gt(header.bitrate_kbps, max_bitrate) {
+                        max_bitrate = header.bitrate_kbps
+                      } else {
+                        0
+                      };
+                      if lt(header.frame_length, min_frame_length) {
+                        min_frame_length = header.frame_length
+                      } else {
+                        0
+                      };
+                      if gt(header.frame_length, max_frame_length) {
+                        max_frame_length = header.frame_length
+                      } else {
+                        0
+                      }
+                    };
+                    bitrate_histogram = scatter(bitrate_histogram, header.bitrate_index, take(bitrate_histogram, 0, header.bitrate_index) + 1);
+                    channel_mode_histogram = scatter(channel_mode_histogram, header.channel_mode_id, take(channel_mode_histogram, 0, header.channel_mode_id) + 1);
+                    frames = frames + 1;
+                    audio_end = ending;
+                    total_frame_bytes = total_frame_bytes + header.frame_length;
+                    total_samples = total_samples + header.frame_samples;
+                    bitrate_sum = bitrate_sum + header.bitrate_kbps;
+                    last_bitrate = header.bitrate_kbps;
+                    cursor = ending;
+                    synchronized = 1;
+                    skipped_since_sync = 0
+                  } else {
+                    cursor = cursor + 1;
+                    skipped_bytes = skipped_bytes + 1;
+                    skipped_since_sync = 1;
+                    synchronized = 0
+                  }
                 }
               }
             }
           };
-          if eq(frames, 0) { err({kind: "not_found", message: "scan range contains no confirmed MPEG Layer III frames"}) } else {
+          if eq(frames, 0) {
+            err({kind: "not_found", message: "scan range contains no confirmed MPEG Layer III frames"})
+          } else {
             ok({frames: frames, first_offset: first_offset, audio_end: audio_end, scanned_bytes: span, skipped_bytes: skipped_bytes, resyncs: resyncs, total_frame_bytes: total_frame_bytes, min_frame_length: min_frame_length, max_frame_length: max_frame_length, average_frame_length: total_frame_bytes / frames, total_samples: total_samples, duration_seconds: total_samples / sample_rate_hz, version_id: version_id, sample_rate_hz: sample_rate_hz, min_bitrate_kbps: min_bitrate, max_bitrate_kbps: max_bitrate, average_bitrate_kbps: bitrate_sum / frames, bitrate_changes: bitrate_changes, bitrate_histogram: bitrate_histogram, channel_mode_histogram: channel_mode_histogram, constant_bitrate: eq(min_bitrate, max_bitrate)})
           }
         }

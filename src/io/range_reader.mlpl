@@ -1,15 +1,31 @@
-def u:range_exact_nonnegative(value) { "Return one for a scalar integer exactly representable as an f64 file offset.";
-  if 1 - equal(type_of(value), "array") { 0 } else {
-    if 1 - eq(rank(value), 0) { 0 } else { eq(value, floor(value)) * (1 - lt(value, 0)) * (1 - gt(value, 9007199254740991)) }
+def u:range_exact_nonnegative(value) {
+  "Return one for a scalar integer exactly representable as an f64 file offset.";
+  if 1 - equal(type_of(value), "array") {
+    0
+  } else {
+    if 1 - eq(rank(value), 0) {
+      0
+    } else {
+      eq(value, floor(value)) * (1 - lt(value, 0)) * (1 - gt(value, 9007199254740991))
+    }
   }
 }
 
-def u:range_reader(path, chunk_size) { "Open immutable bounded-read state after validating its positive exact chunk budget.";
-  if (1 - equal(type_of(path), "string")) { err({kind: "path", message: "range reader path must be a string"}) } else {
-    if 1 - u:range_exact_nonnegative(chunk_size) { err({kind: "chunk_size", message: "range reader chunk_size must be an exact integer from 1 through 2^53-1"}) } else {
-      if eq(chunk_size, 0) { err({kind: "chunk_size", message: "range reader chunk_size must be an exact integer from 1 through 2^53-1"}) } else {
+def u:range_reader(path, chunk_size) {
+  "Open immutable bounded-read state after validating its positive exact chunk budget.";
+  if (1 - equal(type_of(path), "string")) {
+    err({kind: "path", message: "range reader path must be a string"})
+  } else {
+    if 1 - u:range_exact_nonnegative(chunk_size) {
+      err({kind: "chunk_size", message: "range reader chunk_size must be an exact integer from 1 through 2^53-1"})
+    } else {
+      if eq(chunk_size, 0) {
+        err({kind: "chunk_size", message: "range reader chunk_size must be an exact integer from 1 through 2^53-1"})
+      } else {
         size = file_size(path)?;
-        if 1 - u:range_exact_nonnegative(size) { err({kind: "size", message: "range reader file size exceeds the exact f64 offset domain"}) } else {
+        if 1 - u:range_exact_nonnegative(size) {
+          err({kind: "size", message: "range reader file size exceeds the exact f64 offset domain"})
+        } else {
           ok({path: path, size: size, offset: 0, chunk_size: chunk_size})
         }
       }
@@ -17,20 +33,37 @@ def u:range_reader(path, chunk_size) { "Open immutable bounded-read state after 
   }
 }
 
-def u:range_read_at(reader, offset, length) { "Read one independently validated range without changing immutable reader state.";
-  if (1 - u:range_exact_nonnegative(offset)) + (1 - u:range_exact_nonnegative(length)) { err({kind: "range", message: "range offset and length must be exact integers from 0 through 2^53-1"}) } else {
-    if gt(length, 9007199254740991 - offset) { err({kind: "overflow", message: "range offset plus length exceeds the exact f64 offset domain"}) } else {
+def u:range_read_at(reader, offset, length) {
+  "Read one independently validated range without changing immutable reader state.";
+  if (1 - u:range_exact_nonnegative(offset)) + (1 - u:range_exact_nonnegative(length)) {
+    err({kind: "range", message: "range offset and length must be exact integers from 0 through 2^53-1"})
+  } else {
+    if gt(length, 9007199254740991 - offset) {
+      err({kind: "overflow", message: "range offset plus length exceeds the exact f64 offset domain"})
+    } else {
       read_bytes(reader.path, offset, length)
     }
   }
 }
 
-def u:range_next(reader) { "Read the next bounded chunk and return bytes plus advanced immutable state.";
-  if gt(reader.offset, reader.size) { err({kind: "state", message: "range reader offset exceeds file size"}) } else {
-    if eq(reader.offset, reader.size) { ok({bytes: [], reader: reader, eof: 1}) } else {
-      remaining = reader.size - reader.offset; length = if lt(remaining, reader.chunk_size) { remaining } else { reader.chunk_size };
+def u:range_next(reader) {
+  "Read the next bounded chunk and return bytes plus advanced immutable state.";
+  if gt(reader.offset, reader.size) {
+    err({kind: "state", message: "range reader offset exceeds file size"})
+  } else {
+    if eq(reader.offset, reader.size) {
+      ok({bytes: [], reader: reader, eof: 1})
+    } else {
+      remaining = reader.size - reader.offset;
+      length = if lt(remaining, reader.chunk_size) {
+        remaining
+      } else {
+        reader.chunk_size
+      };
       bytes = u:range_read_at(reader, reader.offset, length)?;
-      if 1 - eq(tally(bytes), length) { err({kind: "short_read", message: "range read returned fewer bytes than the metadata snapshot"}) } else {
+      if 1 - eq(tally(bytes), length) {
+        err({kind: "short_read", message: "range read returned fewer bytes than the metadata snapshot"})
+      } else {
         next = {path: reader.path, size: reader.size, offset: reader.offset + length, chunk_size: reader.chunk_size};
         ok({bytes: bytes, reader: next, eof: eq(next.offset, next.size)})
       }

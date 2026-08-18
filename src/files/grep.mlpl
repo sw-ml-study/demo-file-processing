@@ -1,38 +1,141 @@
-def u:grep_state() { "Create bounded literal-search state for one LF-delimited byte stream.";
+def u:grep_state() {
+  "Create bounded literal-search state for one LF-delimited byte stream.";
   {line: [], line_number: 1, lines: 0, matches: 0, match_lines: [], bytes: 0, chunks: 0}
 }
 
-def u:grep_append(values, value) { "Append one numeric cell without empty-array shape ambiguity."; if eq(tally(values), 0) { [value] } else { concat(values, [value]) } }
-
-def u:grep_equal_at(line, pattern, start) { "Return one when pattern equals the line bytes at start.";
-  index = 0; same = 1; while lt(index, tally(pattern)) { same = same * eq(take(line, 0, start + index), take(pattern, 0, index)); index = index + 1 }; same
+def u:grep_append(values, value) {
+  "Append one numeric cell without empty-array shape ambiguity.";
+  if eq(tally(values), 0) {
+    [value]
+  } else {
+    concat(values, [value])
+  }
 }
 
-def u:grep_contains(line, pattern) { "Find a non-empty literal byte pattern anywhere in one line.";
-  if lt(tally(line), tally(pattern)) { 0 } else { position = 0; found = 0; limit = tally(line) - tally(pattern); while (1 - found) * (1 - gt(position, limit)) { found = u:grep_equal_at(line, pattern, position); position = position + 1 }; found }
+def u:grep_equal_at(line, pattern, start) {
+  "Return one when pattern equals the line bytes at start.";
+  index = 0;
+  same = 1;
+  while lt(index, tally(pattern)) {
+    same = same * eq(take(line, 0, start + index), take(pattern, 0, index));
+    index = index + 1
+  };
+  same
 }
 
-def u:grep_finish_line(state, pattern, max_matches) { "Evaluate one complete logical line and discard its retained bytes.";
-  matched = u:grep_contains(state.line, pattern); if matched * (1 - lt(state.matches, max_matches)) { err({kind: "matches", message: "grep matches exceed max_matches"}) } else { lines = state.match_lines; if matched { lines = u:grep_append(lines, state.line_number) }; ok({line: [], line_number: state.line_number + 1, lines: state.lines + 1, matches: state.matches + matched, match_lines: lines, bytes: state.bytes, chunks: state.chunks}) }
+def u:grep_contains(line, pattern) {
+  "Find a non-empty literal byte pattern anywhere in one line.";
+  if lt(tally(line), tally(pattern)) {
+    0
+  } else {
+    position = 0;
+    found = 0;
+    limit = tally(line) - tally(pattern);
+    while (1 - found) * (1 - gt(position, limit)) {
+      found = u:grep_equal_at(line, pattern, position);
+      position = position + 1
+    };
+    found
+  }
 }
 
-def u:grep_fold(chunk, state, pattern, max_line_bytes, max_matches) { "Fold one byte chunk while retaining at most the current bounded line.";
-  next = state; index = 0; while lt(index, tally(chunk)) { byte = take(chunk, 0, index); next = {line: next.line, line_number: next.line_number, lines: next.lines, matches: next.matches, match_lines: next.match_lines, bytes: next.bytes + 1, chunks: next.chunks}; if eq(byte, 10) { next = u:grep_finish_line(next, pattern, max_matches)? } else { if 1 - lt(tally(next.line), max_line_bytes) { return err({kind: "line", message: "grep line exceeds max_line_bytes"}) }; line = u:grep_append(next.line, byte); next = {line: line, line_number: next.line_number, lines: next.lines, matches: next.matches, match_lines: next.match_lines, bytes: next.bytes, chunks: next.chunks} }; index = index + 1 }; ok(next)
+def u:grep_finish_line(state, pattern, max_matches) {
+  "Evaluate one complete logical line and discard its retained bytes.";
+  matched = u:grep_contains(state.line, pattern);
+  if matched * (1 - lt(state.matches, max_matches)) {
+    err({kind: "matches", message: "grep matches exceed max_matches"})
+  } else {
+    lines = state.match_lines;
+    if matched {
+      lines = u:grep_append(lines, state.line_number)
+    };
+    ok({line: [], line_number: state.line_number + 1, lines: state.lines + 1, matches: state.matches + matched, match_lines: lines, bytes: state.bytes, chunks: state.chunks})
+  }
 }
 
-def u:grep_finish(state, pattern, max_matches) { "Evaluate an unterminated final line and expose stable summary fields.";
-  next = if gt(tally(state.line), 0) { u:grep_finish_line(state, pattern, max_matches)? } else { state };
+def u:grep_fold(chunk, state, pattern, max_line_bytes, max_matches) {
+  "Fold one byte chunk while retaining at most the current bounded line.";
+  next = state;
+  index = 0;
+  while lt(index, tally(chunk)) {
+    byte = take(chunk, 0, index);
+    next = {line: next.line, line_number: next.line_number, lines: next.lines, matches: next.matches, match_lines: next.match_lines, bytes: next.bytes + 1, chunks: next.chunks};
+    if eq(byte, 10) {
+      next = u:grep_finish_line(next, pattern, max_matches)?
+    } else {
+      if 1 - lt(tally(next.line), max_line_bytes) {
+        return err({kind: "line", message: "grep line exceeds max_line_bytes"})
+      };
+      line = u:grep_append(next.line, byte);
+      next = {line: line, line_number: next.line_number, lines: next.lines, matches: next.matches, match_lines: next.match_lines, bytes: next.bytes, chunks: next.chunks}
+    };
+    index = index + 1
+  };
+  ok(next)
+}
+
+def u:grep_finish(state, pattern, max_matches) {
+  "Evaluate an unterminated final line and expose stable summary fields.";
+  next = if gt(tally(state.line), 0) { u:grep_finish_line(state, pattern, max_matches)? } else {
+    state
+  };
   ok({bytes: next.bytes, lines: next.lines, matches: next.matches, match_lines: next.match_lines, chunks: next.chunks})
 }
 
-def u:grep_limits_valid(max_line_bytes, max_matches) { "Validate positive line and non-negative result budgets.";
+def u:grep_limits_valid(max_line_bytes, max_matches) {
+  "Validate positive line and non-negative result budgets.";
   u:range_exact_nonnegative(max_line_bytes) * gt(max_line_bytes, 0) * u:range_exact_nonnegative(max_matches)
 }
 
-def u:grep_bytes(bytes, pattern, max_line_bytes, max_matches) { "Search an in-memory logical-byte vector without UTF-8 decoding.";
-  if (1 - u:bytes_valid(bytes)) + (1 - u:bytes_valid(pattern)) { err({kind: "bytes", message: "grep input and pattern must be rank-one logical-byte vectors"}) } else { if eq(tally(pattern), 0) { err({kind: "pattern", message: "grep pattern must not be empty"}) } else { if 1 - u:grep_limits_valid(max_line_bytes, max_matches) { err({kind: "budget", message: "grep requires positive max_line_bytes and non-negative max_matches"}) } else { state = u:grep_fold(bytes, u:grep_state(), pattern, max_line_bytes, max_matches)?; ok(u:grep_finish(state, pattern, max_matches)?) } } }
+def u:grep_bytes(bytes, pattern, max_line_bytes, max_matches) {
+  "Search an in-memory logical-byte vector without UTF-8 decoding.";
+  if (1 - u:bytes_valid(bytes)) + (1 - u:bytes_valid(pattern)) {
+    err({kind: "bytes", message: "grep input and pattern must be rank-one logical-byte vectors"})
+  } else {
+    if eq(tally(pattern), 0) {
+      err({kind: "pattern", message: "grep pattern must not be empty"})
+    } else {
+      if 1 - u:grep_limits_valid(max_line_bytes, max_matches) {
+        err({kind: "budget", message: "grep requires positive max_line_bytes and non-negative max_matches"})
+      } else {
+        state = u:grep_fold(bytes, u:grep_state(), pattern, max_line_bytes, max_matches)?;
+        ok(u:grep_finish(state, pattern, max_matches)?)
+      }
+    }
+  }
 }
 
-def u:grep_file(path, pattern, chunk_size, max_bytes, max_line_bytes, max_matches) { "Search a file through bounded range reads and bounded line/result state.";
-  if (1 - u:bytes_valid(pattern)) + eq(tally(pattern), 0) { err({kind: "pattern", message: "grep pattern must be a non-empty logical-byte vector"}) } else { if (1 - u:range_exact_nonnegative(chunk_size)) + eq(chunk_size, 0) + (1 - u:range_exact_nonnegative(max_bytes)) + (1 - u:grep_limits_valid(max_line_bytes, max_matches)) { err({kind: "budget", message: "grep chunk and budget values are invalid"}) } else { size = file_size(path)?; if gt(size, max_bytes) { err({kind: "budget", message: "grep file size exceeds max_bytes before reading"}) } else { state = u:grep_state(); offset = 0; while lt(offset, size) { remaining = size - offset; width = if lt(remaining, chunk_size) { remaining } else { chunk_size }; chunk = read_bytes(path, offset, width)?; if 1 - eq(tally(chunk), width) { return err({kind: "short_read", message: "grep range read returned fewer bytes than requested"}) }; state = u:grep_fold(chunk, state, pattern, max_line_bytes, max_matches)?; state = {line: state.line, line_number: state.line_number, lines: state.lines, matches: state.matches, match_lines: state.match_lines, bytes: state.bytes, chunks: state.chunks + 1}; offset = offset + width }; ok(u:grep_finish(state, pattern, max_matches)?) } } }
+def u:grep_file(path, pattern, chunk_size, max_bytes, max_line_bytes, max_matches) {
+  "Search a file through bounded range reads and bounded line/result state.";
+  if (1 - u:bytes_valid(pattern)) + eq(tally(pattern), 0) {
+    err({kind: "pattern", message: "grep pattern must be a non-empty logical-byte vector"})
+  } else {
+    if (1 - u:range_exact_nonnegative(chunk_size)) + eq(chunk_size, 0) + (1 - u:range_exact_nonnegative(max_bytes)) + (1 - u:grep_limits_valid(max_line_bytes, max_matches)) {
+      err({kind: "budget", message: "grep chunk and budget values are invalid"})
+    } else {
+      size = file_size(path)?;
+      if gt(size, max_bytes) {
+        err({kind: "budget", message: "grep file size exceeds max_bytes before reading"})
+      } else {
+        state = u:grep_state();
+        offset = 0;
+        while lt(offset, size) {
+          remaining = size - offset;
+          width = if lt(remaining, chunk_size) {
+            remaining
+          } else {
+            chunk_size
+          };
+          chunk = read_bytes(path, offset, width)?;
+          if 1 - eq(tally(chunk), width) {
+            return err({kind: "short_read", message: "grep range read returned fewer bytes than requested"})
+          };
+          state = u:grep_fold(chunk, state, pattern, max_line_bytes, max_matches)?;
+          state = {line: state.line, line_number: state.line_number, lines: state.lines, matches: state.matches, match_lines: state.match_lines, bytes: state.bytes, chunks: state.chunks + 1};
+          offset = offset + width
+        };
+        ok(u:grep_finish(state, pattern, max_matches)?)
+      }
+    }
+  }
 }

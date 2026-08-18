@@ -1,25 +1,53 @@
-def u:wav_parse_format(bytes, payload, size, state) { "Decode the canonical PCM fields from a fmt chunk.";
-  if state.fmt_found { err({kind: "duplicate", message: "WAV contains multiple fmt chunks"}) } else {
-    if lt(size, 16) { err({kind: "fmt", message: "WAV fmt chunk is shorter than 16 bytes"}) } else {
-      audio_format = u:decode_uint(bytes, payload, 2, "le")?; channels = u:decode_uint(bytes, payload + 2, 2, "le")?;
-      sample_rate = u:decode_uint(bytes, payload + 4, 4, "le")?; byte_rate = u:decode_uint(bytes, payload + 8, 4, "le")?;
-      block_align = u:decode_uint(bytes, payload + 12, 2, "le")?; bits_per_sample = u:decode_uint(bytes, payload + 14, 2, "le")?;
+def u:wav_parse_format(bytes, payload, size, state) {
+  "Decode the canonical PCM fields from a fmt chunk.";
+  if state.fmt_found {
+    err({kind: "duplicate", message: "WAV contains multiple fmt chunks"})
+  } else {
+    if lt(size, 16) {
+      err({kind: "fmt", message: "WAV fmt chunk is shorter than 16 bytes"})
+    } else {
+      audio_format = u:decode_uint(bytes, payload, 2, "le")?;
+      channels = u:decode_uint(bytes, payload + 2, 2, "le")?;
+      sample_rate = u:decode_uint(bytes, payload + 4, 4, "le")?;
+      byte_rate = u:decode_uint(bytes, payload + 8, 4, "le")?;
+      block_align = u:decode_uint(bytes, payload + 12, 2, "le")?;
+      bits_per_sample = u:decode_uint(bytes, payload + 14, 2, "le")?;
       ok(u:wav_with_format(state, audio_format, channels, sample_rate, byte_rate, block_align, bits_per_sample))
     }
   }
 }
 
-def u:wav_parse_data(bytes, payload, size, state) { "Copy one data chunk into scan state.";
-  if state.data_found { err({kind: "duplicate", message: "WAV contains multiple data chunks"}) } else { ok(u:wav_with_data(state, u:byte_slice(bytes, payload, size)?)) }
+def u:wav_parse_data(bytes, payload, size, state) {
+  "Copy one data chunk into scan state.";
+  if state.data_found {
+    err({kind: "duplicate", message: "WAV contains multiple data chunks"})
+  } else {
+    ok(u:wav_with_data(state, u:byte_slice(bytes, payload, size)?))
+  }
 }
 
-def u:wav_scan_chunks(bytes, offset, max_chunks, state) { "Scan bounded RIFF chunks, respecting odd-byte padding.";
-  if eq(offset, tally(bytes)) { ok(state) } else {
-    if gt(state.chunks + 1, max_chunks) { err({kind: "budget", message: "WAV chunk count exceeds max_chunks"}) } else {
-      if gt(offset + 8, tally(bytes)) { err({kind: "truncated", message: "WAV chunk header is truncated"}) } else {
-        id = u:byte_slice(bytes, offset, 4)?; size = u:decode_uint(bytes, offset + 4, 4, "le")?; payload = offset + 8; ending = payload + size; next = ending + mod(size, 2);
-        if gt(next, tally(bytes)) { err({kind: "truncated", message: "WAV chunk payload or padding is truncated"}) } else {
-          updated = if equal(id, [102, 109, 116, 32]) { u:wav_parse_format(bytes, payload, size, state)? } else { if equal(id, [100, 97, 116, 97]) { u:wav_parse_data(bytes, payload, size, state)? } else { u:wav_with_unknown(state) } };
+def u:wav_scan_chunks(bytes, offset, max_chunks, state) {
+  "Scan bounded RIFF chunks, respecting odd-byte padding.";
+  if eq(offset, tally(bytes)) {
+    ok(state)
+  } else {
+    if gt(state.chunks + 1, max_chunks) {
+      err({kind: "budget", message: "WAV chunk count exceeds max_chunks"})
+    } else {
+      if gt(offset + 8, tally(bytes)) {
+        err({kind: "truncated", message: "WAV chunk header is truncated"})
+      } else {
+        id = u:byte_slice(bytes, offset, 4)?;
+        size = u:decode_uint(bytes, offset + 4, 4, "le")?;
+        payload = offset + 8;
+        ending = payload + size;
+        next = ending + mod(size, 2);
+        if gt(next, tally(bytes)) {
+          err({kind: "truncated", message: "WAV chunk payload or padding is truncated"})
+        } else {
+          updated = if equal(id, [102, 109, 116, 32]) { u:wav_parse_format(bytes, payload, size, state)? } else {
+            if equal(id, [100, 97, 116, 97]) { u:wav_parse_data(bytes, payload, size, state)? } else { u:wav_with_unknown(state) }
+          };
           u:wav_scan_chunks(bytes, next, max_chunks, updated)
         }
       }

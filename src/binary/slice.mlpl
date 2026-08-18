@@ -1,10 +1,22 @@
-def u:byte_slice_steps(bytes, start, length, index) { "Copy a validated half-open byte range recursively.";
-  if eq(index, length) { [] } else { concat(take(bytes, 0, start + index), u:byte_slice_steps(bytes, start, length, index + 1)) }
+def u:byte_slice_steps(bytes, start, length, index) {
+  "Copy a validated half-open byte range recursively.";
+  if eq(index, length) {
+    []
+  } else {
+    concat(take(bytes, 0, start + index), u:byte_slice_steps(bytes, start, length, index + 1))
+  }
 }
 
-def u:byte_slice(bytes, start, length) { "Return a contained byte-vector slice or Err.";
+def u:byte_slice(bytes, start, length) {
+  "Return a contained byte-vector slice or Err.";
   if u:bytes_valid(bytes) * eq(rank(start), 0) * eq(rank(length), 0) {
     valid = eq(start, floor(start)) * eq(length, floor(length)) * (1 - lt(start, 0)) * (1 - lt(length, 0)) * (1 - gt(start + length, tally(bytes)));
-    if valid { ok(u:byte_slice_steps(bytes, start, length, 0)) } else { err({kind: "range", message: "byte slice must be a contained nonnegative integer range"}) }
-  } else { err({kind: "input", message: "byte_slice expects a byte vector and scalar range"}) }
+    if valid {
+      ok(u:byte_slice_steps(bytes, start, length, 0))
+    } else {
+      err({kind: "range", message: "byte slice must be a contained nonnegative integer range"})
+    }
+  } else {
+    err({kind: "input", message: "byte_slice expects a byte vector and scalar range"})
+  }
 }

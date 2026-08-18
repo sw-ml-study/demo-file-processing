@@ -1,10 +1,20 @@
-def u:bytes_valid_from(bytes, index) { "Validate integral byte cells recursively from one index.";
-  if eq(index, tally(bytes)) { 1 } else {
+def u:bytes_valid_from(bytes, index) {
+  "Validate integral byte cells recursively from one index.";
+  if eq(index, tally(bytes)) {
+    1
+  } else {
     value = take(bytes, 0, index);
     eq(value, floor(value)) * (1 - lt(value, 0)) * (1 - gt(value, 255)) * u:bytes_valid_from(bytes, index + 1)
   }
 }
 
-def u:bytes_valid(bytes) { "Return one only for a rank-one numeric array of integer cells in 0..=255.";
-  if equal(type_of(bytes), "array") { if eq(rank(bytes), 1) { u:bytes_valid_from(bytes, 0) } else { 0 } } else { 0 }
+def u:bytes_valid(bytes) {
+  "Return one only for a rank-one numeric array of integer cells in 0..=255.";
+  if equal(type_of(bytes), "array") {
+    if eq(rank(bytes), 1) { u:bytes_valid_from(bytes, 0) } else {
+      0
+    }
+  } else {
+    0
+  }
 }

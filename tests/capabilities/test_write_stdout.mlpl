@@ -1,12 +1,21 @@
 @test {name: "write_stdout accepts scalar vector and empty bytes with exact counts", tags: ["capability", "stdout", "bytes", "sink"]}
-def u:test_write_stdout_counts() { "Write harmless bytes to mlplunit's captured stdout and verify each returned count.";
-  first = write_stdout([0, 1, 2])?; scalar = write_stdout(3)?; empty = write_stdout([])?; second = write_stdout([4, 5])?;
+def u:test_write_stdout_counts() {
+  "Write harmless bytes to mlplunit's captured stdout and verify each returned count.";
+  first = write_stdout([0, 1, 2])?;
+  scalar = write_stdout(3)?;
+  empty = write_stdout([])?;
+  second = write_stdout([4, 5])?;
   u:assert_eq([first, scalar, empty, second], [3, 1, 0, 2], "stdout byte counts and call order")
 }
 
 @test {name: "write_stdout rejects invalid bytes without a successful count", tags: ["capability", "stdout", "invalid", "preservation"]}
-def u:test_write_stdout_invalid() { "Reject domain, rank, and value-kind errors before attempting output.";
-  u:assert_err(write_stdout([256]), "out-of-range byte")?; u:assert_err(write_stdout([-1]), "negative byte")?; u:assert_err(write_stdout([1.5]), "fractional byte")?; u:assert_err(write_stdout("bytes"), "non-array bytes")?; u:assert_err(write_stdout([[1, 2]]), "rank-two bytes")
+def u:test_write_stdout_invalid() {
+  "Reject domain, rank, and value-kind errors before attempting output.";
+  u:assert_err(write_stdout([256]), "out-of-range byte")?;
+  u:assert_err(write_stdout([-1]), "negative byte")?;
+  u:assert_err(write_stdout([1.5]), "fractional byte")?;
+  u:assert_err(write_stdout("bytes"), "non-array bytes")?;
+  u:assert_err(write_stdout([[1, 2]]), "rank-two bytes")
 }
 
 u:run_registered_tests()

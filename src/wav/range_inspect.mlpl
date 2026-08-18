@@ -1,34 +1,51 @@
 include "../io/range_reader.mlpl";
 include "../io/range_window.mlpl";
 
-def u:wav_range_state() { "Create bounded WAV metadata scan state without sample payload storage.";
+def u:wav_range_state() {
+  "Create bounded WAV metadata scan state without sample payload storage.";
   {fmt_found: 0, data_found: 0, audio_format: 0, channels: 0, sample_rate: 0, byte_rate: 0, block_align: 0, bits_per_sample: 0, data_offset: 0, data_bytes: 0, unknown_chunks: 0, chunks: 0}
 }
 
-def u:wav_range_format(reader, payload, size, state) { "Read and decode only the canonical 16-byte PCM format prefix.";
-  if state.fmt_found { err({kind: "duplicate", message: "WAV contains multiple fmt chunks"}) } else {
-    if lt(size, 16) { err({kind: "fmt", message: "WAV fmt chunk is shorter than 16 bytes"}) } else {
+def u:wav_range_format(reader, payload, size, state) {
+  "Read and decode only the canonical 16-byte PCM format prefix.";
+  if state.fmt_found {
+    err({kind: "duplicate", message: "WAV contains multiple fmt chunks"})
+  } else {
+    if lt(size, 16) {
+      err({kind: "fmt", message: "WAV fmt chunk is shorter than 16 bytes"})
+    } else {
       bytes = u:range_window(reader, payload, 16, 16)?;
       ok({fmt_found: 1, data_found: state.data_found, audio_format: u:decode_uint(bytes, 0, 2, "le")?, channels: u:decode_uint(bytes, 2, 2, "le")?, sample_rate: u:decode_uint(bytes, 4, 4, "le")?, byte_rate: u:decode_uint(bytes, 8, 4, "le")?, block_align: u:decode_uint(bytes, 12, 2, "le")?, bits_per_sample: u:decode_uint(bytes, 14, 2, "le")?, data_offset: state.data_offset, data_bytes: state.data_bytes, unknown_chunks: state.unknown_chunks, chunks: state.chunks + 1})
     }
   }
 }
 
-def u:wav_range_data(payload, size, state) { "Record data location and length without reading or retaining sample bytes.";
-  if state.data_found { err({kind: "duplicate", message: "WAV contains multiple data chunks"}) } else {
+def u:wav_range_data(payload, size, state) {
+  "Record data location and length without reading or retaining sample bytes.";
+  if state.data_found {
+    err({kind: "duplicate", message: "WAV contains multiple data chunks"})
+  } else {
     ok({fmt_found: state.fmt_found, data_found: 1, audio_format: state.audio_format, channels: state.channels, sample_rate: state.sample_rate, byte_rate: state.byte_rate, block_align: state.block_align, bits_per_sample: state.bits_per_sample, data_offset: payload, data_bytes: size, unknown_chunks: state.unknown_chunks, chunks: state.chunks + 1})
   }
 }
 
-def u:wav_range_unknown(state) { "Count one validated unknown chunk without reading its payload.";
+def u:wav_range_unknown(state) {
+  "Count one validated unknown chunk without reading its payload.";
   {fmt_found: state.fmt_found, data_found: state.data_found, audio_format: state.audio_format, channels: state.channels, sample_rate: state.sample_rate, byte_rate: state.byte_rate, block_align: state.block_align, bits_per_sample: state.bits_per_sample, data_offset: state.data_offset, data_bytes: state.data_bytes, unknown_chunks: state.unknown_chunks + 1, chunks: state.chunks + 1}
 }
 
-def u:wav_range_finish(state) { "Validate supported PCM metadata and derive frame/duration values without sample data.";
-  if (1 - state.fmt_found) + (1 - state.data_found) { err({kind: "missing", message: "WAV requires fmt and data chunks"}) } else {
+def u:wav_range_finish(state) {
+  "Validate supported PCM metadata and derive frame/duration values without sample data.";
+  if (1 - state.fmt_found) + (1 - state.data_found) {
+    err({kind: "missing", message: "WAV requires fmt and data chunks"})
+  } else {
     align = u:wav_validate_format(state)?;
-    if eq(state.sample_rate, 0) { err({kind: "rate", message: "WAV sample rate must be positive"}) } else {
-      if 1 - eq(mod(state.data_bytes, align), 0) { err({kind: "data", message: "WAV data length is not a whole frame"}) } else {
+    if eq(state.sample_rate, 0) {
+      err({kind: "rate", message: "WAV sample rate must be positive"})
+    } else {
+      if 1 - eq(mod(state.data_bytes, align), 0) {
+        err({kind: "data", message: "WAV data length is not a whole frame"})
+      } else {
         frames = state.data_bytes / align;
         ok({audio_format: state.audio_format, channels: state.channels, sample_rate: state.sample_rate, byte_rate: state.byte_rate, block_align: align, bits_per_sample: state.bits_per_sample, data_offset: state.data_offset, data_bytes: state.data_bytes, frames: frames, duration_seconds: frames / state.sample_rate, unknown_chunks: state.unknown_chunks, chunks: state.chunks})
       }
@@ -36,20 +53,50 @@ def u:wav_range_finish(state) { "Validate supported PCM metadata and derive fram
   }
 }
 
-def u:inspect_wav_ranges(path, chunk_size, max_chunks) { "Inspect RIFF/WAVE metadata through bounded reads and skip sample payloads by validated offsets.";
-  if (1 - u:range_exact_nonnegative(max_chunks)) { err({kind: "budget", message: "max_chunks must be a positive exact integer"}) } else {
-    if eq(max_chunks, 0) { err({kind: "budget", message: "max_chunks must be a positive exact integer"}) } else {
+def u:inspect_wav_ranges(path, chunk_size, max_chunks) {
+  "Inspect RIFF/WAVE metadata through bounded reads and skip sample payloads by validated offsets.";
+  if (1 - u:range_exact_nonnegative(max_chunks)) {
+    err({kind: "budget", message: "max_chunks must be a positive exact integer"})
+  } else {
+    if eq(max_chunks, 0) {
+      err({kind: "budget", message: "max_chunks must be a positive exact integer"})
+    } else {
       reader = u:range_reader(path, chunk_size)?;
-      if lt(reader.size, 12) { err({kind: "truncated", message: "WAV RIFF header is truncated"}) } else {
-        riff_header = u:range_window(reader, 0, 12, 16)?; riff = u:byte_slice(riff_header, 0, 4)?; declared = u:decode_uint(riff_header, 4, 4, "le")?; wave = u:byte_slice(riff_header, 8, 4)?;
-        if (1 - equal(riff, [82, 73, 70, 70])) + (1 - equal(wave, [87, 65, 86, 69])) { err({kind: "signature", message: "expected RIFF/WAVE signature"}) } else {
-          if 1 - eq(declared + 8, reader.size) { err({kind: "length", message: "RIFF size does not match file length"}) } else {
-            offset = 12; state = u:wav_range_state();
+      if lt(reader.size, 12) {
+        err({kind: "truncated", message: "WAV RIFF header is truncated"})
+      } else {
+        riff_header = u:range_window(reader, 0, 12, 16)?;
+        riff = u:byte_slice(riff_header, 0, 4)?;
+        declared = u:decode_uint(riff_header, 4, 4, "le")?;
+        wave = u:byte_slice(riff_header, 8, 4)?;
+        if (1 - equal(riff, [82, 73, 70, 70])) + (1 - equal(wave, [87, 65, 86, 69])) {
+          err({kind: "signature", message: "expected RIFF/WAVE signature"})
+        } else {
+          if 1 - eq(declared + 8, reader.size) {
+            err({kind: "length", message: "RIFF size does not match file length"})
+          } else {
+            offset = 12;
+            state = u:wav_range_state();
             while lt(offset, reader.size) {
-              if gt(state.chunks + 1, max_chunks) { return err({kind: "budget", message: "WAV chunk count exceeds max_chunks"}) } else { 0 };
-              header = u:range_window(reader, offset, 8, 16)?; id = u:byte_slice(header, 0, 4)?; size = u:decode_uint(header, 4, 4, "le")?; payload = offset + 8; ending = payload + size; next = ending + mod(size, 2);
-              if gt(next, reader.size) { return err({kind: "truncated", message: "WAV chunk payload or padding is truncated"}) } else { 0 };
-              state = if equal(id, [102, 109, 116, 32]) { u:wav_range_format(reader, payload, size, state)? } else { if equal(id, [100, 97, 116, 97]) { u:wav_range_data(payload, size, state)? } else { u:wav_range_unknown(state) } };
+              if gt(state.chunks + 1, max_chunks) {
+                return err({kind: "budget", message: "WAV chunk count exceeds max_chunks"})
+              } else {
+                0
+              };
+              header = u:range_window(reader, offset, 8, 16)?;
+              id = u:byte_slice(header, 0, 4)?;
+              size = u:decode_uint(header, 4, 4, "le")?;
+              payload = offset + 8;
+              ending = payload + size;
+              next = ending + mod(size, 2);
+              if gt(next, reader.size) {
+                return err({kind: "truncated", message: "WAV chunk payload or padding is truncated"})
+              } else {
+                0
+              };
+              state = if equal(id, [102, 109, 116, 32]) { u:wav_range_format(reader, payload, size, state)? } else {
+                if equal(id, [100, 97, 116, 97]) { u:wav_range_data(payload, size, state)? } else { u:wav_range_unknown(state) }
+              };
               offset = next
             };
             u:wav_range_finish(state)

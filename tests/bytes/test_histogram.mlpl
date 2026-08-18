@@ -2,7 +2,8 @@ include "src/bytes/validate.mlpl";
 include "src/bytes/histogram.mlpl";
 
 @test {name: "byte histogram handles empty and singleton inputs", tags: ["bytes", "histogram", "boundary"]}
-def u:test_histogram_small() { "Verify 256 stable bins for zero and one input byte.";
+def u:test_histogram_small() {
+  "Verify 256 stable bins for zero and one input byte.";
   empty = u:byte_histogram([])?;
   singleton = u:byte_histogram([255])?;
   u:assert_eq(empty, fill([256], 0), "empty input has zero counts");
@@ -11,12 +12,14 @@ def u:test_histogram_small() { "Verify 256 stable bins for zero and one input by
 }
 
 @test {name: "byte histogram covers all byte values", tags: ["bytes", "histogram", "all-values"]}
-def u:test_histogram_all_values() { "Verify range(256) contributes exactly one count to each bin.";
+def u:test_histogram_all_values() {
+  "Verify range(256) contributes exactly one count to each bin.";
   u:assert_eq(u:byte_histogram(range(256)), ok(fill([256], 1)), "every byte bin is one")
 }
 
 @test {name: "byte histogram counts repeated values", tags: ["bytes", "histogram", "repeated"]}
-def u:test_histogram_repeated() { "Verify repeated bytes accumulate without changing other bins.";
+def u:test_histogram_repeated() {
+  "Verify repeated bytes accumulate without changing other bins.";
   counts = u:byte_histogram(fill([12], 7))?;
   u:assert_eq(reduce_add(counts), 12, "histogram total matches input length");
   u:assert_eq(take(counts, 0, 7), 12, "repeated byte count accumulates");
@@ -24,7 +27,8 @@ def u:test_histogram_repeated() { "Verify repeated bytes accumulate without chan
 }
 
 @test {name: "byte histogram rejects invalid byte vectors", tags: ["bytes", "histogram", "invalid"]}
-def u:test_histogram_invalid() { "Verify invalid cells and ranks return Err.";
+def u:test_histogram_invalid() {
+  "Verify invalid cells and ranks return Err.";
   u:assert_err(u:byte_histogram([0, 256]), "out-of-range byte");
   u:assert_err(u:byte_histogram([0, 0.5]), "fractional byte");
   u:assert_err(u:byte_histogram(7), "scalar input");
@@ -32,7 +36,8 @@ def u:test_histogram_invalid() { "Verify invalid cells and ranks return Err.";
 }
 
 @test {name: "byte histogram reports compact populated bins", tags: ["bytes", "histogram", "presentation"]}
-def u:test_histogram_nonzero() { "Verify contrasting fixtures can be presented without 256 mostly-zero cells.";
+def u:test_histogram_nonzero() {
+  "Verify contrasting fixtures can be presented without 256 mostly-zero cells.";
   repeated = u:histogram_nonzero(u:byte_histogram(fill([12], 7))?)?;
   boundary = u:histogram_nonzero(u:byte_histogram(range(17))?)?;
   empty = u:histogram_nonzero(u:byte_histogram([])?)?;

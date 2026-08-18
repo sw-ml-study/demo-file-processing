@@ -9,30 +9,90 @@ include "src/wav/range_inspect.mlpl";
 include "src/wav/bounded_output.mlpl";
 include "src/apps/wav_transform.mlpl";
 
-def u:wav_tool_fresh(path) { "Remove a stale test artifact so each transform assertion starts with a new destination."; remove_path(path); ok(1) }
+def u:wav_tool_fresh(path) {
+  "Remove a stale test artifact so each transform assertion starts with a new destination.";
+  remove_path(path);
+  ok(1)
+}
 
 @test {name: "WAV transform application creates exact canonical copies", tags: ["apps", "wav", "transform", "copy"]}
-def u:test_wav_tool_copy() { "Require exact bytes for an already canonical source and semantic normalization for ancillary chunks.";
-  canonical = ".wav-tool-test-copy.wav"; normalized = ".wav-tool-test-normalized.wav"; u:wav_tool_fresh(canonical); u:wav_tool_fresh(normalized);
-  copy = u:wav_transform_application("fixtures/wav/minimal-mono8.wav", canonical, "copy", 2)?; normalization = u:wav_transform_application("fixtures/wav/odd-unknown-mono8.wav", normalized, "copy", 7)?; parsed = u:parse_wav(read_bytes(normalized)?, 46, 8)?;
-  u:assert_eq(read_bytes(canonical), read_bytes("fixtures/wav/minimal-mono8.wav"), "canonical byte identity")?; u:assert_eq([copy.output_bytes, normalization.output_bytes, normalization.unknown_chunks_removed], [48, 46, 1], "copy application evidence")?; u:assert_eq([parsed.data, parsed.unknown_chunks], [[9], 0], "normalized semantic output")?; remove_path(canonical); remove_path(normalized); ok(1)
+def u:test_wav_tool_copy() {
+  "Require exact bytes for an already canonical source and semantic normalization for ancillary chunks.";
+  canonical = ".wav-tool-test-copy.wav";
+  normalized = ".wav-tool-test-normalized.wav";
+  u:wav_tool_fresh(canonical);
+  u:wav_tool_fresh(normalized);
+  copy = u:wav_transform_application("fixtures/wav/minimal-mono8.wav", canonical, "copy", 2)?;
+  normalization = u:wav_transform_application("fixtures/wav/odd-unknown-mono8.wav", normalized, "copy", 7)?;
+  parsed = u:parse_wav(read_bytes(normalized)?, 46, 8)?;
+  u:assert_eq(read_bytes(canonical), read_bytes("fixtures/wav/minimal-mono8.wav"), "canonical byte identity")?;
+  u:assert_eq([copy.output_bytes, normalization.output_bytes, normalization.unknown_chunks_removed], [48, 46, 1], "copy application evidence")?;
+  u:assert_eq([parsed.data, parsed.unknown_chunks], [[9], 0], "normalized semantic output")?;
+  remove_path(canonical);
+  remove_path(normalized);
+  ok(1)
 }
 
 @test {name: "WAV transform application visibly inverts samples", tags: ["apps", "wav", "transform", "invert"]}
-def u:test_wav_tool_invert() { "Compare bounded preview and complete tiny semantic oracles for unsigned inversion.";
-  path = ".wav-tool-test-invert.wav"; u:wav_tool_fresh(path); result = u:wav_transform_application("fixtures/wav/minimal-mono8.wav", path, "invert_u8", 2)?; parsed = u:parse_wav(read_bytes(path)?, 48, 8)?;
-  u:assert_eq(result.preview_before, [0, 127, 255], "input preview")?; u:assert_eq(result.preview_after, [255, 128, 0], "inverted preview")?; u:assert_eq([result.chunks, result.last_chunk_bytes, parsed.frames], [2, 1, 3], "bounded transform evidence")?; remove_path(path); ok(1)
+def u:test_wav_tool_invert() {
+  "Compare bounded preview and complete tiny semantic oracles for unsigned inversion.";
+  path = ".wav-tool-test-invert.wav";
+  u:wav_tool_fresh(path);
+  result = u:wav_transform_application("fixtures/wav/minimal-mono8.wav", path, "invert_u8", 2)?;
+  parsed = u:parse_wav(read_bytes(path)?, 48, 8)?;
+  u:assert_eq(result.preview_before, [0, 127, 255], "input preview")?;
+  u:assert_eq(result.preview_after, [255, 128, 0], "inverted preview")?;
+  u:assert_eq([result.chunks, result.last_chunk_bytes, parsed.frames], [2, 1, 3], "bounded transform evidence")?;
+  remove_path(path);
+  ok(1)
 }
 
 @test {name: "WAV transform application is chunk invariant", tags: ["apps", "wav", "transform", "chunks"]}
-def u:test_wav_tool_chunks() { "Compare complete tiny inversion artifacts across required read/write budgets.";
-  chunks = [1, 2, 7, 65536]; index = 0; expected = []; while lt(index, tally(chunks)) { chunk = take(chunks, 0, index); path = if eq(chunk, 1) { ".wav-tool-chunk-1.wav" } else { if eq(chunk, 2) { ".wav-tool-chunk-2.wav" } else { if eq(chunk, 7) { ".wav-tool-chunk-7.wav" } else { ".wav-tool-chunk-large.wav" } } }; u:wav_tool_fresh(path); u:wav_transform_application("fixtures/wav/minimal-mono8.wav", path, "invert_u8", chunk)?; bytes = read_bytes(path)?; if eq(index, 0) { expected = bytes } else { u:assert_eq(bytes, expected, "chunk-invariant artifact")? }; remove_path(path); index = index + 1 }; ok(1)
+def u:test_wav_tool_chunks() {
+  "Compare complete tiny inversion artifacts across required read/write budgets.";
+  chunks = [1, 2, 7, 65536];
+  index = 0;
+  expected = [];
+  while lt(index, tally(chunks)) {
+    chunk = take(chunks, 0, index);
+    path = if eq(chunk, 1) {
+      ".wav-tool-chunk-1.wav"
+    } else {
+      if eq(chunk, 2) {
+        ".wav-tool-chunk-2.wav"
+      } else {
+        if eq(chunk, 7) {
+          ".wav-tool-chunk-7.wav"
+        } else {
+          ".wav-tool-chunk-large.wav"
+        }
+      }
+    };
+    u:wav_tool_fresh(path);
+    u:wav_transform_application("fixtures/wav/minimal-mono8.wav", path, "invert_u8", chunk)?;
+    bytes = read_bytes(path)?;
+    if eq(index, 0) {
+      expected = bytes
+    } else { u:assert_eq(bytes, expected, "chunk-invariant artifact")? };
+    remove_path(path);
+    index = index + 1
+  };
+  ok(1)
 }
 
 @test {name: "WAV transform application rejects unsafe arguments and preserves destinations", tags: ["apps", "wav", "transform", "errors"]}
-def u:test_wav_tool_errors() { "Preserve existing output while rejecting modes, budgets, malformed input, and unsupported sample width.";
-  path = ".wav-tool-test-errors.wav"; u:wav_tool_fresh(path); append_bytes(path, [9])?; u:assert_err(u:wav_transform_application("fixtures/wav/minimal-mono8.wav", path, "copy", 2), "existing destination")?; u:assert_eq(read_bytes(path), ok([9]), "existing destination preserved")?; remove_path(path);
-  u:assert_err(u:wav_transform_application("fixtures/wav/minimal-mono8.wav", path, "gain", 2), "unsupported mode")?; u:assert_err(u:wav_transform_application("fixtures/wav/minimal-mono8.wav", path, "copy", 0), "zero chunk")?; u:assert_err(u:wav_transform_application("fixtures/bytes/boundary-17.bin", path, "copy", 2), "non-WAV source")?; ok(1)
+def u:test_wav_tool_errors() {
+  "Preserve existing output while rejecting modes, budgets, malformed input, and unsupported sample width.";
+  path = ".wav-tool-test-errors.wav";
+  u:wav_tool_fresh(path);
+  append_bytes(path, [9])?;
+  u:assert_err(u:wav_transform_application("fixtures/wav/minimal-mono8.wav", path, "copy", 2), "existing destination")?;
+  u:assert_eq(read_bytes(path), ok([9]), "existing destination preserved")?;
+  remove_path(path);
+  u:assert_err(u:wav_transform_application("fixtures/wav/minimal-mono8.wav", path, "gain", 2), "unsupported mode")?;
+  u:assert_err(u:wav_transform_application("fixtures/wav/minimal-mono8.wav", path, "copy", 0), "zero chunk")?;
+  u:assert_err(u:wav_transform_application("fixtures/bytes/boundary-17.bin", path, "copy", 2), "non-WAV source")?;
+  ok(1)
 }
 
 u:run_registered_tests()

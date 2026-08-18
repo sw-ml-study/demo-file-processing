@@ -3,7 +3,8 @@ include "src/binary/endian_decode.mlpl";
 include "src/binary/endian_encode.mlpl";
 
 @test {name: "endian decoders match golden widths", tags: ["binary", "endian", "golden"]}
-def u:test_endian_golden() { "Verify one-, two-, three-, four-, and six-byte decode vectors.";
+def u:test_endian_golden() {
+  "Verify one-, two-, three-, four-, and six-byte decode vectors.";
   bytes = [1, 2, 3, 4, 254, 255];
   u:assert_eq(u:decode_uint(bytes, 0, 1, "be"), ok(1), "u8");
   u:assert_eq(u:decode_uint(bytes, 0, 2, "be"), ok(258), "u16 big endian");
@@ -13,7 +14,8 @@ def u:test_endian_golden() { "Verify one-, two-, three-, four-, and six-byte dec
 }
 
 @test {name: "endian encoders round trip exact widths", tags: ["binary", "endian", "round-trip"]}
-def u:test_endian_round_trip() { "Verify both byte orders and the exact six-byte boundary.";
+def u:test_endian_round_trip() {
+  "Verify both byte orders and the exact six-byte boundary.";
   u:assert_eq(u:encode_uint(0, 1, "be"), ok([0]), "zero u8")?;
   u:assert_eq(u:decode_uint(u:encode_uint(258, 2, "be")?, 0, 2, "be"), ok(258), "u16 big-endian round trip")?;
   u:assert_eq(u:decode_uint(u:encode_uint(258, 2, "le")?, 0, 2, "le"), ok(258), "u16 little-endian round trip")?;
@@ -26,7 +28,8 @@ def u:test_endian_round_trip() { "Verify both byte orders and the exact six-byte
 }
 
 @test {name: "endian codecs reject invalid ranges and widths", tags: ["binary", "endian", "invalid"]}
-def u:test_endian_invalid() { "Verify containment, exactness, endian spelling, and six-byte policy.";
+def u:test_endian_invalid() {
+  "Verify containment, exactness, endian spelling, and six-byte policy.";
   u:assert_err(u:decode_uint([1, 2], 1, 2, "be"), "decode past end");
   u:assert_err(u:decode_uint([1, 2], 0 - 1, 1, "be"), "negative offset");
   u:assert_err(u:decode_uint([1, 2], 0.5, 1, "be"), "fractional offset");
