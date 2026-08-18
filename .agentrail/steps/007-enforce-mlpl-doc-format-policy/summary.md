@@ -1,0 +1,1 @@
+Strengthened AGENTS.md to require meaningful leading doc strings on every user-defined MLPL function and canonical formatting plus idempotence checks before every commit and push; kept AGENTS.md as the sole instruction target; brought all 124 MLPL files to canonical format; and passed the full 36-suite mlplunit repository gate.
