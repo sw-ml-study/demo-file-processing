@@ -16,4 +16,6 @@ if eq(wav.channels, 1) * eq(wav.sample_rate, 8000) * eq(wav.data_bytes, 1) * eq(
   print("Interpretation: the padded JUNK chunk moves audio to byte 56, while the result retains no sample-data field.");
   print("Contrast: unlike the canonical-copy demo, this path reads metadata only and performs no output write.");
   ok(wav)
-} else { err({kind: "invariant", message: "bounded WAV metadata changed"}) }
+} else {
+  err({kind: "invariant", message: "bounded WAV metadata changed"})
+}

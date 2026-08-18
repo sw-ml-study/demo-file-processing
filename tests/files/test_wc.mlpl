@@ -3,26 +3,26 @@ include "src/io/range_reader.mlpl";
 include "src/files/wc.mlpl";
 
 @test {name: "wc-like counters define LF lines ASCII words and final-line policy", tags: ["files", "wc", "semantics"]}
-def u:test_wc_semantics() { bytes = tokenize_bytes("one\r\ntwo\t three\nlast"); counts = u:wc_bytes(bytes)?;
+def u:test_wc_semantics() { "Pin LF line, ASCII word, byte, and unterminated logical-line semantics."; bytes = tokenize_bytes("one\r\ntwo\t three\nlast"); counts = u:wc_bytes(bytes)?;
   u:assert_eq([counts.bytes, counts.lines, counts.logical_lines, counts.words], [20,2,3,4], "CRLF contributes one LF line and final unterminated content is a logical line")
 }
 
 @test {name: "wc-like counters handle empty whitespace and UTF-8 bytes", tags: ["files", "wc", "boundaries"]}
-def u:test_wc_boundaries() { empty = u:wc_bytes([])?; spaces = u:wc_bytes([32,9,10,13,11,12])?; utf8 = u:wc_bytes(tokenize_bytes("café tea"))?;
+def u:test_wc_boundaries() { "Check empty input, all ASCII whitespace classes, and UTF-8 byte counting."; empty = u:wc_bytes([])?; spaces = u:wc_bytes([32,9,10,13,11,12])?; utf8 = u:wc_bytes(tokenize_bytes("café tea"))?;
   u:assert_eq([empty.bytes,empty.lines,empty.logical_lines,empty.words], [0,0,0,0], "empty input")?;
   u:assert_eq([spaces.bytes,spaces.lines,spaces.logical_lines,spaces.words], [6,1,2,0], "ASCII whitespace classes")?;
   u:assert_eq([utf8.bytes,utf8.lines,utf8.logical_lines,utf8.words], [9,0,1,2], "UTF-8 is counted as bytes and non-ASCII bytes remain word content")
 }
 
 @test {name: "bounded wc-like file scan is chunk invariant", tags: ["files", "wc", "chunks"]}
-def u:test_wc_chunks() { path = "tmp/wc-chunks.txt"; bytes = tokenize_bytes("alpha beta\ngamma\r\ndelta"); write_bytes(path, bytes)?;
+def u:test_wc_chunks() { "Compare counts across one-byte through oversized bounded file chunks."; path = "tmp/wc-chunks.txt"; bytes = tokenize_bytes("alpha beta\ngamma\r\ndelta"); write_bytes(path, bytes)?;
   one = u:wc_file(path, 1, 1024)?; two = u:wc_file(path, 2, 1024)?; seven = u:wc_file(path, 7, 1024)?; large = u:wc_file(path, 65536, 1024)?; remove_path(path); one_counts = [one.bytes,one.lines,one.logical_lines,one.words];
   u:assert_eq(one_counts, [two.bytes,two.lines,two.logical_lines,two.words], "one and two byte chunks")?; u:assert_eq(one_counts, [seven.bytes,seven.lines,seven.logical_lines,seven.words], "one and seven byte chunks")?; u:assert_eq(one_counts, [large.bytes,large.lines,large.logical_lines,large.words], "one and oversized chunks")?;
   u:assert_eq([one.bytes,one.lines,one.logical_lines,one.words,one.chunks], [23,2,3,4,23], "one-byte scan facts")
 }
 
 @test {name: "wc-like scan rejects invalid values and byte budgets", tags: ["files", "wc", "invalid", "budget"]}
-def u:test_wc_invalid() { path = "tmp/wc-budget.txt"; write_bytes(path, [1,2,3])?;
+def u:test_wc_invalid() { "Reject invalid byte cells, chunk sizes, and insufficient total-byte budgets."; path = "tmp/wc-budget.txt"; write_bytes(path, [1,2,3])?;
   u:assert_err(u:wc_bytes([256]), "invalid byte")?; u:assert_err(u:wc_file(path, 0, 3), "zero chunk")?; u:assert_err(u:wc_file(path, 1.5, 3), "fractional chunk")?; u:assert_err(u:wc_file(path, 1, 2), "budget before read")?; remove_path(path); ok(1)
 }
 

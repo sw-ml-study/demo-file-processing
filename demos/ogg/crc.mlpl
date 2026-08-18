@@ -1,7 +1,8 @@
 include "../../src/bytes/validate.mlpl";
 include "../../src/ogg/crc.mlpl";
 
-valid = u:verify_ogg_page_crc("fixtures/ogg/structural-cross-page.ogg", 7, 0, 512, 8, 300, 512, 7)?; corrupt = u:inspect_ogg_page_crc("fixtures/ogg/malformed-crc.ogg", 7, 0, 512, 8, 300, 512, 7)?;
+valid = u:verify_ogg_page_crc("fixtures/ogg/structural-cross-page.ogg", 7, 0, 512, 8, 300, 512, 7)?;
+corrupt = u:inspect_ogg_page_crc("fixtures/ogg/malformed-crc.ogg", 7, 0, 512, 8, 300, 512, 7)?;
 if valid.valid * (1 - corrupt.valid) {
   print("Visible Ogg CRC demonstration");
   print("Purpose: verify page integrity with the Ogg polynomial visibly implemented in MLPL rather than delegated to a native checksum library.");
@@ -13,4 +14,6 @@ if valid.valid * (1 - corrupt.valid) {
   print("Interpretation: structural parsing can still describe a damaged page, while required CRC verification rejects the changed payload deterministically.");
   print("Boundary: integrity verification reads bytes but does not decode packets or write repaired output.");
   ok({valid: valid.valid, corrupt_valid: corrupt.valid})
-} else { err({kind: "invariant", message: "Ogg CRC demo changed"}) }
+} else {
+  err({kind: "invariant", message: "Ogg CRC demo changed"})
+}

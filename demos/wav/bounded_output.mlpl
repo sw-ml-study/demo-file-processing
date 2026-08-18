@@ -8,9 +8,13 @@ include "../../src/wav/parse.mlpl";
 include "../../src/wav/range_inspect.mlpl";
 include "../../src/wav/bounded_output.mlpl";
 
-copy_path = ".wav-bounded-copy.wav"; invert_path = ".wav-bounded-invert.wav"; remove_path(copy_path); remove_path(invert_path);
+copy_path = ".wav-bounded-copy.wav";
+invert_path = ".wav-bounded-invert.wav";
+remove_path(copy_path);
+remove_path(invert_path);
 copy = u:bounded_wav_output("fixtures/wav/odd-unknown-mono8.wav", copy_path, "copy", 7, 46, 8, 1)?;
-inverted = u:bounded_wav_output("fixtures/wav/minimal-mono8.wav", invert_path, "invert_u8", 2, 48, 8, 1)?; decoded = u:parse_wav(read_bytes(invert_path)?, 48, 8)?;
+inverted = u:bounded_wav_output("fixtures/wav/minimal-mono8.wav", invert_path, "invert_u8", 2, 48, 8, 1)?;
+decoded = u:parse_wav(read_bytes(invert_path)?, 48, 8)?;
 if equal(decoded.data, [255, 128, 0]) {
   print("Bounded PCM WAV copy-and-transform demonstration");
   print("Purpose: create real WAV outputs without retaining an entire sample payload in MLPL memory.");
@@ -23,4 +27,6 @@ if equal(decoded.data, [255, 128, 0]) {
   print("Allocation: payload state is O(chunk_size); the demo's tiny whole-file readback is an oracle only, not part of bounded_wav_output.");
   print("Boundary: this recipe deliberately demonstrates the interpreter file-path sink; separate interpreter binary-stdout demos exist, while complete compiled I/O lowering remains unavailable.");
   ok({copy: copy, inverted: inverted})
-} else { err({kind: "invariant", message: "bounded WAV inversion differs from semantic oracle"}) }
+} else {
+  err({kind: "invariant", message: "bounded WAV inversion differs from semantic oracle"})
+}

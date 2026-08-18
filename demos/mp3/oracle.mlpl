@@ -4,7 +4,9 @@ include "../../src/binary/bit_fields.mlpl";
 include "../../src/id3/inspect.mlpl";
 include "../../src/mp3/scanner.mlpl";
 
-path = "fixtures/mp3/tone-vbr-id3.mp3"; tag = u:inspect_id3v2(path, 7, 4096, 16, 256)?; scan = u:scan_mpeg_layer3(path, 7, tag.audio_offset, tag.audio_offset + tag.audio_bytes, tag.audio_bytes, 64)?;
+path = "fixtures/mp3/tone-vbr-id3.mp3";
+tag = u:inspect_id3v2(path, 7, 4096, 16, 256)?;
+scan = u:scan_mpeg_layer3(path, 7, tag.audio_offset, tag.audio_offset + tag.audio_bytes, tag.audio_bytes, 64)?;
 print("MLPL title:", tag.title);
 print("MLPL sample rate:", scan.sample_rate_hz);
 print("MLPL frame count:", scan.frames);

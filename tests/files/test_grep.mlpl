@@ -3,23 +3,23 @@ include "src/io/range_reader.mlpl";
 include "src/files/grep.mlpl";
 
 @test {name: "grep-like literal matcher reports LF line numbers and final line", tags: ["files", "grep", "semantics"]}
-def u:test_grep_lines() { bytes = tokenize_bytes("alpha\nbeta needle tail\ncross-boundary needle\nfinal needle"); result = u:grep_bytes(bytes, tokenize_bytes("needle"), 64, 8)?;
+def u:test_grep_lines() { "Check LF numbering and matching in an unterminated final logical line."; bytes = tokenize_bytes("alpha\nbeta needle tail\ncross-boundary needle\nfinal needle"); result = u:grep_bytes(bytes, tokenize_bytes("needle"), 64, 8)?;
   u:assert_eq(result.match_lines, [2,3,4], "matched line numbers including unterminated final line")?; u:assert_eq([result.lines,result.matches], [4,3], "line and match totals")
 }
 
 @test {name: "grep-like byte policy preserves CR and accepts malformed UTF-8", tags: ["files", "grep", "bytes", "crlf"]}
-def u:test_grep_byte_policy() { crlf = u:grep_bytes(tokenize_bytes("one\r\ntwo\r\n"), tokenize_bytes("two\r"), 16, 4)?; malformed = u:grep_bytes([255,10,97], [255], 8, 4)?;
+def u:test_grep_byte_policy() { "Prove matching is byte-oriented: CR is content and invalid UTF-8 remains searchable."; crlf = u:grep_bytes(tokenize_bytes("one\r\ntwo\r\n"), tokenize_bytes("two\r"), 16, 4)?; malformed = u:grep_bytes([255,10,97], [255], 8, 4)?;
   u:assert_eq(crlf.match_lines, [2], "CR is line content and LF terminates")?; u:assert_eq(malformed.match_lines, [1], "non-UTF8 bytes are searchable without decoding")
 }
 
 @test {name: "bounded grep-like file scan is invariant across split lines and matches", tags: ["files", "grep", "chunks"]}
-def u:test_grep_chunks() { path = "tmp/grep-chunks.txt"; bytes = tokenize_bytes("zero\nneedle across a long line\nnone\nneedle-final"); write_bytes(path, bytes)?;
+def u:test_grep_chunks() { "Compare one-byte, seven-byte, and oversized reads across line and match boundaries."; path = "tmp/grep-chunks.txt"; bytes = tokenize_bytes("zero\nneedle across a long line\nnone\nneedle-final"); write_bytes(path, bytes)?;
   one = u:grep_file(path, tokenize_bytes("needle"), 1, 1024, 64, 8)?; seven = u:grep_file(path, tokenize_bytes("needle"), 7, 1024, 64, 8)?; large = u:grep_file(path, tokenize_bytes("needle"), 65536, 1024, 64, 8)?; remove_path(path);
   u:assert_eq(one.match_lines, [2,4], "one-byte chunks")?; u:assert_eq(one.match_lines, seven.match_lines, "seven-byte chunks")?; u:assert_eq(one.match_lines, large.match_lines, "oversized chunks")?; u:assert_eq([one.lines,one.matches], [4,2], "stable scan totals")
 }
 
 @test {name: "grep-like matcher enforces pattern line result and file budgets", tags: ["files", "grep", "invalid", "budget"]}
-def u:test_grep_budgets() { path = "tmp/grep-budget.txt"; write_bytes(path, tokenize_bytes("aa\naa"))?;
+def u:test_grep_budgets() { "Reject empty/invalid patterns and line, match, or total-file budget overruns."; path = "tmp/grep-budget.txt"; write_bytes(path, tokenize_bytes("aa\naa"))?;
   u:assert_err(u:grep_bytes([1], [], 8, 1), "empty pattern")?; u:assert_err(u:grep_bytes([1], [256], 8, 1), "invalid pattern byte")?; u:assert_err(u:grep_bytes(tokenize_bytes("long"), [111], 3, 2), "line budget")?; u:assert_err(u:grep_bytes(tokenize_bytes("a\na"), [97], 8, 1), "match budget")?; u:assert_err(u:grep_file(path, [97], 1, 4, 8, 4), "file budget before reading")?; remove_path(path); ok(1)
 }
 

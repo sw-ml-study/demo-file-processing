@@ -13,4 +13,6 @@ if eq(take(result.counts, 0, 0), result.bytes) * eq(reduce_add(result.counts), r
   print("Populated bins:", u:histogram_nonzero(result.counts)?);
   print("Interpretation: every byte is zero, so bin 0 equals the file size and all other bins are empty.");
   ok(result)
-} else { err({kind: "invariant", message: "sparse zero histogram changed"}) }
+} else {
+  err({kind: "invariant", message: "sparse zero histogram changed"})
+}

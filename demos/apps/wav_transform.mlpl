@@ -9,7 +9,12 @@ include "../../src/wav/range_inspect.mlpl";
 include "../../src/wav/bounded_output.mlpl";
 include "../../src/apps/wav_transform.mlpl";
 
-argv = args(); source = unwrap_or(list_get(argv, 0), "fixtures/wav/minimal-mono8.wav"); destination = unwrap_or(list_get(argv, 1), ".wav-tool-output.wav"); mode = unwrap_or(list_get(argv, 2), "invert_u8"); chunk_text = unwrap_or(list_get(argv, 3), "2"); chunk_size = to_int(chunk_text)?;
+argv = args();
+source = unwrap_or(list_get(argv, 0), "fixtures/wav/minimal-mono8.wav");
+destination = unwrap_or(list_get(argv, 1), ".wav-tool-output.wav");
+mode = unwrap_or(list_get(argv, 2), "invert_u8");
+chunk_text = unwrap_or(list_get(argv, 3), "2");
+chunk_size = to_int(chunk_text)?;
 result = u:wav_transform_application(source, destination, mode, chunk_size)?;
 print("Bounded WAV transforming application");
 print("Purpose: create a real canonical WAV artifact in copy or unsigned-8-bit inversion mode from explicit source, destination, mode, and chunk arguments.");
@@ -19,7 +24,11 @@ print("Native runtime work: file metadata, offset/length reads, and sandboxed ap
 print("Artifact output: source bytes", result.source_bytes, "; canonical output bytes", result.output_bytes, "; frames", result.frames, "; sample rate", result.sample_rate, "Hz; width", result.bits_per_sample, "bits; unknown chunks removed", result.unknown_chunks_removed, ".");
 print("Chunk output:", result.chunks, "sample writes; last write", result.last_chunk_bytes, "bytes; RIFF pad bytes", result.padding_bytes, ".");
 print("Sample preview before:", result.preview_before, "; after:", result.preview_after, ".");
-if equal(result.mode, "copy") { print("Interpretation: canonical copy preserves every PCM sample; unknown ancillary chunks are intentionally omitted and RIFF padding is regenerated.") } else { print("Interpretation: unsigned 8-bit inversion maps each sample x to 255-x, so silence midpoint values exchange around 127.5 while frame geometry remains unchanged.") };
+if equal(result.mode, "copy") {
+  print("Interpretation: canonical copy preserves every PCM sample; unknown ancillary chunks are intentionally omitted and RIFF padding is regenerated.")
+} else {
+  print("Interpretation: unsigned 8-bit inversion maps each sample x to 255-x, so silence midpoint values exchange around 127.5 while frame geometry remains unchanged.")
+};
 print("Allocation: production payload state is O(chunk_size); bounded reparsing retains metadata and at most eight preview bytes, never the full sample payload.");
 print("Safety: destination must not already exist; failures use the bounded writer's explicit partial-output cleanup policy.");
 print("Boundary: this is a seekable-file interpreter application, not decoded/compressed audio, binary stdout, or a standalone compiled executable.");

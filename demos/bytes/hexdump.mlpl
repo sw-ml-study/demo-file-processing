@@ -14,4 +14,6 @@ if equal(rendered, expected) {
   print(rendered);
   print("Interpretation: offset 00000010 starts the second row, proving the formatter handles the exact width boundary.");
   ok({bytes: tally(bytes), line_width: 16, lines: 2})
-} else { err({kind: "invariant", message: "hexdump output changed"}) }
+} else {
+  err({kind: "invariant", message: "hexdump output changed"})
+}

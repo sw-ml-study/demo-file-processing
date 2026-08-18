@@ -4,7 +4,10 @@ paths = ["archive/model-old.bin", "models/zeta.bin", "models/alpha.bin", "offlin
 timestamps = [0, 1704067200123, 1704067200123, 0];
 available = [1, 1, 1, 0];
 order = u:date_index_order(paths, timestamps, available)?;
-newest_a = take(order, 0, 0); newest_b = take(order, 0, 1); oldest = take(order, 0, 2); missing = take(order, 0, 3);
+newest_a = take(order, 0, 0);
+newest_b = take(order, 0, 1);
+oldest = take(order, 0, 2);
+missing = take(order, 0, 3);
 
 print("File-date index library demonstration");
 print("Purpose: turn file_metadata.modified_unix_ms values into a stable newest-first index.");

@@ -1,5 +1,10 @@
 include "../../src/bytes/validate.mlpl";
 include "../../src/ogg/packets.mlpl";
 
-path = "fixtures/ogg/tone-opus.ogg"; size = file_size(path)?; scan = u:inspect_ogg_packets(path, 7, 0, size, size, 16, 65536, 255, 65536, 64, 65536)?;
-print("MLPL Ogg pages:", scan.pages); print("MLPL structural packets:", scan.packets); print("MLPL stream serial:", scan.serial); ok({pages: scan.pages, packets: scan.packets})
+path = "fixtures/ogg/tone-opus.ogg";
+size = file_size(path)?;
+scan = u:inspect_ogg_packets(path, 7, 0, size, size, 16, 65536, 255, 65536, 64, 65536)?;
+print("MLPL Ogg pages:", scan.pages);
+print("MLPL structural packets:", scan.packets);
+print("MLPL stream serial:", scan.serial);
+ok({pages: scan.pages, packets: scan.packets})

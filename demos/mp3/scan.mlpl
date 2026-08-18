@@ -4,8 +4,13 @@ include "../../src/binary/bit_fields.mlpl";
 include "../../src/id3/inspect.mlpl";
 include "../../src/mp3/scanner.mlpl";
 
-path = "fixtures/mp3/synthetic-vbr-id3.mp3"; tag = u:inspect_id3v2(path, 7, 4096, 16, 256)?; scan = u:scan_mpeg_layer3(path, 7, tag.audio_offset, tag.audio_offset + tag.audio_bytes, tag.audio_bytes, 16)?; scan_large = u:scan_mpeg_layer3(path, 65536, tag.audio_offset, tag.audio_offset + tag.audio_bytes, tag.audio_bytes, 16)?;
-damaged_path = "fixtures/mp3/resync-gap.mp3"; damaged_size = file_size(damaged_path)?; damaged = u:scan_mpeg_layer3(damaged_path, 7, 0, damaged_size, damaged_size, 8)?;
+path = "fixtures/mp3/synthetic-vbr-id3.mp3";
+tag = u:inspect_id3v2(path, 7, 4096, 16, 256)?;
+scan = u:scan_mpeg_layer3(path, 7, tag.audio_offset, tag.audio_offset + tag.audio_bytes, tag.audio_bytes, 16)?;
+scan_large = u:scan_mpeg_layer3(path, 65536, tag.audio_offset, tag.audio_offset + tag.audio_bytes, tag.audio_bytes, 16)?;
+damaged_path = "fixtures/mp3/resync-gap.mp3";
+damaged_size = file_size(damaged_path)?;
+damaged = u:scan_mpeg_layer3(damaged_path, 7, 0, damaged_size, damaged_size, 8)?;
 if equal(scan, scan_large) * eq(scan.frames, 3) * eq(damaged.frames, 4) {
   print("Bounded MPEG frame-scanner demonstration");
   print("Purpose: inspect frame geometry and bitrate changes without decoding or retaining compressed audio payloads.");
@@ -20,4 +25,6 @@ if equal(scan, scan_large) * eq(scan.frames, 3) * eq(damaged.frames, 4) {
   print("Interpretation B: the scanner loses synchronization at the gap, searches byte-by-byte, and requires a compatible next frame before accepting the recovered stream.");
   print("Boundary: these structural fixtures contain synthetic non-audio payloads; the opt-in pinned ffprobe oracle uses a separate decodable 440 Hz fixture.");
   ok({vbr_frames: scan.frames, bitrate_changes: scan.bitrate_changes, recovered_frames: damaged.frames, resynchronizations: damaged.resyncs})
-} else { err({kind: "invariant", message: "bounded scanner demonstration changed"}) }
+} else {
+  err({kind: "invariant", message: "bounded scanner demonstration changed"})
+}

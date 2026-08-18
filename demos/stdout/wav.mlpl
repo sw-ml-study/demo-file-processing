@@ -6,7 +6,8 @@ include "../../src/wav/parse.mlpl";
 include "../../src/wav/range_inspect.mlpl";
 include "../../src/io/bounded_stdout.mlpl";
 
-path = "fixtures/wav/minimal-mono8.wav"; wav = u:inspect_wav_ranges(path, 7, 8)?;
+path = "fixtures/wav/minimal-mono8.wav";
+wav = u:inspect_wav_ranges(path, 7, 8)?;
 eprint("Bounded PCM WAV stdout demonstration");
 eprint("Purpose: pipe a complete valid WAV while MLPL first explains its accepted structure on stderr.");
 eprint("Input: canonical mono unsigned 8-bit PCM, 8000 Hz, 3 frames, sample values 0/127/255, and one required odd-data pad.");

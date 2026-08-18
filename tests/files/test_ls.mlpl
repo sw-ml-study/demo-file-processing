@@ -4,14 +4,14 @@ include "src/files/date_index.mlpl";
 include "src/files/ls.mlpl";
 
 @test {name: "ls-like rows order newest then path and unavailable last", tags: ["files", "ls", "order"]}
-def u:test_ls_order() { paths = ["z.bin", "old.bin", "a.bin", "missing.bin"]; kinds = ["file", "file", "dir", "other"]; sizes = [9,4,0,0]; stamps = [2000,1000,2000,0]; available = [1,1,1,0];
+def u:test_ls_order() { "Check newest-first ordering, path ties, unavailable placement, and summary counts."; paths = ["z.bin", "old.bin", "a.bin", "missing.bin"]; kinds = ["file", "file", "dir", "other"]; sizes = [9,4,0,0]; stamps = [2000,1000,2000,0]; available = [1,1,1,0];
   result = u:ls_rows(paths, kinds, sizes, stamps, available, 8)?;
   u:assert_eq(result.order, [2,0,1,3], "newest/path/unavailable order")?;
   u:assert_eq([result.entries, result.available, result.unavailable], [4,3,1], "counts")
 }
 
 @test {name: "ls-like rows preserve exact UTC formatting inputs", tags: ["files", "ls", "dates"]}
-def u:test_ls_dates() { result = u:ls_rows(["epoch", "before"], ["file", "file"], [1,2], [0,0 - 1], [1,1], 2)?;
+def u:test_ls_dates() { "Preserve exact epoch and pre-epoch millisecond inputs through ordering and UTC formatting."; result = u:ls_rows(["epoch", "before"], ["file", "file"], [1,2], [0,0 - 1], [1,1], 2)?;
   first = take(result.order, 0, 0); second = take(result.order, 0, 1);
   u:assert_eq([first,second], [0,1], "newest first")?;
   u:assert_eq(u:unix_ms_iso(take(result.timestamps, 0, first)), ok("1970-01-01T00:00:00.000Z"), "epoch UTC")?;
@@ -19,13 +19,14 @@ def u:test_ls_dates() { result = u:ls_rows(["epoch", "before"], ["file", "file"]
 }
 
 @test {name: "ls-like rows accept empty and exact entry budgets", tags: ["files", "ls", "boundary"]}
-def u:test_ls_boundaries() { empty = u:ls_rows([], [], [], [], [], 0)?; one = u:ls_rows(["a"], ["file"], [0], [7], [1], 1)?;
+def u:test_ls_boundaries() { "Accept empty metadata and a singleton that exactly meets the entry budget."; empty = u:ls_rows([], [], [], [], [], 0)?; one = u:ls_rows(["a"], ["file"], [0], [7], [1], 1)?;
   u:assert_eq([empty.entries,empty.available], [0,0], "empty")?;
   u:assert_eq([one.entries,one.available,one.unavailable], [1,1,0], "exact singleton")
 }
 
 @test {name: "ls-like rows reject malformed metadata and budgets", tags: ["files", "ls", "invalid"]}
 def u:test_ls_invalid() {
+  "Reject malformed parallel columns, kinds, sizes, availability, and entry budgets.";
   u:assert_err(u:ls_rows(["a"], [], [1], [1], [1], 1), "parallel kinds")?;
   u:assert_err(u:ls_rows(["a"], ["socket"], [1], [1], [1], 1), "kind")?;
   u:assert_err(u:ls_rows(["a"], ["file"], [1.5], [1], [1], 1), "fractional size")?;

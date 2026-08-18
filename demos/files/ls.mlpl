@@ -4,12 +4,29 @@ include "../../src/files/date_index.mlpl";
 include "../../src/files/ls.mlpl";
 
 live = u:ls_live_files("fixtures/bytes", 8)?;
-p0 = list_get(live.paths, 0)?; p1 = list_get(live.paths, 1)?; p2 = list_get(live.paths, 2)?; p3 = list_get(live.paths, 3)?; p4 = list_get(live.paths, 4)?; p5 = list_get(live.paths, 5)?;
-s0 = take(live.sizes, 0, 0); s1 = take(live.sizes, 0, 1); s2 = take(live.sizes, 0, 2); s3 = take(live.sizes, 0, 3); s4 = take(live.sizes, 0, 4); s5 = take(live.sizes, 0, 5);
-t0 = take(live.timestamps, 0, 0); t1 = take(live.timestamps, 0, 1); t2 = take(live.timestamps, 0, 2); t3 = take(live.timestamps, 0, 3); t4 = take(live.timestamps, 0, 4); t5 = take(live.timestamps, 0, 5);
+p0 = list_get(live.paths, 0)?;
+p1 = list_get(live.paths, 1)?;
+p2 = list_get(live.paths, 2)?;
+p3 = list_get(live.paths, 3)?;
+p4 = list_get(live.paths, 4)?;
+p5 = list_get(live.paths, 5)?;
+s0 = take(live.sizes, 0, 0);
+s1 = take(live.sizes, 0, 1);
+s2 = take(live.sizes, 0, 2);
+s3 = take(live.sizes, 0, 3);
+s4 = take(live.sizes, 0, 4);
+s5 = take(live.sizes, 0, 5);
+t0 = take(live.timestamps, 0, 0);
+t1 = take(live.timestamps, 0, 1);
+t2 = take(live.timestamps, 0, 2);
+t3 = take(live.timestamps, 0, 3);
+t4 = take(live.timestamps, 0, 4);
+t5 = take(live.timestamps, 0, 5);
 
 synthetic = u:ls_rows(["models/zeta.bin", "models/alpha.bin", "offline/missing.bin"], ["file", "dir", "other"], [7,0,0], [1704067200123,1704067200123,0], [1,1,0], 3)?;
-alpha = take(synthetic.order, 0, 0); zeta = take(synthetic.order, 0, 1); missing = take(synthetic.order, 0, 2);
+alpha = take(synthetic.order, 0, 0);
+zeta = take(synthetic.order, 0, 1);
+missing = take(synthetic.order, 0, 2);
 
 print("Confined ls-like metadata demonstration");
 print("Purpose: display deterministic names, portable kinds, logical sizes, and exact UTC modification times from real metadata.");

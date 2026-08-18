@@ -18,4 +18,6 @@ if eq(mpeg1.frame_length, 417) * eq(mpeg25.frame_length, 208) {
   print("Case 2 interpretation: the de-facto MPEG-2.5 extension quarters the MPEG-1 rate and uses 576 samples plus the 72× frame formula.");
   print("Policy: free-bitrate index 0 is explicit Err because header bytes alone cannot determine frame length; a scanner must infer sync distance.");
   ok({headers: 2, mpeg1_frame_bytes: mpeg1.frame_length, mpeg25_frame_bytes: mpeg25.frame_length})
-} else { err({kind: "invariant", message: "MPEG header fields changed"}) }
+} else {
+  err({kind: "invariant", message: "MPEG header fields changed"})
+}

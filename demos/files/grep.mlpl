@@ -2,9 +2,16 @@ include "../../src/bytes/validate.mlpl";
 include "../../src/io/range_reader.mlpl";
 include "../../src/files/grep.mlpl";
 
-path = ".grep-demo-input.txt"; bytes = tokenize_bytes("zero\nneedle at start\nsplit needle across chunks\nnone\nfinal needle"); pattern = tokenize_bytes("needle"); write_bytes(path, bytes)?;
-one = u:grep_file(path, pattern, 1, 4096, 128, 8)?; seven = u:grep_file(path, pattern, 7, 4096, 128, 8)?; sixty_four = u:grep_file(path, pattern, 64, 4096, 128, 8)?; remove_path(path);
-crlf = u:grep_bytes(tokenize_bytes("one\r\ntwo\r\n"), tokenize_bytes("two\r"), 32, 4)?; malformed = u:grep_bytes([255,10,97], [255], 8, 4)?;
+path = ".grep-demo-input.txt";
+bytes = tokenize_bytes("zero\nneedle at start\nsplit needle across chunks\nnone\nfinal needle");
+pattern = tokenize_bytes("needle");
+write_bytes(path, bytes)?;
+one = u:grep_file(path, pattern, 1, 4096, 128, 8)?;
+seven = u:grep_file(path, pattern, 7, 4096, 128, 8)?;
+sixty_four = u:grep_file(path, pattern, 64, 4096, 128, 8)?;
+remove_path(path);
+crlf = u:grep_bytes(tokenize_bytes("one\r\ntwo\r\n"), tokenize_bytes("two\r"), 32, 4)?;
+malformed = u:grep_bytes([255,10,97], [255], 8, 4)?;
 
 print("Bounded grep-like literal matcher demonstration");
 print("Purpose: find literal byte patterns and report logical line numbers without retaining the whole file.");

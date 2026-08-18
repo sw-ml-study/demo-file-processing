@@ -7,7 +7,7 @@ include "src/ogg/page.mlpl";
 include "src/ogg/crc.mlpl";
 include "src/ogg/bounded_output.mlpl";
 
-def u:ogg_output_fresh(path) { remove_path(path); 1 }
+def u:ogg_output_fresh(path) { "Remove a stale Ogg test artifact before exercising no-overwrite output behavior."; remove_path(path); 1 }
 
 def u:verify_ogg_ranges_equal(left, left_offset, right, right_offset, length) { "Compare exact page ranges through bounded oracle windows.";
   cursor = 0; while lt(cursor, length) { remaining = length - cursor; width = if lt(remaining, 64) { remaining } else { 64 }; u:assert_eq(read_bytes(left, left_offset + cursor, width), read_bytes(right, right_offset + cursor, width), "bounded Ogg byte oracle")?; cursor = cursor + width }; ok(1)

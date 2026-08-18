@@ -7,8 +7,14 @@ include "../../src/ogg/page.mlpl";
 include "../../src/ogg/crc.mlpl";
 include "../../src/ogg/bounded_output.mlpl";
 
-source = "fixtures/ogg/structural-cross-page.ogg"; copy_path = ".ogg-page-copy-output.ogg"; rewrite_path = ".ogg-page-rewrite-output.ogg"; remove_path(copy_path); remove_path(rewrite_path);
-copied = u:copy_ogg_page(source, copy_path, 7, 0, 512, 8, 300, 512, 7, 283, 1)?; rewritten = u:rewrite_ogg_page_sequence(source, rewrite_path, 7, 0, 42, 512, 8, 300, 512, 7, 283, 1)?; verified = u:verify_ogg_page_crc(rewrite_path, 7, 0, 512, 8, 300, 512, 7)?;
+source = "fixtures/ogg/structural-cross-page.ogg";
+copy_path = ".ogg-page-copy-output.ogg";
+rewrite_path = ".ogg-page-rewrite-output.ogg";
+remove_path(copy_path);
+remove_path(rewrite_path);
+copied = u:copy_ogg_page(source, copy_path, 7, 0, 512, 8, 300, 512, 7, 283, 1)?;
+rewritten = u:rewrite_ogg_page_sequence(source, rewrite_path, 7, 0, 42, 512, 8, 300, 512, 7, 283, 1)?;
+verified = u:verify_ogg_page_crc(rewrite_path, 7, 0, 512, 8, 300, 512, 7)?;
 if eq(copied.output_bytes, 283) * eq(verified.page.sequence, 42) * verified.valid {
   print("Bounded Ogg page copy-and-rewrite demonstration");
   print("Purpose: create real Ogg page artifacts from accepted descriptors without retaining a whole page or output.");
@@ -21,4 +27,6 @@ if eq(copied.output_bytes, 283) * eq(verified.page.sequence, 42) * verified.vali
   print("Allocation: fixed descriptors and CRC state plus O(chunk_size); bounded readback windows provide byte oracles in mlplunit.");
   print("Boundary: this rewrites one standalone page through the interpreter file-path sink, not a whole logical stream sequence; separate interpreter binary-stdout demos exist, while complete compiled I/O remains unavailable.");
   ok({copied: copied, rewritten: rewritten})
-} else { err({kind: "invariant", message: "bounded Ogg output demonstration changed"}) }
+} else {
+  err({kind: "invariant", message: "bounded Ogg output demonstration changed"})
+}

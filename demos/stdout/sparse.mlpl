@@ -1,6 +1,7 @@
 include "../../src/io/bounded_stdout.mlpl";
 
-source = list_get(args(), 0)?; source_bytes = file_size(source)?;
+source = list_get(args(), 0)?;
+source_bytes = file_size(source)?;
 eprint("Sparse bounded-stdout memory demonstration");
 eprint("Purpose: stream an output larger than the working budget through non-seekable binary stdout without retaining the whole artifact.");
 eprint("Input: sparse zero source bytes", source_bytes, "; fixed range/write chunk bytes 65536.");

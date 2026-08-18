@@ -4,7 +4,7 @@ include "src/files/date_index.mlpl";
 include "src/files/du.mlpl";
 
 @test {name: "du-like summary totals logical bytes in deterministic path order", tags: ["files", "du", "summary"]}
-def u:test_du_summary() { paths = ["tree/a.txt", "tree/sub/b.bin", "tree/sub/empty"]; sizes = [5,7,0];
+def u:test_du_summary() { "Check deterministic entry, logical-byte, and maximum-depth aggregation."; paths = ["tree/a.txt", "tree/sub/b.bin", "tree/sub/empty"]; sizes = [5,7,0];
   result = u:du_summarize(paths, sizes, "tree", 8, 2, 20)?;
   u:assert_eq([result.entries, result.logical_bytes, result.max_depth_seen], [3,12,2], "logical totals and depth")?;
   u:assert_eq(result.paths, paths, "lexical path order is preserved")
@@ -12,6 +12,7 @@ def u:test_du_summary() { paths = ["tree/a.txt", "tree/sub/b.bin", "tree/sub/emp
 
 @test {name: "du-like summary accepts empty and exact-budget boundaries", tags: ["files", "du", "boundary"]}
 def u:test_du_boundaries() {
+  "Accept empty input and values that exactly meet every configured budget.";
   empty = u:du_summarize([], [], "tree", 0, 0, 0)?;
   exact = u:du_summarize(["tree/a"], [9], "tree", 1, 1, 9)?;
   u:assert_eq([empty.entries, empty.logical_bytes], [0,0], "empty tree")?;
@@ -20,6 +21,7 @@ def u:test_du_boundaries() {
 
 @test {name: "du-like summary rejects entry depth and byte budget overflow", tags: ["files", "du", "budgets"]}
 def u:test_du_budgets() {
+  "Reject work that exceeds entry, relative-depth, or cumulative-byte budgets.";
   u:assert_err(u:du_summarize(["tree/a", "tree/b"], [1,1], "tree", 1, 1, 2), "entry budget")?;
   u:assert_err(u:du_summarize(["tree/sub/a"], [1], "tree", 1, 1, 1), "depth budget")?;
   u:assert_err(u:du_summarize(["tree/a", "tree/b"], [6,5], "tree", 2, 1, 10), "sum budget")
@@ -27,6 +29,7 @@ def u:test_du_budgets() {
 
 @test {name: "du-like summary validates roots paths sizes and lexical ordering", tags: ["files", "du", "invalid"]}
 def u:test_du_invalid() {
+  "Reject malformed parallel metadata, ordering, confinement, and numeric inputs.";
   u:assert_err(u:du_summarize(["tree/a"], [], "tree", 2, 2, 10), "parallel inputs")?;
   u:assert_err(u:du_summarize(["tree/a"], [1.5], "tree", 2, 2, 10), "fractional size")?;
   u:assert_err(u:du_summarize(["tree/b", "tree/a"], [1,1], "tree", 2, 2, 10), "non-lexical paths")?;

@@ -1,7 +1,10 @@
 include "../../src/bytes/validate.mlpl";
 include "../../src/ogg/page.mlpl";
 
-path = "fixtures/ogg/structural-cross-page.ogg"; first = u:open_ogg_page(path, 7, 0, 512, 8, 300)?; second = u:open_ogg_page(path, 7, first.next_offset, 512, 8, 300)?; large = u:open_ogg_page(path, 65536, 0, 512, 8, 300)?;
+path = "fixtures/ogg/structural-cross-page.ogg";
+first = u:open_ogg_page(path, 7, 0, 512, 8, 300)?;
+second = u:open_ogg_page(path, 7, first.next_offset, 512, 8, 300)?;
+large = u:open_ogg_page(path, 65536, 0, 512, 8, 300)?;
 if equal(first, large) {
   print("Bounded Ogg page demonstration");
   print("Purpose: turn page headers and lacing into validated body and next-page descriptors without reading packet payloads.");
@@ -13,4 +16,6 @@ if equal(first, large) {
   print("Interpretation: lacing value 255 leaves a packet open; the next page's continued flag and lacing complete it, while chunks 7 and 65,536 give the same descriptor.");
   print("Boundary: this is container structure and range output, not decoded audio or a newly written Ogg file.");
   ok({first_body_bytes: first.body_bytes, next_offset: first.next_offset, continued: second.continued})
-} else { err({kind: "invariant", message: "Ogg page demo changed"}) }
+} else {
+  err({kind: "invariant", message: "Ogg page demo changed"})
+}

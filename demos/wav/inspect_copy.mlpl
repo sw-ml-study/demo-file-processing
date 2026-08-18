@@ -23,4 +23,6 @@ if equal(input, copied) {
   print("Interpretation: unsigned 8-bit samples 0, 127, and 255 span low, midpoint, and high values; duration is", wav.duration_seconds, "seconds.");
   print("Round trip: canonical encoding is byte-identical, including the required pad after the odd three-byte data chunk.");
   ok({bytes: tally(copied), frames: wav.frames, unknown_chunks: wav.unknown_chunks})
-} else { err({kind: "invariant", message: "canonical WAV copy changed bytes"}) }
+} else {
+  err({kind: "invariant", message: "canonical WAV copy changed bytes"})
+}

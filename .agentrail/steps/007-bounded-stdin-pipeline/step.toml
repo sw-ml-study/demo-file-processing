@@ -1,6 +1,6 @@
-number = 6
+number = 7
 slug = "bounded-stdin-pipeline"
-status = "pending"
+status = "in-progress"
 description = "After upstream ships an interpreter-and-compiler-parity byte-oriented increme..."
 role = "production"
 context_files = []

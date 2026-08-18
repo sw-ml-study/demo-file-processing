@@ -12,4 +12,6 @@ if equal(result.counts, fill([256], 1)) * eq(result.bytes, 256) * eq(result.chun
   print("Populated bins:", u:histogram_nonzero(result.counts)?);
   print("Interpretation: every final count is 1 even though values crossed 36 internal boundaries; chunking did not change the answer.");
   ok(result)
-} else { err({kind: "invariant", message: "bounded histogram changed across ranges"}) }
+} else {
+  err({kind: "invariant", message: "bounded histogram changed across ranges"})
+}

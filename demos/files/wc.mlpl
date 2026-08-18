@@ -2,9 +2,15 @@ include "../../src/bytes/validate.mlpl";
 include "../../src/io/range_reader.mlpl";
 include "../../src/files/wc.mlpl";
 
-path = ".wc-demo-input.txt"; bytes = tokenize_bytes("alpha beta\r\ngamma\t delta\nfinal café"); write_bytes(path, bytes)?;
-one = u:wc_file(path, 1, 4096)?; seven = u:wc_file(path, 7, 4096)?; sixty_four = u:wc_file(path, 64, 4096)?; remove_path(path);
-empty = u:wc_bytes([])?; utf8 = u:wc_bytes(tokenize_bytes("café tea"))?;
+path = ".wc-demo-input.txt";
+bytes = tokenize_bytes("alpha beta\r\ngamma\t delta\nfinal café");
+write_bytes(path, bytes)?;
+one = u:wc_file(path, 1, 4096)?;
+seven = u:wc_file(path, 7, 4096)?;
+sixty_four = u:wc_file(path, 64, 4096)?;
+remove_path(path);
+empty = u:wc_bytes([])?;
+utf8 = u:wc_bytes(tokenize_bytes("café tea"))?;
 
 print("Bounded wc-like file demonstration");
 print("Purpose: count bytes, LF-terminated lines, logical lines, and ASCII-delimited words without retaining the whole file.");

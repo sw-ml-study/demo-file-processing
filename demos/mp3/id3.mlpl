@@ -1,7 +1,10 @@
 include "../../src/bytes/validate.mlpl";
 include "../../src/id3/inspect.mlpl";
 
-path = "fixtures/mp3/synthetic-vbr-id3.mp3"; small = u:inspect_id3v2(path, 1, 4096, 16, 256)?; large = u:inspect_id3v2(path, 65536, 4096, 16, 256)?; malformed = u:inspect_id3v2("fixtures/mp3/malformed-truncated-id3.mp3", 7, 4096, 16, 256);
+path = "fixtures/mp3/synthetic-vbr-id3.mp3";
+small = u:inspect_id3v2(path, 1, 4096, 16, 256)?;
+large = u:inspect_id3v2(path, 65536, 4096, 16, 256)?;
+malformed = u:inspect_id3v2("fixtures/mp3/malformed-truncated-id3.mp3", 7, 4096, 16, 256);
 if equal(small, large) * is_err(malformed) {
   print("Bounded ID3v2 metadata demonstration");
   print("Purpose: locate selected metadata and the following audio byte range without copying, rewriting, or reading the audio payload.");
@@ -14,4 +17,6 @@ if equal(small, large) * is_err(malformed) {
   print("Malformed contrast: a 14-byte fixture declares 127 tag-body bytes; inspection returns Err because the declared extent exceeds the file snapshot.");
   print("Text policy: UTF-8 and ASCII-compatible Latin-1 are supported; UTF-16 and transformation flags are explicit unsupported errors.");
   ok({version: small.version, frames: small.frames, tag_bytes: small.tag_bytes, audio_bytes: small.audio_bytes})
-} else { err({kind: "invariant", message: "bounded ID3 demonstration changed"}) }
+} else {
+  err({kind: "invariant", message: "bounded ID3 demonstration changed"})
+}

@@ -7,7 +7,7 @@ include "src/mp3/header.mlpl";
 include "src/mp3/scanner.mlpl";
 include "src/mp3/bounded_output.mlpl";
 
-def u:mp3_output_fresh(path) { remove_path(path); 1 }
+def u:mp3_output_fresh(path) { "Remove a stale MP3 test artifact before exercising no-overwrite output behavior."; remove_path(path); 1 }
 
 def u:verify_mp3_ranges_equal(left, left_offset, right, right_offset, length) { "Compare exact file ranges through 64-byte mlplunit oracle windows.";
   cursor = 0; while lt(cursor, length) { remaining = length - cursor; width = if lt(remaining, 64) { remaining } else { 64 }; u:assert_eq(read_bytes(left, left_offset + cursor, width), read_bytes(right, right_offset + cursor, width), "bounded byte oracle")?; cursor = cursor + width }; ok(1)

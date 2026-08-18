@@ -5,7 +5,8 @@ include "../../src/wav/model.mlpl";
 include "../../src/wav/parse.mlpl";
 include "../../src/wav/range_inspect.mlpl";
 
-path = list_get(args(), 0)?; size = file_size(path)?;
+path = list_get(args(), 0)?;
+size = file_size(path)?;
 wav = u:inspect_wav_ranges(path, 7, 8)?;
 if eq(wav.data_offset, 44) * eq(wav.data_bytes, size - 44) * eq(wav.frames, wav.data_bytes) * eq(wav.channels, 1) * eq(wav.sample_rate, 8000) * eq(wav.bits_per_sample, 8) {
   print("Sparse WAV range-inspection demonstration");
@@ -16,4 +17,6 @@ if eq(wav.data_offset, 44) * eq(wav.data_bytes, size - 44) * eq(wav.frames, wav.
   print("Output: data begins at byte", wav.data_offset, "and lasts", wav.duration_seconds, "seconds; sample payload retained: no.");
   print("Interpretation: metadata cost is independent of the declared audio payload because validated payload bytes are skipped by offset.");
   ok(wav)
-} else { err({kind: "invariant", message: "sparse WAV metadata changed"}) }
+} else {
+  err({kind: "invariant", message: "sparse WAV metadata changed"})
+}

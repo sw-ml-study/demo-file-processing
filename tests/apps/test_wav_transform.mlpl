@@ -9,7 +9,7 @@ include "src/wav/range_inspect.mlpl";
 include "src/wav/bounded_output.mlpl";
 include "src/apps/wav_transform.mlpl";
 
-def u:wav_tool_fresh(path) { remove_path(path); ok(1) }
+def u:wav_tool_fresh(path) { "Remove a stale test artifact so each transform assertion starts with a new destination."; remove_path(path); ok(1) }
 
 @test {name: "WAV transform application creates exact canonical copies", tags: ["apps", "wav", "transform", "copy"]}
 def u:test_wav_tool_copy() { "Require exact bytes for an already canonical source and semantic normalization for ancillary chunks.";
