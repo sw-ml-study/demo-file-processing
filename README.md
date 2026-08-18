@@ -15,8 +15,8 @@ when a runtime, codec extension, or validation oracle performs the work.
 ## Project status
 
 The foundation, bounded range analysis, MP3/ID3 and Ogg inspection, and
-sandboxed incremental file and binary stdout output are accepted with 120 native
-mlplunit tests across 35 suites. See [the bounded WAV transformation app](docs/wav-transform-app.md),
+sandboxed incremental file and binary stdout output are accepted with 124 native
+mlplunit tests across 36 suites. See [the bounded WAV transformation app](docs/wav-transform-app.md),
 [the structural media doctor](docs/media-doctor.md),
 [the unified media inspector](docs/media-inspector.md),
 [the interpreter media-apps acceptance report](docs/interpreter-media-apps-report.md),
@@ -102,6 +102,12 @@ The required end state is a bounded pipe, not merely pipe compatibility. The
 incremental raw-byte reads, explicit EOF, compiler parity, cross-chunk state,
 and growing-input RSS evidence. Slicing `read_stdin()` after EOF is explicitly
 not streaming.
+
+`just ls-like` displays real confined file metadata with deterministic names,
+portable kinds and logical sizes, exact Unix milliseconds, and UTC ISO text.
+It also demonstrates timestamp ties and unavailable values, while a macOS/Linux
+host oracle verifies live metadata and sandbox/symlink failures. See
+[docs/ls-like.md](docs/ls-like.md).
 
 The standalone assessment now accepts the whole-input wc stdin filter, while
 bounded stdin, file-path wc, grep, du, and format applications remain

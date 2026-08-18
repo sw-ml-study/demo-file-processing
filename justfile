@@ -175,6 +175,10 @@ du-like:
 compiled-wc:
     ./scripts/build-wc-stdin
 
+# Display confined live metadata plus deterministic tie/unavailable policies.
+ls-like:
+    ./scripts/run-ls-demo
+
 # Run the complete pre-commit gate.
 check:
     ./scripts/check

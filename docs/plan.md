@@ -284,7 +284,7 @@ The Unix-like application sequence now includes the accepted
 [standalone whole-input wc stdin filter](compiled-wc-stdin.md), the
 [bounded grep-like literal matcher](grep-like.md), then proceeds to
 the accepted [logical-size du-like traversal](du-like.md) and finally ls-like
-metadata display.
+metadata display, now accepted in [the confined ls report](ls-like.md).
 This order establishes chunked text state before traversal and leaves the
 live-date consumer until the rebuilt metadata interpreter is available.
 

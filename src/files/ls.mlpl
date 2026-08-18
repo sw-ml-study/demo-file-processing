@@ -1,0 +1,28 @@
+def u:ls_string_count(values) { "Count a string-list while accepting array-shaped empty literals.";
+  if equal(type_of(values), "string-list") { list_len(values) } else { if equal(type_of(values), "array") { if eq(tally(values), 0) { 0 } else { 0 - 1 } } else { 0 - 1 } }
+}
+
+def u:ls_kind_valid(kind) { "Accept the portable metadata kinds exposed by file_metadata.";
+  equal(kind, "file") + equal(kind, "dir") + equal(kind, "other")
+}
+
+def u:ls_kinds_valid(kinds, count, index) { "Validate one parallel list of metadata kinds.";
+  if eq(index, count) { 1 } else { u:ls_kind_valid(list_get(kinds, index)?) * u:ls_kinds_valid(kinds, count, index + 1) }
+}
+
+def u:ls_sizes_valid(sizes, index) { "Validate exact non-negative logical sizes.";
+  if eq(index, tally(sizes)) { 1 } else { u:range_exact_nonnegative(take(sizes, 0, index)) * u:ls_sizes_valid(sizes, index + 1) }
+}
+
+def u:ls_rows(paths, kinds, sizes, timestamps, available, max_entries) { "Validate portable ls metadata and return a deterministic date/path order.";
+  path_count = u:ls_string_count(paths); kind_count = u:ls_string_count(kinds);
+  if (1 - u:range_exact_nonnegative(max_entries)) + lt(path_count, 0) + lt(kind_count, 0) { err({kind: "shape", message: "ls requires string lists and an exact non-negative entry budget"}) } else { if (1 - equal(type_of(sizes), "array")) + (1 - equal(type_of(timestamps), "array")) + (1 - equal(type_of(available), "array")) + (1 - eq(rank(sizes), 1)) + (1 - eq(rank(timestamps), 1)) + (1 - eq(rank(available), 1)) { err({kind: "shape", message: "ls size timestamp and availability values must be vectors"}) } else { if (1 - eq(path_count, kind_count)) + (1 - eq(path_count, tally(sizes))) + (1 - eq(path_count, tally(timestamps))) + (1 - eq(path_count, tally(available))) { err({kind: "shape", message: "ls metadata fields must be parallel"}) } else { if gt(path_count, max_entries) { err({kind: "entries", message: "ls entries exceed max_entries"}) } else { if (1 - u:ls_kinds_valid(kinds, path_count, 0)) + (1 - u:ls_sizes_valid(sizes, 0)) { err({kind: "metadata", message: "ls kinds and logical sizes are invalid"}) } else { order = u:date_index_order(paths, timestamps, available)?; available_count = if eq(path_count, 0) { 0 } else { reduce_add(available) }; ok({paths: paths, kinds: kinds, sizes: sizes, timestamps: timestamps, available_flags: available, order: order, entries: path_count, available: available_count, unavailable: path_count - available_count}) } } } } }
+}
+
+def u:ls_root_valid(root) { "Accept one confined relative root label.";
+  equal(type_of(root), "string") * gt(str_len(root), 0) * (1 - equal(str_slice(root, 0, 1), "/")) * eq(str_find(root, ".."), 0 - 1)
+}
+
+def u:ls_live_files(root, max_entries) { "Acquire deterministic regular-file metadata through confined runtime primitives.";
+  if 1 - u:ls_root_valid(root) { err({kind: "root", message: "ls root must be a confined relative path without parent traversal"}) } else { if 1 - u:range_exact_nonnegative(max_entries) { err({kind: "budget", message: "ls max_entries must be an exact non-negative integer"}) } else { paths = fs_walk(root, {recursive: 0, kind: "file", pattern: "*"})?; count = list_len(paths); if gt(count, max_entries) { err({kind: "entries", message: "ls discovery returned more than max_entries"}) } else { sizes = []; timestamps = []; available = []; index = 0; while lt(index, count) { metadata = file_metadata(list_get(paths, index)?)?; if 1 - equal(metadata.kind, "file") { return err({kind: "metadata", message: "ls regular-file walk returned a non-file metadata kind"}) }; if (1 - u:range_exact_nonnegative(metadata.size)) + (1 - u:date_exact_ms(metadata.modified_unix_ms)) { return err({kind: "metadata", message: "ls runtime metadata contains an invalid size or timestamp"}) }; sizes = u:date_append(sizes, metadata.size); timestamps = u:date_append(timestamps, metadata.modified_unix_ms); available = u:date_append(available, 1); index = index + 1 }; order = u:date_index_order(paths, timestamps, available)?; ok({root: root, paths: paths, kind: "file", sizes: sizes, timestamps: timestamps, available_flags: available, date_order: order, entries: count}) } } }
+}

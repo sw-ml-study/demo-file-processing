@@ -170,8 +170,9 @@ downstream acceptance work after live acquisition is available.
    with root, entry, depth, and sum validation, plus a host oracle. Discovery
    remains materialized and allocated filesystem blocks are not claimed. See
    [the du-like report](du-like.md).
-4. `ls-like-demo` — deterministic kind/size/date rows reusing the date-index
-   library once a rebuilt interpreter exposes live metadata.
+4. `ls-like-demo` — **Accepted:** deterministic live kind/size/date rows,
+   synthetic tie/unavailable policy, host parity, and confinement errors reuse
+   the date-index library. See [the ls-like report](ls-like.md).
 5. `bounded-stdin-pipeline` — replace the whole-input compiled wc milestone
    after upstream supplies bounded byte chunks plus explicit EOF with
    interpreter/compiler parity; require host parity and growing-input RSS.

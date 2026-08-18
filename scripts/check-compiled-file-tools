@@ -20,5 +20,6 @@ expect_boundary() {
 expect_boundary wc-like "$repo_root/demos/files/wc.mlpl" 'check (the `?` operator) outside a Result-returning function'
 expect_boundary grep-like "$repo_root/demos/files/grep.mlpl" 'unsupported construct: fncall concat/2'
 expect_boundary du-like "$repo_root/demos/files/du.mlpl" 'unsupported construct: fncall to_string/1'
+expect_boundary ls-like "$repo_root/demos/files/ls.mlpl" 'unsupported construct: fncall to_string/1'
 
-echo "PASS narrated wc/grep/du demos retain exact entry/concat/to_string compiler boundaries"
+echo "PASS narrated wc/grep/du/ls demos retain exact entry/concat/to_string compiler boundaries"

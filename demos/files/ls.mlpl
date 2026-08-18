@@ -1,0 +1,31 @@
+include "../../src/bytes/validate.mlpl";
+include "../../src/io/range_reader.mlpl";
+include "../../src/files/date_index.mlpl";
+include "../../src/files/ls.mlpl";
+
+live = u:ls_live_files("fixtures/bytes", 8)?;
+p0 = list_get(live.paths, 0)?; p1 = list_get(live.paths, 1)?; p2 = list_get(live.paths, 2)?; p3 = list_get(live.paths, 3)?; p4 = list_get(live.paths, 4)?; p5 = list_get(live.paths, 5)?;
+s0 = take(live.sizes, 0, 0); s1 = take(live.sizes, 0, 1); s2 = take(live.sizes, 0, 2); s3 = take(live.sizes, 0, 3); s4 = take(live.sizes, 0, 4); s5 = take(live.sizes, 0, 5);
+t0 = take(live.timestamps, 0, 0); t1 = take(live.timestamps, 0, 1); t2 = take(live.timestamps, 0, 2); t3 = take(live.timestamps, 0, 3); t4 = take(live.timestamps, 0, 4); t5 = take(live.timestamps, 0, 5);
+
+synthetic = u:ls_rows(["models/zeta.bin", "models/alpha.bin", "offline/missing.bin"], ["file", "dir", "other"], [7,0,0], [1704067200123,1704067200123,0], [1,1,0], 3)?;
+alpha = take(synthetic.order, 0, 0); zeta = take(synthetic.order, 0, 1); missing = take(synthetic.order, 0, 2);
+
+print("Confined ls-like metadata demonstration");
+print("Purpose: display deterministic names, portable kinds, logical sizes, and exact UTC modification times from real metadata.");
+print("Live input: six regular files returned in UTF-8 lexical order by a non-recursive sandboxed walk.");
+print("Live row 1:", p0, "file", s0, "bytes", t0, "ms", u:unix_ms_iso(t0)?);
+print("Live row 2:", p1, "file", s1, "bytes", t1, "ms", u:unix_ms_iso(t1)?);
+print("Live row 3:", p2, "file", s2, "bytes", t2, "ms", u:unix_ms_iso(t2)?);
+print("Live row 4:", p3, "file", s3, "bytes", t3, "ms", u:unix_ms_iso(t3)?);
+print("Live row 5:", p4, "file", s4, "bytes", t4, "ms", u:unix_ms_iso(t4)?);
+print("Live row 6:", p5, "file", s5, "bytes", t5, "ms", u:unix_ms_iso(t5)?);
+print("Host oracle fields:", p0, s0, t0);
+print("Synthetic date order 1:", list_get(synthetic.paths, alpha)?, list_get(synthetic.kinds, alpha)?, u:unix_ms_iso(take(synthetic.timestamps, 0, alpha))?);
+print("Synthetic date order 2:", list_get(synthetic.paths, zeta)?, list_get(synthetic.kinds, zeta)?, u:unix_ms_iso(take(synthetic.timestamps, 0, zeta))?);
+print("Synthetic date order 3:", list_get(synthetic.paths, missing)?, list_get(synthetic.kinds, missing)?, "timestamp unavailable");
+print("Interpretation: tied timestamps use UTF-8 path order; unavailable timestamps sort last without inventing epoch zero.");
+print("Confinement: fs_walk and file_metadata share the source-root sandbox and never follow symlinks outside it; the checker proves missing and escape errors.");
+print("Platform policy: file/dir/other kinds, logical byte size, and UTC Unix milliseconds are portable; the checker compares host timestamp seconds on macOS or Linux.");
+print("Complexity: acquisition and validation are O(entries); date ordering uses O(entries^2) insertion sorting and O(entries) retained metadata.");
+ok({entries: live.entries, live_timestamp_values: tally(live.timestamps), synthetic_available: synthetic.available, synthetic_unavailable: synthetic.unavailable})
