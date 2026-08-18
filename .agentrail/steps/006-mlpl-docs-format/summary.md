@@ -1,0 +1,1 @@
+Formatted all 124 tracked MLPL files with the canonical upstream formatter, committed layout changes for 29 demos, added meaningful doc strings to all 24 previously undocumented functions, verified every definition now starts with documentation, and passed the full just check gate with 36 native mlplunit suites.

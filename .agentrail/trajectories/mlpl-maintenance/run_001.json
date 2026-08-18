@@ -1,0 +1,11 @@
+{
+  "task_type": "mlpl-maintenance",
+  "state": {
+    "number": 6,
+    "step": "mlpl-docs-format"
+  },
+  "action": "Inserted an Agentrail maintenance preemption; inspected the upstream formatter; formatted only this repository; audited definitions programmatically; added targeted documentation; ran formatter idempotence, diff checks, and full just check; committed named source and Agentrail files.",
+  "result": "success",
+  "reward": 1,
+  "timestamp": "2026-08-18T08:56:07"
+}
