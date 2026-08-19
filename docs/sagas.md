@@ -161,7 +161,7 @@ downstream acceptance work after live acquisition is available.
 
 1. `wc-like-demo` — bounded byte/LF-line/logical-line/ASCII-word counting with
    chunk invariance and explicit UTF-8 policy. **Accepted.** See
-   [the wc-like report](wc-like.md). A separate whole-input
+   [the wc-like report](wc-like.md). A separate bounded
    [compiled stdin filter](compiled-wc-stdin.md) is also accepted.
 2. `grep-like-demo` — accepted: bounded literal matching with cross-chunk
    lines/matches, line numbers, budgets, and explicit text policy. Documented
@@ -173,9 +173,10 @@ downstream acceptance work after live acquisition is available.
 4. `ls-like-demo` — **Accepted:** deterministic live kind/size/date rows,
    synthetic tie/unavailable policy, host parity, and confinement errors reuse
    the date-index library. See [the ls-like report](ls-like.md).
-5. `bounded-stdin-pipeline` — replace the whole-input compiled wc milestone
-   after upstream supplies bounded byte chunks plus explicit EOF with
-   interpreter/compiler parity; require host parity and growing-input RSS.
+5. `bounded-stdin-pipeline` — **Accepted:** `read_stdin_chunk(1)` plus explicit
+   EOF drives the compiled wc filter with cross-read word/UTF-8 state, total
+   budgeting, I/O error status, host parity, and complete 1 MiB/64 MiB RSS
+   evidence. See [the compiled stdin report](compiled-wc-stdin.md).
 
 ## Cross-saga rules
 

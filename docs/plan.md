@@ -281,15 +281,15 @@ parity without building a peer repository or approximating through `stat`.
 
 The Unix-like application sequence now includes the accepted
 [bounded wc-like counter](wc-like.md) and
-[standalone whole-input wc stdin filter](compiled-wc-stdin.md), the
+[standalone bounded wc stdin filter](compiled-wc-stdin.md), the
 [bounded grep-like literal matcher](grep-like.md), then proceeds to
 the accepted [logical-size du-like traversal](du-like.md) and finally ls-like
 metadata display, now accepted in [the confined ls report](ls-like.md).
 This order establishes chunked text state before traversal and leaves the
 live-date consumer until the rebuilt metadata interpreter is available.
 
-The compiled wc stdin artifact is a whole-input milestone, not the final
-pipeline. After ls, the queued bounded-stdin step waits for the
-[incremental byte-source contract](sw-mlpl-bounded-stdin-request.md), then
-reuses the accepted wc fold across true stdin chunks and requires growing-input
-RSS evidence before any streaming claim.
+The compiled wc stdin artifact now consumes true incremental byte chunks,
+preserves cross-read word state, enforces a total budget, propagates I/O errors,
+and has accepted 1 MiB/64 MiB RSS evidence. The
+[incremental byte-source contract](sw-mlpl-bounded-stdin-request.md) is
+delivered; later compiler work concerns the separate file-path applications.

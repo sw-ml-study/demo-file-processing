@@ -41,6 +41,20 @@ def u:wc_bytes(bytes) {
   }
 }
 
+def u:wc_stream_total(consumed, chunk_bytes, max_bytes) {
+  "Return the next exact stdin byte total or reject invalid counters and total-budget overflow.";
+  if (1 - u:range_exact_nonnegative(consumed)) + (1 - u:range_exact_nonnegative(chunk_bytes)) + (1 - u:range_exact_nonnegative(max_bytes)) {
+    err({kind: "budget", message: "wc stream counters and max_bytes must be exact non-negative integers"})
+  } else {
+    next = consumed + chunk_bytes;
+    if gt(next, max_bytes) {
+      err({kind: "budget", message: "wc stdin exceeds max_bytes"})
+    } else {
+      ok(next)
+    }
+  }
+}
+
 def u:wc_file(path, chunk_size, max_bytes) {
   "Count a file through caller-bounded range reads with a preflight byte budget.";
   if (1 - u:range_exact_nonnegative(chunk_size)) + eq(chunk_size, 0) {

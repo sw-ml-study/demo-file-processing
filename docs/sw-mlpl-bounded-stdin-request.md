@@ -1,5 +1,10 @@
 # sw-MLPL request: bounded incremental stdin
 
+Status: **delivered upstream and accepted downstream.** Upstream commit
+`e7240dba` supplies interpreter/compiler `read_stdin_chunk`; the compiled wc
+consumer passes cross-read, budget/error, host-oracle, and 1 MiB/64 MiB RSS
+acceptance. This document remains the contract record.
+
 ## Downstream requirement
 
 Standalone Unix-style filters must process pipes with memory bounded by a
@@ -60,10 +65,8 @@ Acceptance also requires a source-free compiled artifact with no parser/REPL
 runtime dependency. `write_stdout`/text diagnostics must preserve broken-pipe
 and other sink errors rather than silently succeeding.
 
-## Current evidence
+## Accepted evidence
 
-`demos/files/wc_stdin.mlpl` is a real compiled Unix filter, but it calls
-`tokenize_bytes(read_stdin())`. It is intentionally classified as a whole-input
-milestone with `O(total_input)` memory. The bounded file-path wc implementation
-already proves the correct cross-chunk counting state; only a bounded process
-source and compiler parity are missing for pipes.
+`demos/files/wc_stdin.mlpl` is now the accepted first consumer. It calls
+`read_stdin_chunk(1)` directly, preserves byte-oriented word state across every
+read, and does not tokenize or slice a whole-input `read_stdin()` value.

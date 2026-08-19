@@ -52,4 +52,14 @@ def u:test_wc_invalid() {
   ok(1)
 }
 
+@test {name: "wc-like stream budget accepts exact totals and rejects overflow", tags: ["files", "wc", "stdin", "budget"]}
+def u:test_wc_stream_budget() {
+  "Validate incremental totals before folding each newly read stdin chunk.";
+  u:assert_eq(u:wc_stream_total(7, 3, 10), ok(10), "exact total budget")?;
+  u:assert_err(u:wc_stream_total(7, 4, 10), "next chunk exceeds total budget")?;
+  u:assert_err(u:wc_stream_total(0, 1, 0), "zero total budget rejects input")?;
+  u:assert_err(u:wc_stream_total(0 - 1, 1, 10), "negative consumed count")?;
+  u:assert_err(u:wc_stream_total(0, 1.5, 10), "fractional chunk count")
+}
+
 u:run_registered_tests()

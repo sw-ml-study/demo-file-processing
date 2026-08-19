@@ -2,10 +2,12 @@
 
 ## Verdict
 
-**Accepted for one narrow whole-input application.** The selected development
-compiler produces a genuine native wc-style stdin filter with useful counts,
-host-oracle parity, and source-free execution. Bounded stdin, file-path wc,
-grep, du, hexdump, histogram, WAV, and Ogg applications remain unaccepted.
+**Accepted for one bounded stdin application.** The selected development
+compiler produces a genuine native wc-style filter using incremental raw-byte
+reads, scalar cross-read state, a total budget, propagated I/O failures,
+host-oracle parity, source-free execution, and measured bounded memory.
+File-path wc, grep, du, hexdump, histogram, WAV, and Ogg applications remain
+separately unaccepted.
 
 This is an evidence-complete assessment of the current boundary, not a
 successful standalone delivery. Interpreter applications and their bounded-I/O
@@ -15,17 +17,17 @@ claims remain accepted independently.
 
 | Requirement | Evidence | Result |
 |---|---|---|
-| Native executable exists | The wc stdin filter compiles and runs through pipes and redirection | Pass for the whole-input wc filter |
+| Native executable exists | The wc stdin filter compiles and runs through pipes and redirection | Pass for the bounded wc filter |
 | No source/parser/REPL runtime dependency | Controls run from a fresh source-free directory under `env -i`; dependency inspection finds no named parser/REPL/evaluator library | Pass for narrow controls only |
-| CLI arguments | `args` and `arg` lower | Pass for the narrow exact-output probes |
+| CLI arguments | The wc artifact accepts `--help` and rejects unknown/extra arguments with usage and non-zero status | Pass for the bounded wc artifact; numeric chunk/budget parsing remains a separate lowering limitation |
 | Pristine binary stdout | `write_stdout([0,255])` lowers | Pass: generated `main` emits exactly bytes `00 ff` with no result trailer |
 | Byte validation | Interpreter rejects invalid bytes | Pass for probe: compiler exits nonzero, emits the diagnostic on stderr, and writes no binary bytes |
-| Output errors | Interpreter returns errors | Fail: compiled runtime discards write/flush failures |
+| Output errors | The wc filter uses Result-valued `write_stdout`; a deliberately closed consumer produces a non-zero status and diagnostic | Pass for the wc artifact; other sinks remain application-specific |
 | stdin/stderr/exit | Exact interpreter probe passes | Partial: all lower and effect results no longer add trailers; broader application parity remains unaccepted |
 | Source loading | Actual applications compile with the repository passed as `--source-dir` | Pass: include graphs expand and reach lowering |
 | User application code | Real expanded and dependency-concatenated demos lower functions, control flow, Results, records, comparisons, tally, indexing, and equality | Partial: remaining demos diverge at entry shape, `pow/2`, `fill/2`, `concat/2`, or `to_string/1` |
 | Byte and format I/O | Read/append and bit probes compile and match expected values/bytes | Partial: full application parity still waits on later operations and process semantics |
-| wc stdin artifact | Mixed, empty, and terminated inputs plus host `wc` oracle | Pass; whole-input memory only |
+| wc stdin artifact | Mixed, empty, terminated, one-byte UTF-8/word splits, budget exit, sink failure, host `wc`, and 1 MiB/64 MiB RSS | Pass; bounded incremental input with measured `O(chunk_size)` payload memory |
 | Hexdump/histogram artifact | Actual demos and flattened equivalents are attempted | Fail before artifact production |
 | WAV/Ogg artifact | Bounded copy/rewrite demos and flattened equivalents are attempted | Fail before artifact production |
 | Clean application audit | wc artifact runs under `env -i`; dependency inspection rejects named parser/REPL/evaluator libraries | Pass for wc stdin artifact |
@@ -34,9 +36,11 @@ claims remain accepted independently.
 
 The default `just check` gate now includes:
 
-- 124 native mlplunit tests across 36 suites, including the later unified media
+- 125 native mlplunit tests across 36 suites, including the later unified media
   inspector, structural media doctor, and WAV transformation app coverage;
 - exact interpreter process and binary-stdout contracts;
+- bounded compiled stdin with explicit EOF, cross-read state, total budgeting,
+  sink/read error propagation, host parity, and growing-input RSS evidence;
 - numeric/arithmetic compiler parity;
 - exact partial `args`/`arg`/`write_stdout` compiler behavior;
 - positive source/function/control-flow/Result/record/I/O/comparison lowering

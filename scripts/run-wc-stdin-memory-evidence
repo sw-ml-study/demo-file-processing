@@ -1,0 +1,71 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+scratch=$(mktemp -d "${TMPDIR:-/tmp}/demo-file-wc-memory.XXXXXX")
+trap 'rm -rf "$scratch"' EXIT HUP INT TERM
+
+binary=$($repo_root/scripts/build-wc-stdin)
+small_bytes=1048576
+large_bytes=67108864
+chunk_bytes=1
+max_rss_bytes=50331648
+max_growth_bytes=8388608
+
+truncate -s "$small_bytes" "$scratch/small.bin"
+truncate -s "$large_bytes" "$scratch/large.bin"
+
+echo "Bounded compiled wc stdin peak-memory acceptance"
+echo "Purpose: compare native filter RSS while stdin grows 64-fold at a fixed one-byte buffer."
+echo "Inputs: $small_bytes and $large_bytes zero bytes; total budget: $large_bytes bytes."
+echo "Acceptance: host-equivalent counts, RSS at most $max_rss_bytes bytes, and growth at most $max_growth_bytes bytes."
+
+measure() {
+  label=$1
+  input=$2
+  expected_bytes=$3
+  stdout_file="$scratch/$label.out"
+  metrics_file="$scratch/$label.time"
+  case $(uname -s) in
+    Darwin)
+      /usr/bin/time -l "$binary" <"$input" >"$stdout_file" 2>"$metrics_file"
+      rss=$(awk '/maximum resident set size/ { print $1; exit }' "$metrics_file")
+      ;;
+    Linux)
+      /usr/bin/time -v "$binary" <"$input" >"$stdout_file" 2>"$metrics_file"
+      rss_kib=$(awk -F: '/Maximum resident set size/ { gsub(/^[ \t]+/, "", $2); print $2; exit }' "$metrics_file")
+      rss=$((rss_kib * 1024))
+      ;;
+    *)
+      echo "SKIP compiled wc memory evidence: /usr/bin/time parser supports Darwin and Linux only" >&2
+      exit 77
+      ;;
+  esac
+  grep -Fqx 'lines words bytes' "$stdout_file"
+  grep -Fqx "| 0 1 $expected_bytes |" "$stdout_file"
+  host=$(wc -l -w -c <"$input" | awk '{ print $1, $2, $3 }')
+  [ "$host" = "0 1 $expected_bytes" ]
+  [ -n "$rss" ] || {
+    echo "peak RSS was not reported" >&2
+    cat "$metrics_file" >&2
+    exit 1
+  }
+  echo "$rss" >"$scratch/$label.rss"
+  echo "MEASURE $label input_bytes=$expected_bytes chunk_bytes=$chunk_bytes peak_rss_bytes=$rss"
+}
+
+measure stdin-small "$scratch/small.bin" "$small_bytes"
+measure stdin-large "$scratch/large.bin" "$large_bytes"
+
+small_rss=$(cat "$scratch/stdin-small.rss")
+large_rss=$(cat "$scratch/stdin-large.rss")
+growth=$((large_rss - small_rss))
+[ "$growth" -ge 0 ] || growth=0
+[ "$small_rss" -le "$max_rss_bytes" ]
+[ "$large_rss" -le "$max_rss_bytes" ]
+[ "$growth" -le "$max_growth_bytes" ]
+[ "$large_bytes" -gt "$max_rss_bytes" ]
+
+echo "Measured result: small-input RSS=$small_rss bytes; large-input RSS=$large_rss bytes; non-negative growth=$growth bytes."
+echo "Interpretation: 64-fold stdin growth stayed within fixed absolute and growth ceilings while counts matched host wc."
+echo "ACCEPT bounded compiled wc stdin chunk_bytes=$chunk_bytes ceiling_bytes=$max_rss_bytes growth_ceiling_bytes=$max_growth_bytes"

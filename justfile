@@ -171,9 +171,13 @@ grep-like:
 du-like:
     ./scripts/run-du-demo
 
-# Compile the whole-stdin wc-style filter to target/demo-bin/mlpl-wc.
+# Compile the bounded incremental wc-style filter to target/demo-bin/mlpl-wc.
 compiled-wc:
     ./scripts/build-wc-stdin
+
+# Measure compiled wc RSS for 1 MiB versus 64 MiB incremental stdin.
+compiled-wc-memory-evidence:
+    ./scripts/run-wc-stdin-memory-evidence
 
 # Display confined live metadata plus deterministic tie/unavailable policies.
 ls-like:

@@ -42,6 +42,8 @@ presented as demonstrations.
 | `just media-inspect [path]` | bounded WAV, Ogg, MP3/ID3, or unknown dispatch | how signature evidence selects a parser and how to read the stable common result plus format-specific facts |
 | `just media-doctor` | healthy, warning, recoverable damage, rejection, and unknown cases | why each structural status permits or forbids a specific next action without claiming codec validity |
 | `just wav-transform [source] [destination] [mode] [chunk-size]` | real canonical copy or unsigned-8-bit inversion artifact | how arguments, bounded writes, layout normalization, sample previews, cleanup, and semantic verification explain the output |
+| `just compiled-wc` | standalone native LF-line, ASCII-word, and byte filter | how a one-byte stdin buffer carries word state across every read without whole-input retention |
+| `just compiled-wc-memory-evidence` | complete 1 MiB versus 64 MiB native stdin folds | how host-equivalent counts and fixed RSS distinguish bounded buffering from mere pipe compatibility |
 | `just bounded-output-memory-evidence` | 1 MiB versus 64 MiB exact file outputs | how 64× output growth compares with fixed chunk state and measured peak RSS |
 | `just stdout-memory-evidence` | 1 MiB versus 64 MiB redirected binary stdout | how exact non-seekable output growth compares with fixed chunk state and RSS |
 | `just mp3-oracle` | checksum/version-pinned decodable tone | why structural Xing frames differ from decoded packets and presentation duration |

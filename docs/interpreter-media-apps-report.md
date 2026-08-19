@@ -54,7 +54,7 @@ primitives.
 
 The final `just check` gate passes:
 
-- 124 native mlplunit tests across 36 suites;
+- 125 native mlplunit tests across 36 suites;
 - all three application narration/artifact oracles;
 - exact process and interpreter binary-stdout contracts;
 - byte, WAV, MP3/ID3, Ogg page/packet/CRC, bounded file/stdout output, and demo

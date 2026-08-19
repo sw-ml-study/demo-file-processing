@@ -11,17 +11,73 @@ if ! "$mlpl_build" "$repo_root/demos/files/wc_stdin.mlpl" -o "$scratch/mlpl-wc" 
   exit 1
 fi
 
+# Compile the identical runner with a deliberately tiny policy constant so the
+# total-budget exit path remains cheap enough for the default gate.
+sed 's/max_bytes = 67108864;/max_bytes = 4;/' "$repo_root/demos/files/wc_stdin.mlpl" >"$scratch/wc-budget.mlpl"
+if ! "$mlpl_build" "$scratch/wc-budget.mlpl" -o "$scratch/mlpl-wc-budget" --source-dir "$repo_root" >"$scratch/budget-build.out" 2>"$scratch/budget-build.err"; then
+  cat "$scratch/budget-build.err" >&2
+  exit 1
+fi
+
 printf 'alpha beta\r\ngamma\t delta\nfinal café' | env -i PATH=/usr/bin:/bin "$scratch/mlpl-wc" >"$scratch/mixed.out"
 printf '' | env -i PATH=/usr/bin:/bin "$scratch/mlpl-wc" >"$scratch/empty.out"
 printf 'one two\n' | env -i PATH=/usr/bin:/bin "$scratch/mlpl-wc" >"$scratch/terminated.out"
+
+# A one-byte runtime buffer necessarily splits both UTF-8 bytes and every
+# multi-byte word across reads, proving state is carried without decoding or
+# retaining any earlier byte.
+printf 'aé z\n' >"$scratch/split.in"
+env -i PATH=/usr/bin:/bin "$scratch/mlpl-wc" <"$scratch/split.in" >"$scratch/split.out"
+env -i PATH=/usr/bin:/bin "$scratch/mlpl-wc" --help >"$scratch/help.out"
 
 grep -Fqx 'lines words bytes' "$scratch/mixed.out"
 grep -Fqx '| 2 6 36 |' "$scratch/mixed.out"
 grep -Fqx '| 0 0 0 |' "$scratch/empty.out"
 grep -Fqx '| 1 2 8 |' "$scratch/terminated.out"
+grep -Fqx '| 1 2 6 |' "$scratch/split.out"
+grep -Fqx 'usage: mlpl-wc [--help]' "$scratch/help.out"
+grep -Fqx 'stdin limit: 67108864 bytes; buffer: 1 byte' "$scratch/help.out"
+
+if "$scratch/mlpl-wc" unexpected >"$scratch/args.out" 2>"$scratch/args.err"; then
+  echo "compiled wc unexpectedly accepted an unknown argument" >&2
+  exit 1
+fi
+[ ! -s "$scratch/args.out" ]
+grep -Fq 'usage: mlpl-wc [--help]' "$scratch/args.err"
 
 host_counts=$(printf 'alpha beta\r\ngamma\t delta\nfinal café' | wc -l -w -c | awk '{ print $1, $2, $3 }')
 [ "$host_counts" = '2 6 36' ]
+split_host_counts=$(wc -l -w -c <"$scratch/split.in" | awk '{ print $1, $2, $3 }')
+[ "$split_host_counts" = '1 2 6' ]
+
+if printf 'abcde' | "$scratch/mlpl-wc-budget" >"$scratch/budget.out" 2>"$scratch/budget.err"; then
+  echo "compiled wc unexpectedly accepted stdin beyond its total-byte budget" >&2
+  exit 1
+else
+  status=$?
+fi
+[ "$status" -eq 2 ]
+[ ! -s "$scratch/budget.out" ]
+grep -Fq 'mlpl-wc: stdin exceeds' "$scratch/budget.err"
+
+# A consumer that immediately closes the pipe forces write_stdout to return
+# Err; bash pipefail exposes the producer status rather than dd's status.
+truncate -s 65536 "$scratch/stdout-delay.in"
+if /bin/bash -o pipefail -c '"$1" <"$2" | dd of=/dev/null bs=1 count=0 2>/dev/null' _ "$scratch/mlpl-wc" "$scratch/stdout-delay.in" 2>"$scratch/stdout.err"; then
+  echo "compiled wc unexpectedly ignored a closed stdout pipe" >&2
+  exit 1
+fi
+grep -Fq 'write_stdout:' "$scratch/stdout.err"
+
+grep -Fq 'chunk_size = 1' "$repo_root/demos/files/wc_stdin.mlpl"
+grep -Fq 'read_stdin_chunk(chunk_size)' "$repo_root/demos/files/wc_stdin.mlpl" || {
+  echo "compiled wc must use the bounded incremental stdin primitive" >&2
+  exit 1
+}
+if grep -Fq 'read_stdin()' "$repo_root/demos/files/wc_stdin.mlpl"; then
+  echo "compiled wc must not materialize whole stdin" >&2
+  exit 1
+fi
 
 if command -v otool >/dev/null 2>&1; then
   otool -L "$scratch/mlpl-wc" >"$scratch/libs"
@@ -31,4 +87,4 @@ elif command -v ldd >/dev/null 2>&1; then
   ! grep -Eq 'mlpl-repl|mlpl-parser|mlpl-eval' "$scratch/libs"
 fi
 
-echo "PASS standalone compiled wc stdin filter, host oracle, and source-free execution"
+echo "PASS standalone bounded compiled wc stdin filter, cross-chunk UTF-8/word state, host oracles, and source-free execution"

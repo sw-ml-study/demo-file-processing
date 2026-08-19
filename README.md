@@ -15,7 +15,7 @@ when a runtime, codec extension, or validation oracle performs the work.
 ## Project status
 
 The foundation, bounded range analysis, MP3/ID3 and Ogg inspection, and
-sandboxed incremental file and binary stdout output are accepted with 124 native
+sandboxed incremental file and binary stdout output are accepted with 125 native
 mlplunit tests across 36 suites. See [the bounded WAV transformation app](docs/wav-transform-app.md),
 [the structural media doctor](docs/media-doctor.md),
 [the unified media inspector](docs/media-inspector.md),
@@ -93,15 +93,17 @@ result. See [docs/du-like.md](docs/du-like.md).
 
 `just compiled-wc` produces the genuine standalone stdin filter
 `target/demo-bin/mlpl-wc`. It counts LF lines, ASCII-delimited words, and UTF-8
-encoding bytes, passes a host `wc` oracle and source-free execution audit, and
-honestly remains whole-input because compiled `read_stdin()` reads through EOF.
+encoding bytes through `read_stdin_chunk(1)`, passes host `wc`, cross-read UTF-8
+and word-state, budget/exit, sink-error, and source-free execution audits, and
+never materializes whole stdin. `just compiled-wc-memory-evidence` measures
+complete 1 MiB and 64 MiB inputs with no positive RSS growth.
 See [docs/compiled-wc-stdin.md](docs/compiled-wc-stdin.md).
 
-The required end state is a bounded pipe, not merely pipe compatibility. The
+The bounded pipe contract is now delivered and accepted. The
 [upstream bounded-stdin contract](docs/sw-mlpl-bounded-stdin-request.md) requires
 incremental raw-byte reads, explicit EOF, compiler parity, cross-chunk state,
-and growing-input RSS evidence. Slicing `read_stdin()` after EOF is explicitly
-not streaming.
+and growing-input RSS evidence; the compiled wc filter exercises each item.
+Slicing `read_stdin()` after EOF remains explicitly non-streaming.
 
 `just ls-like` displays real confined file metadata with deterministic names,
 portable kinds and logical sizes, exact Unix milliseconds, and UTC ISO text.
@@ -109,10 +111,10 @@ It also demonstrates timestamp ties and unavailable values, while a macOS/Linux
 host oracle verifies live metadata and sandbox/symlink failures. See
 [docs/ls-like.md](docs/ls-like.md).
 
-The standalone assessment now accepts the whole-input wc stdin filter, while
-bounded stdin, file-path wc, grep, du, and format applications remain
-unaccepted. The default gate preserves their exact current compiler failures so
-future upstream support triggers positive parity work.
+The standalone assessment now accepts the bounded wc stdin filter. Compiled
+file-path wc, grep, du, and format applications remain separately unaccepted.
+The default gate preserves their exact current compiler failures so future
+upstream support triggers positive parity work.
 
 The [binary stdout contract](docs/write-stdout.md) verifies exact bytes, counts,
 multi-call ordering, empty/scalar writes, validation errors, and stderr
@@ -252,6 +254,8 @@ just ogg-oracle
 just wav-inspect-copy
 just wav-range-inspect
 just wav-bounded-output
+just compiled-wc
+just compiled-wc-memory-evidence
 just sparse-memory-evidence
 just bounded-output-memory-evidence
 just stdout-memory-evidence

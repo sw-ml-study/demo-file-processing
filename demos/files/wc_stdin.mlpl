@@ -1,21 +1,50 @@
-bytes = tokenize_bytes(read_stdin());
-byte_count = tally(bytes);
-line_sum = reduce_add(eq(bytes, 10));
-lines = if eq(byte_count, 0) {
-  0
-} else {
-  line_sum
-};
-index = 0;
-words = 0;
-in_word = 0;
-while lt(index, byte_count) {
-  byte = take(bytes, 0, index);
-  whitespace = eq(byte, 9) + eq(byte, 10) + eq(byte, 11) + eq(byte, 12) + eq(byte, 13) + eq(byte, 32);
-  starts_word = (1 - whitespace) * (1 - in_word);
-  words = words + starts_word;
-  in_word = 1 - whitespace;
-  index = index + 1
-};
-print("lines words bytes");
-disp([lines, words, byte_count])
+def u:wc_stdin() {
+  "Count piped stdin incrementally with a one-byte buffer and 64 MiB total-byte budget.";
+  chunk_size = 1;
+  max_bytes = 67108864;
+  bytes = 0;
+  lines = 0;
+  words = 0;
+  in_word = 0;
+  more = 1;
+  while more {
+    chunk = read_stdin_chunk(chunk_size)?;
+    chunk_bytes = tally(chunk.bytes);
+    next_total = bytes + chunk_bytes;
+    if gt(next_total, max_bytes) {
+      eprint("mlpl-wc: stdin exceeds the 67108864-byte budget");
+      exit(2)
+    };
+    index = 0;
+    while lt(index, chunk_bytes) {
+      byte = take(chunk.bytes, 0, index);
+      whitespace = eq(byte, 9) + eq(byte, 10) + eq(byte, 11) + eq(byte, 12) + eq(byte, 13) + eq(byte, 32);
+      starts_word = (1 - whitespace) * (1 - in_word);
+      lines = lines + eq(byte, 10);
+      words = words + starts_word;
+      in_word = 1 - whitespace;
+      index = index + 1
+    };
+    bytes = next_total;
+    more = 1 - chunk.eof
+  };
+  write_stdout("lines words bytes\n")?;
+  write_stdout(str_concat(disp([lines, words, bytes]), "\n"))?;
+  ok(1)
+}
+
+def u:wc_stdin_main() {
+  "Handle the optional --help CLI argument before consuming stdin.";
+  mode = arg(0);
+  extra = arg(1);
+  if equal(mode, "--help") * equal(extra, "") {
+    write_stdout("usage: mlpl-wc [--help]\nstdin limit: 67108864 bytes; buffer: 1 byte\n")?;
+    return ok(1)
+  };
+  if (1 - equal(mode, "")) + (1 - equal(extra, "")) {
+    return err("usage: mlpl-wc [--help]")
+  };
+  u:wc_stdin()
+}
+
+u:wc_stdin_main()
