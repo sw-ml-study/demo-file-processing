@@ -1,9 +1,10 @@
 number = 8
 slug = "bounded-stdin-pipeline"
-status = "in-progress"
+status = "completed"
 description = "After upstream ships an interpreter-and-compiler-parity byte-oriented increme..."
 role = "production"
 context_files = []
 created_at = "2026-08-17T15:13:09"
+completed_at = "2026-08-18T18:56:30"
 task_type = "mlpl-application"
-commits = []
+commits = ["bbffb05877b2c426e742a6ca5dec584bbac60a30"]
